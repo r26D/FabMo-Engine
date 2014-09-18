@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en"><head><title>log</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="log"><meta name="groc-project-path" content="log.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">log.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);
+<span class="hljs-keyword">var</span> process = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>);
+<span class="hljs-keyword">try</span> { <span class="hljs-keyword">var</span> colors = <span class="hljs-built_in">require</span>(<span class="hljs-string">'colors'</span>); } <span class="hljs-keyword">catch</span>(e) {<span class="hljs-keyword">var</span> colors = <span class="hljs-literal">false</span>;}
+
+
+
+LEVELS = {
+	<span class="hljs-string">'debug'</span> : <span class="hljs-number">0</span>,
+	<span class="hljs-string">'info'</span> : <span class="hljs-number">1</span>,
+	<span class="hljs-string">'warn'</span> : <span class="hljs-number">2</span>,
+	<span class="hljs-string">'error'</span> : <span class="hljs-number">3</span>,
+};
+
+LOG_LEVELS = {
+	<span class="hljs-string">'g2'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'gcode'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'sbp'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'machine'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'manual'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'api'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'detection'</span> :<span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'config_loader'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'settings'</span> : <span class="hljs-string">'debug'</span>,
+	<span class="hljs-string">'log'</span>:<span class="hljs-string">'debug'</span>
+};
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setGlobalLevel</span><span class="hljs-params">(lvl)</span>{</span>
+	<span class="hljs-keyword">if</span> (lvl)
+	{
+		<span class="hljs-keyword">if</span> (lvl &gt;= <span class="hljs-number">0</span> &amp;&amp; lvl &lt;= <span class="hljs-number">3</span>)
+		{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>assign the log level to the string equivalent of the integer </p></div></div><div class="code"><div class="wrapper">			<span class="hljs-built_in">Object</span>.keys(LOG_LEVELS).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key)</span> {</span>
+	  			LOG_LEVELS[key] = <span class="hljs-built_in">Object</span>.keys(LEVELS).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key)</span> {</span><span class="hljs-keyword">return</span> (LEVELS[key] === lvl);})[<span class="hljs-number">0</span>];
+	  		});
+		}
+		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Object</span>.keys(LEVELS).indexOf(lvl) &gt;= <span class="hljs-number">0</span>) <span class="hljs-comment">// if a string</span>
+		{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p> assign the log level to the string that is given </p></div></div><div class="code"><div class="wrapper">			<span class="hljs-built_in">Object</span>.keys(LOG_LEVELS).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key)</span> {</span>
+	  			LOG_LEVELS[key] = lvl;
+	  		});
+		}
+		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (lvl === <span class="hljs-string">"none"</span>)
+		{
+			<span class="hljs-keyword">return</span>;
+		}
+		<span class="hljs-keyword">else</span>
+		{
+			logger(<span class="hljs-string">'log'</span>).warn(<span class="hljs-string">'wrong debug level for logging !'</span>);
+		}
+	}
+}
+
+
+<span class="hljs-keyword">var</span> logs = {};
+
+<span class="hljs-keyword">var</span> Logger = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(name)</span> {</span>
+	<span class="hljs-keyword">this</span>.name = name;
+};
+
+Logger.prototype.write = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(level, msg)</span> {</span>
+	my_level = LOG_LEVELS[<span class="hljs-keyword">this</span>.name] || <span class="hljs-string">'debug'</span>;
+	<span class="hljs-keyword">if</span>((LEVELS[level] || <span class="hljs-number">0</span>) &gt;= (LEVELS[my_level] || <span class="hljs-number">0</span>)) {
+		<span class="hljs-keyword">if</span>(colors) {
+			<span class="hljs-keyword">switch</span>(level) {
+				<span class="hljs-keyword">case</span> <span class="hljs-string">'debug'</span>:
+					console.log((level + <span class="hljs-string">': '</span>).blue + msg+<span class="hljs-string">' ['</span>+<span class="hljs-keyword">this</span>.name+<span class="hljs-string">']'</span>);
+					<span class="hljs-keyword">break</span>;
+				<span class="hljs-keyword">case</span> <span class="hljs-string">'info'</span>:
+					console.log((level + <span class="hljs-string">': '</span>).green + msg+<span class="hljs-string">' ['</span>+<span class="hljs-keyword">this</span>.name+<span class="hljs-string">']'</span>);
+					<span class="hljs-keyword">break</span>;
+				<span class="hljs-keyword">case</span> <span class="hljs-string">'warn'</span>:
+					console.log((level + <span class="hljs-string">': '</span>).yellow + msg+<span class="hljs-string">' ['</span>+<span class="hljs-keyword">this</span>.name+<span class="hljs-string">']'</span>);
+					<span class="hljs-keyword">break</span>;
+				<span class="hljs-keyword">case</span> <span class="hljs-string">'error'</span>:
+					console.log((level + <span class="hljs-string">': '</span>).red + msg+<span class="hljs-string">' ['</span>+<span class="hljs-keyword">this</span>.name+<span class="hljs-string">']'</span>);
+					<span class="hljs-keyword">break</span>;
+			}
+		} <span class="hljs-keyword">else</span> {
+			console.log(level + <span class="hljs-string">': '</span> + msg+<span class="hljs-string">' ['</span>+<span class="hljs-keyword">this</span>.name+<span class="hljs-string">']'</span>);
+		}
+	}
+};
+
+Logger.prototype.debug = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> {</span>
+	<span class="hljs-keyword">this</span>.write(<span class="hljs-string">'debug'</span>, msg);
+};
+
+Logger.prototype.info = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> {</span>
+	<span class="hljs-keyword">this</span>.write(<span class="hljs-string">'info'</span>, msg);
+};
+
+Logger.prototype.warn = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> {</span>
+	<span class="hljs-keyword">this</span>.write(<span class="hljs-string">'warn'</span>, msg);
+};
+
+Logger.prototype.error = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> {</span>
+	<span class="hljs-keyword">this</span>.write(<span class="hljs-string">'error'</span>, msg);
+};
+
+<span class="hljs-keyword">var</span> logger = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(name)</span> {</span>
+	<span class="hljs-keyword">if</span>(name <span class="hljs-keyword">in</span> logs) {
+		<span class="hljs-keyword">return</span> logs[name];
+	} <span class="hljs-keyword">else</span> {
+		l = <span class="hljs-keyword">new</span> Logger(name);
+		logs[name] = l;
+		<span class="hljs-keyword">return</span> l;
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>process.on(&#39;uncaughtException&#39;, function(err) {
+    if(colors) {
+        console.log(err.red);
+    }
+    else {
+        console.log(err);
+    }</p>
+<p>});</p></div></div><div class="code"><div class="wrapper">exports.logger = logger;
+exports.setGlobalLevel = setGlobalLevel;
+ </div></div></div></div></body></html>

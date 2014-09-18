@@ -1,0 +1,1476 @@
+<!DOCTYPE html><html lang="en"><head><title>opensbp</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="opensbp"><meta name="groc-project-path" content="opensbp.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">opensbp.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);
+<span class="hljs-keyword">var</span> parser = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./parser'</span>);
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'sbp'</span>);
+<span class="hljs-keyword">var</span> g2 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./g2'</span>);
+<span class="hljs-keyword">var</span> sbp_settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./sbp_settings'</span>);
+<span class="hljs-keyword">var</span> sb3_commands = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./data/sb3_commands'</span>);
+
+<span class="hljs-keyword">var</span> SYSVAR_RE = <span class="hljs-regexp">/\%\(([0-9]+)\)/i</span> ;
+<span class="hljs-keyword">var</span> USERVAR_RE = <span class="hljs-regexp">/\&amp;([a-zA-Z_]+[A-Za-z0-9_]*)/i</span> ;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">SBPRuntime</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>.program = [];
+	<span class="hljs-keyword">this</span>.pc = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.start_of_the_chunk = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.user_vars = {};
+	<span class="hljs-keyword">this</span>.label_index = {};
+	<span class="hljs-keyword">this</span>.stack = [];
+	<span class="hljs-keyword">this</span>.current_chunk = [];
+	<span class="hljs-keyword">this</span>.running = <span class="hljs-literal">false</span>;
+	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posz = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posa = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posb = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posc = <span class="hljs-number">0</span>; 
+}
+
+SBPRuntime.prototype.connect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(machine)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine = machine;
+	<span class="hljs-keyword">this</span>.driver = machine.driver;
+	<span class="hljs-keyword">this</span>.machine.status.line=<span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.machine.status.nb_lines=<span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>._update();
+	<span class="hljs-keyword">this</span>.status_handler = <span class="hljs-keyword">this</span>._onG2Status.bind(<span class="hljs-keyword">this</span>);
+	<span class="hljs-keyword">this</span>.driver.on(<span class="hljs-string">'status'</span>, <span class="hljs-keyword">this</span>.status_handler);
+	log.info(<span class="hljs-string">'Connected ShopBot runtime.'</span>);
+};
+
+SBPRuntime.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	log.info(<span class="hljs-string">'Disconnected ShopBot runtime.'</span>);
+	<span class="hljs-keyword">this</span>.driver.removeListener(<span class="hljs-keyword">this</span>.status_handler);
+};
+
+SBPRuntime.prototype._onG2Status = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(status)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Update our copy of the system status</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> key <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.machine.status) {
+		<span class="hljs-keyword">if</span>(key <span class="hljs-keyword">in</span> status) {
+			<span class="hljs-keyword">if</span>(key===<span class="hljs-string">'line'</span>){
+				<span class="hljs-keyword">this</span>.machine.status.line=<span class="hljs-keyword">this</span>.start_of_the_chunk + status.line; 
+			}
+			<span class="hljs-keyword">else</span>{
+				<span class="hljs-keyword">this</span>.machine.status[key] = status[key];
+			}
+		}
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Run the provided string as a program</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.runString = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(s)</span> {</span>
+	<span class="hljs-keyword">try</span> {
+		<span class="hljs-keyword">var</span> lines =  s.split(<span class="hljs-string">'\n'</span>);
+		<span class="hljs-keyword">this</span>.machine.status.nb_lines = lines.length - <span class="hljs-number">1</span>;
+		<span class="hljs-keyword">this</span>.program = parser.parse(s);
+		lines = <span class="hljs-keyword">this</span>.program.length;
+		<span class="hljs-keyword">this</span>.machine.status.nb_lines = lines.length - <span class="hljs-number">1</span>;
+		<span class="hljs-keyword">this</span>._analyzeLabels();  <span class="hljs-comment">// Build a table of labels</span>
+		<span class="hljs-keyword">this</span>._analyzeGOTOs();   <span class="hljs-comment">// Check all the GOTO/GOSUBs against the label table    </span>
+		<span class="hljs-keyword">this</span>._run();
+	} <span class="hljs-keyword">catch</span>(err) {
+		log.error(err);
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Update the internal state of the runtime with data from the tool</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._update = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	status = <span class="hljs-keyword">this</span>.machine.status || {};
+	<span class="hljs-keyword">this</span>.posx = status.posx || <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.posy = status.posy || <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.posz = status.posz || <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.posa = status.posa || <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.posb = status.posb || <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.posc = status.posc || <span class="hljs-number">0.0</span>;
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Evaluate a list of arguments provided (for commands)</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._evaluateArguments = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(command, args)</span> {</span>
+	log.debug(<span class="hljs-string">"Evaluating arguments: "</span> + command + <span class="hljs-string">","</span> + <span class="hljs-built_in">JSON</span>.stringify(args));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Scrub the argument list:  extend to the correct length, sub in defaults where necessary.</p></div></div><div class="code"><div class="wrapper">	scrubbed_args = [];
+	<span class="hljs-keyword">if</span>(command <span class="hljs-keyword">in</span> sb3_commands) {
+		params = sb3_commands[command].params || [];
+		<span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>; i&lt;params.length; i++) {
+			prm_param = params[i];
+			user_param = args[i];
+			log.debug(<span class="hljs-string">"!!!: "</span> + args[i]);
+			<span class="hljs-keyword">if</span>((args[i] !== <span class="hljs-literal">undefined</span>) &amp;&amp; (args[i] !== <span class="hljs-string">""</span>)) {
+				log.debug(<span class="hljs-string">"Taking the users argument: "</span> + args[i]);
+				scrubbed_args.push(args[i]);
+			} <span class="hljs-keyword">else</span> {
+				log.debug(<span class="hljs-string">"Taking the default argument: "</span> + args[i]);
+				scrubbed_args.push(prm_param.default || <span class="hljs-literal">undefined</span>);
+			}
+		}
+	} <span class="hljs-keyword">else</span> {
+		scrubbed_args = [];
+	}
+	log.debug(<span class="hljs-string">"Scrubbed arguments: "</span> + <span class="hljs-built_in">JSON</span>.stringify(scrubbed_args));
+	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create the list of evaluated arguments to be returned</p></div></div><div class="code"><div class="wrapper">	retval = [];
+	<span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>; i&lt;scrubbed_args.length; i++) {
+		retval.push(<span class="hljs-keyword">this</span>._eval(scrubbed_args[i]));
+	}
+	<span class="hljs-keyword">return</span> retval;
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Returns true if the provided command breaks the stack</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._breaksStack = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cmd)</span> {</span>
+
+	<span class="hljs-keyword">var</span> result;
+	<span class="hljs-keyword">switch</span>(cmd.type) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Commands (MX, VA, C3, etc) break the stack only if they must ask the tool for data
+TODO: Commands that have sysvar evaluation in them also break stack</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">case</span> <span class="hljs-string">"cmd"</span>:
+			<span class="hljs-keyword">var</span> name = cmd.cmd;
+			<span class="hljs-keyword">if</span>((name <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>) &amp;&amp; (<span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>[name] == <span class="hljs-string">'function'</span>)) {
+				f = <span class="hljs-keyword">this</span>[name];
+				<span class="hljs-comment">//log.warn(name)</span>
+				<span class="hljs-comment">//log.warn(f)</span>
+				<span class="hljs-comment">//log.warn(JSON.stringify(this))</span>
+				<span class="hljs-comment">//log.warn(f.length)</span>
+				<span class="hljs-keyword">if</span>(f &amp;&amp; f.length &gt; <span class="hljs-number">1</span>) {
+					<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+				}
+			}
+			result = <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>For now, pause translates to &quot;dwell&quot; which is just a G-Code</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">case</span> <span class="hljs-string">"pause"</span>:
+			result =  <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"cond"</span>:
+			result = <span class="hljs-literal">false</span>;
+			<span class="hljs-comment">//return this._exprBreaksStack(cmd.cmp);</span>
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"assign"</span>:
+			result = <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+			<span class="hljs-comment">//return this._exprBreaksStack(cmd.var) || this._exprBreaksStack(cmd.expr)</span>
+		<span class="hljs-keyword">default</span>:
+			result = <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+	}
+	<span class="hljs-keyword">return</span> result;
+};
+
+SBPRuntime.prototype._exprBreaksStack = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(expr)</span> {</span>
+	<span class="hljs-keyword">if</span>(expr.op === <span class="hljs-literal">undefined</span>) {
+		<span class="hljs-keyword">return</span> expr[<span class="hljs-number">0</span>] == <span class="hljs-string">'%'</span>; <span class="hljs-comment">// For now, all system variable evaluations are stack-breaking</span>
+	} <span class="hljs-keyword">else</span> {
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._exprBreaksStack(expr.left) || <span class="hljs-keyword">this</span>._exprBreaksStack(expr.right);
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Start the stored program running</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._run = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	log.info(<span class="hljs-string">"Setting the running state"</span>);
+	<span class="hljs-keyword">this</span>.started = <span class="hljs-literal">true</span>;
+	<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"running"</span>);
+	<span class="hljs-keyword">this</span>._continue();
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Continue running the current program (until the end of the next chunk)
+_continue() will dispatch the next chunk if appropriate, once the current chunk is finished</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._continue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>._update();
+	log.warn(<span class="hljs-string">"_Continuing..."</span>);
+	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Continue is only for resuming an already running program.  It&#39;s not a substitute for _run()</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span>(!<span class="hljs-keyword">this</span>.started) {
+		log.warn(<span class="hljs-string">'Got a _continue() but not started'</span>);
+		<span class="hljs-keyword">return</span>;
+	}
+	<span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If we&#39;ve run off the end of the program, we&#39;re done!</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.pc &gt;= <span class="hljs-keyword">this</span>.program.length) {
+			log.info(<span class="hljs-string">"Program over. (pc = "</span> + <span class="hljs-keyword">this</span>.pc + <span class="hljs-string">")"</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We may yet have g-codes that are pending.  Run those.</p></div></div><div class="code"><div class="wrapper">			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.current_chunk.length &gt; <span class="hljs-number">0</span>) {
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._dispatch(<span class="hljs-keyword">this</span>._continue.bind(<span class="hljs-keyword">this</span>));
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._end();
+			}
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Pull the current line of the program from the list</p></div></div><div class="code"><div class="wrapper">		line = <span class="hljs-keyword">this</span>.program[<span class="hljs-keyword">this</span>.pc];
+		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>._breaksStack(line)) {
+			log.debug(<span class="hljs-string">"STACK BREAK: "</span> + <span class="hljs-built_in">JSON</span>.stringify(line));
+			dispatched = <span class="hljs-keyword">this</span>._dispatch(<span class="hljs-keyword">this</span>._continue.bind(<span class="hljs-keyword">this</span>));
+			<span class="hljs-keyword">if</span>(!dispatched) {
+				log.debug(<span class="hljs-string">'Nothing to execute in the queue: continuing.'</span>);
+				<span class="hljs-keyword">this</span>._execute(line, <span class="hljs-keyword">this</span>._continue.bind(<span class="hljs-keyword">this</span>));
+				<span class="hljs-keyword">break</span>;
+			} <span class="hljs-keyword">else</span> {
+				log.debug(<span class="hljs-string">'Current chunk is nonempty: breaking to run stuff on G2.'</span>);
+				<span class="hljs-keyword">break</span>;
+			}
+		} <span class="hljs-keyword">else</span> {
+			<span class="hljs-keyword">this</span>._execute(line);
+		}
+	}
+};
+
+SBPRuntime.prototype._end = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.status.filename = <span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.machine.status.current_file = <span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.machine.status.nb_lines=<span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.machine.status.line=<span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.init();
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Pack up the current chunk and send it to G2
+Returns true if there was data to send to G2
+Returns false if nothing was sent</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._dispatch = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+	<span class="hljs-keyword">var</span> runtime = <span class="hljs-keyword">this</span>;
+
+	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.current_chunk.length &gt; <span class="hljs-number">0</span>) {
+		log.info(<span class="hljs-string">"dispatching a chunk: "</span> + <span class="hljs-keyword">this</span>.current_chunk);
+
+		<span class="hljs-keyword">var</span> run_function = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(driver)</span> {</span>
+			log.debug(<span class="hljs-string">"Expected a running state change and got one."</span>);
+			driver.expectStateChange({
+				<span class="hljs-string">"stop"</span> : <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(driver)</span> {</span> 
+					callback();
+				},
+				<span class="hljs-literal">null</span> : <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(driver)</span> {</span>
+					log.warn(<span class="hljs-string">"Expected a stop but didn't get one."</span>);
+				}
+			});
+		};
+
+		<span class="hljs-keyword">this</span>.driver.expectStateChange({
+			<span class="hljs-string">"running"</span> : run_function,
+			<span class="hljs-string">"homing"</span> : run_function,
+			<span class="hljs-string">"probe"</span> : run_function,
+			<span class="hljs-literal">null</span> : <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(t)</span> {</span>
+				log.warn(<span class="hljs-string">"Expected a start but didn't get one. ("</span> + t + <span class="hljs-string">")"</span>); 
+			}
+		});
+
+		<span class="hljs-keyword">this</span>.driver.runSegment(<span class="hljs-keyword">this</span>.current_chunk.join(<span class="hljs-string">'\n'</span>));
+		<span class="hljs-keyword">this</span>.current_chunk = [];
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+	} <span class="hljs-keyword">else</span> {
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+	}
+};
+
+SBPRuntime.prototype._executeCommand = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(command, callback)</span> {</span>
+	
+	<span class="hljs-keyword">if</span>((command.cmd <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>) &amp;&amp; (<span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>[command.cmd] == <span class="hljs-string">'function'</span>)) {
+		
+		args = <span class="hljs-keyword">this</span>._evaluateArguments(command.cmd, command.args);
+		f = <span class="hljs-keyword">this</span>[command.cmd].bind(<span class="hljs-keyword">this</span>);
+		
+		log.debug(<span class="hljs-string">"Calling handler for "</span> + command.cmd + <span class="hljs-string">" With arguments: ["</span> + args + <span class="hljs-string">"]"</span>);
+
+		<span class="hljs-keyword">if</span>(f.length &gt; <span class="hljs-number">1</span>) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>This is a stack breaker, run with a callback</p></div></div><div class="code"><div class="wrapper">			f(args, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span><span class="hljs-keyword">this</span>.pc+=<span class="hljs-number">1</span>; callback();}.bind(<span class="hljs-keyword">this</span>));
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+		} <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>This is NOT a stack breaker, run immediately, increment PC, proceed.</p></div></div><div class="code"><div class="wrapper">			f(args);
+			<span class="hljs-keyword">this</span>.pc +=<span class="hljs-number">1</span>;
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+		}
+	} <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We don&#39;t know what this is.  Whatever it is, it doesn&#39;t break the stack.</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">this</span>._unhandledCommand(command);
+		<span class="hljs-keyword">this</span>.pc += <span class="hljs-number">1</span>;
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+	}
+};
+
+SBPRuntime.prototype._execute = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(command, callback)</span> {</span>
+
+	log.info(<span class="hljs-string">"Executing line: "</span> + <span class="hljs-built_in">JSON</span>.stringify(command));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Just skip over blank lines, undefined, etc.</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span>(!command) {
+		<span class="hljs-keyword">this</span>.pc += <span class="hljs-number">1</span>;
+		<span class="hljs-keyword">return</span>;
+	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>All correctly parsed commands have a type</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">switch</span>(command.type) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>A ShopBot Comand (M2, ZZ, C3, etc...)</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">case</span> <span class="hljs-string">"cmd"</span>:
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._executeCommand(command, callback);
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"return"</span>:
+			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.stack) {
+				<span class="hljs-keyword">this</span>.pc = <span class="hljs-keyword">this</span>.stack.pop();
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">throw</span> <span class="hljs-string">"Runtime Error: Return with no GOSUB at "</span> + <span class="hljs-keyword">this</span>.pc;
+			}
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"end"</span>:
+			<span class="hljs-keyword">this</span>.pc = <span class="hljs-keyword">this</span>.program.length;
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"goto"</span>:
+			<span class="hljs-keyword">if</span>(command.label <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.label_index) {
+				<span class="hljs-keyword">this</span>.pc = <span class="hljs-keyword">this</span>.label_index[command.label];
+				log.debug(<span class="hljs-string">"Hit a GOTO: Going to line "</span> + <span class="hljs-keyword">this</span>.pc + <span class="hljs-string">"(Label: "</span> + command.label + <span class="hljs-string">")"</span>);
+				<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">throw</span> <span class="hljs-string">"Runtime Error: Unknown Label '"</span> + command.label + <span class="hljs-string">"' at line "</span> + <span class="hljs-keyword">this</span>.pc;
+			}
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"gosub"</span>:
+			<span class="hljs-keyword">if</span>(command.label <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.label_index) {
+				<span class="hljs-keyword">this</span>.pc = <span class="hljs-keyword">this</span>.label_index[command.label];
+				<span class="hljs-keyword">this</span>.stack.push([<span class="hljs-keyword">this</span>.pc + <span class="hljs-number">1</span>]);
+				<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">throw</span> <span class="hljs-string">"Runtime Error: Unknown Label '"</span> + command.label + <span class="hljs-string">"' at line "</span> + <span class="hljs-keyword">this</span>.pc;
+			}
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"assign"</span>:
+			<span class="hljs-comment">//TODO FIX THIS THIS DOESN'T DO SYSTEM VARS PROPERLY</span>
+			value = <span class="hljs-keyword">this</span>._eval(command.expr);
+			<span class="hljs-keyword">this</span>.user_vars[command.var] = value;
+			<span class="hljs-keyword">this</span>.pc += <span class="hljs-number">1</span>;
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"cond"</span>:
+			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>._eval(command.cmp)) {
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._execute(command.stmt, callback);  <span class="hljs-comment">// Warning RECURSION!</span>
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">this</span>.pc += <span class="hljs-number">1</span>;
+				<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			}
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"label"</span>:
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"comment"</span>:
+		<span class="hljs-keyword">case</span> <span class="hljs-literal">undefined</span>:
+			<span class="hljs-keyword">this</span>.pc += <span class="hljs-number">1</span>;
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"pause"</span>:
+			<span class="hljs-keyword">this</span>.pc += <span class="hljs-number">1</span>;
+			<span class="hljs-keyword">if</span>(command.expr) {
+				<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">'G4 P'</span> + <span class="hljs-keyword">this</span>._eval(command.expr));
+			}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Todo handle indefinite pause or pause with message</p></div></div><div class="code"><div class="wrapper">			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">default</span>:
+			log.error(<span class="hljs-string">"Unknown command: "</span> + <span class="hljs-built_in">JSON</span>.stringify(command));
+			<span class="hljs-keyword">this</span>.pc += <span class="hljs-number">1</span>;
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+			<span class="hljs-keyword">break</span>;
+	}
+	<span class="hljs-keyword">throw</span> <span class="hljs-string">"Shouldn't ever get here."</span>;
+};
+
+
+SBPRuntime.prototype._eval_value = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(expr)</span> {</span>
+		log.debug(<span class="hljs-string">"Evaluating value: "</span> + expr);
+		sys_var = <span class="hljs-keyword">this</span>.evaluateSystemVariable(expr);
+		<span class="hljs-keyword">if</span>(sys_var === <span class="hljs-literal">undefined</span>) {
+			user_var = <span class="hljs-keyword">this</span>.evaluateUserVariable(expr);
+			<span class="hljs-keyword">if</span>(user_var === <span class="hljs-literal">undefined</span>) {
+				log.debug(<span class="hljs-string">"Evaluated "</span> + expr + <span class="hljs-string">" as "</span> + expr);
+				<span class="hljs-keyword">return</span> <span class="hljs-built_in">parseFloat</span>(expr);
+			} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(user_var === <span class="hljs-literal">null</span>) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>ERROR UNDEFINED VARIABLE</p></div></div><div class="code"><div class="wrapper">			} <span class="hljs-keyword">else</span> {
+				log.debug(<span class="hljs-string">"Evaluated "</span> + expr + <span class="hljs-string">" as "</span> + user_var);
+				<span class="hljs-keyword">return</span> <span class="hljs-built_in">parseFloat</span>(user_var);
+			}
+		} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(sys_var === <span class="hljs-literal">null</span>) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>ERROR UNKNOWN SYSTEM VARIABLE</p></div></div><div class="code"><div class="wrapper">		} <span class="hljs-keyword">else</span> {
+
+			log.debug(<span class="hljs-string">"Evaluated "</span> + expr + <span class="hljs-string">" as "</span> + sys_var);
+			<span class="hljs-keyword">this</span>.sysvar_evaluated = <span class="hljs-literal">true</span>;
+			<span class="hljs-keyword">return</span> <span class="hljs-built_in">parseFloat</span>(sys_var);
+		}	
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Evaluate an expression.  Return the result.
+TODO: Make this robust to undefined user variables</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._eval = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(expr)</span> {</span>
+	log.debug(<span class="hljs-string">"Evaluating expression: "</span> + <span class="hljs-built_in">JSON</span>.stringify(expr));
+	<span class="hljs-keyword">if</span>(expr === <span class="hljs-literal">undefined</span>) {<span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;}
+
+	<span class="hljs-keyword">if</span>(expr.op === <span class="hljs-literal">undefined</span>) {
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval_value(<span class="hljs-built_in">String</span>(expr));
+	} <span class="hljs-keyword">else</span> {
+		<span class="hljs-keyword">switch</span>(expr.op) {
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'+'</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) + <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'-'</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) - <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'*'</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) * <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'/'</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) / <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'&gt;'</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) &gt; <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'&lt;'</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) &lt; <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'&gt;='</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) &gt;= <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'&lt;='</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) &lt;= <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'=='</span>:
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'='</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) == <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'!='</span>:
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._eval(expr.left) != <span class="hljs-keyword">this</span>._eval(expr.right);
+				<span class="hljs-keyword">break</span>;
+
+			<span class="hljs-keyword">default</span>:
+				<span class="hljs-keyword">throw</span> <span class="hljs-string">"Unhandled operation: "</span> + expr.op;
+		}
+	}
+};
+
+SBPRuntime.prototype.init = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>.pc = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.start_of_the_chunk = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.stack = [];
+	<span class="hljs-keyword">this</span>.label_index = {};
+	<span class="hljs-keyword">this</span>.break_chunk = <span class="hljs-literal">false</span>;
+	<span class="hljs-keyword">this</span>.current_chunk = [];
+	<span class="hljs-keyword">this</span>.started = <span class="hljs-literal">false</span>;
+	<span class="hljs-keyword">this</span>.sysvar_evaluated = <span class="hljs-literal">false</span>;
+	<span class="hljs-keyword">this</span>.chunk_broken_for_eval = <span class="hljs-literal">false</span>;
+	<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">'idle'</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Compile an index of all the labels in the program
+this.label_index will map labels to line numbers
+An error is thrown on duplicate labels</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._analyzeLabels = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>.label_index = {};
+	<span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>; i&lt;<span class="hljs-keyword">this</span>.program.length; i++) {
+		line = <span class="hljs-keyword">this</span>.program[i];
+		<span class="hljs-keyword">if</span>(line) {
+			<span class="hljs-keyword">switch</span>(line.type) {
+				<span class="hljs-keyword">case</span> <span class="hljs-string">"label"</span>:
+					<span class="hljs-keyword">if</span> (line.value <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.label_index) {
+						<span class="hljs-keyword">throw</span> <span class="hljs-string">"Duplicate label."</span>;
+					}
+					<span class="hljs-keyword">this</span>.label_index[line.value] = i;
+					<span class="hljs-keyword">break</span>;
+			}
+		}
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Check all the GOTOS/GOSUBS in the program and make sure their labels exist
+Throw an error for undefined labels.</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._analyzeGOTOs = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>; i&lt;<span class="hljs-keyword">this</span>.program.length; i++) {
+			<span class="hljs-keyword">var</span> line = <span class="hljs-keyword">this</span>.program[i];
+			<span class="hljs-keyword">if</span>(line) {
+				<span class="hljs-keyword">switch</span>(line.type) {
+					<span class="hljs-keyword">case</span> <span class="hljs-string">"cond"</span>:
+						line = line.stmt;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>No break: fall through to next state</p></div></div><div class="code"><div class="wrapper">					<span class="hljs-keyword">case</span> <span class="hljs-string">"goto"</span>:
+					<span class="hljs-keyword">case</span> <span class="hljs-string">"gosub"</span>:
+						<span class="hljs-keyword">if</span> (line.label <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.label_index) {
+							
+						} <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Add one to the line number so they start at 1</p></div></div><div class="code"><div class="wrapper">							<span class="hljs-keyword">throw</span> <span class="hljs-string">"Undefined label "</span> + line.label + <span class="hljs-string">" on line "</span> + (i+<span class="hljs-number">1</span>);
+						}
+						<span class="hljs-keyword">break</span>;
+				}
+			}
+		}
+};
+
+SBPRuntime.prototype.evaluateSystemVariable = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(v)</span> {</span>
+	<span class="hljs-keyword">if</span>(v === <span class="hljs-literal">undefined</span>) { <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;}
+	result = v.match(SYSVAR_RE);
+	<span class="hljs-keyword">if</span>(result === <span class="hljs-literal">null</span>) {<span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;}
+	n = <span class="hljs-built_in">parseInt</span>(result[<span class="hljs-number">1</span>]);
+	<span class="hljs-keyword">switch</span>(n) {
+		<span class="hljs-keyword">case</span> <span class="hljs-number">1</span>: <span class="hljs-comment">// X Location</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.machine.status.posx;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">2</span>: <span class="hljs-comment">// Y Location</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.machine.status.posy;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">3</span>: <span class="hljs-comment">// Z Location</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.machine.status.posz;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">4</span>: <span class="hljs-comment">// A Location</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.machine.status.posa;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">5</span>: <span class="hljs-comment">// B Location</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.machine.status.posb;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">71</span>: <span class="hljs-comment">// XY Move Speed</span>
+			<span class="hljs-keyword">return</span> sbp_settings.movexy_speed;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">72</span>: <span class="hljs-comment">// XY Move Speed</span>
+			<span class="hljs-keyword">return</span> sbp_settings.movexy_speed;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">73</span>:
+			<span class="hljs-keyword">return</span> sbp_settings.movez_speed;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">74</span>:
+			<span class="hljs-keyword">return</span> sbp_settings.movea_speed;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">75</span>:
+			<span class="hljs-keyword">return</span> sbp_settings.moveb_speed;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">76</span>:
+			<span class="hljs-keyword">return</span> sbp_settings.movec_speed;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-number">144</span>:
+		    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.machine.status.posc;
+		<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">default</span>:
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+		<span class="hljs-keyword">break</span>;
+	}
+};
+
+SBPRuntime.prototype.evaluateUserVariable = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(v)</span> {</span>
+
+	<span class="hljs-keyword">if</span>(v === <span class="hljs-literal">undefined</span>) { <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;}
+	result = v.match(USERVAR_RE);
+	<span class="hljs-keyword">if</span>(result === <span class="hljs-literal">null</span>) {<span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;}
+	<span class="hljs-keyword">if</span>(v <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.user_vars) {
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.user_vars[v];
+	} <span class="hljs-keyword">else</span> {
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Called for any valid shopbot mnemonic that doesn&#39;t have a handler registered</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype._unhandledCommand = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(command)</span> {</span>
+	log.warn(<span class="hljs-string">'Unhandled Command: '</span> + <span class="hljs-built_in">JSON</span>.stringify(command));
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Add GCode to the current chunk, which is dispatched on a break or end of program</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.emit_gcode = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(s)</span> {</span>
+	<span class="hljs-keyword">this</span>.current_chunk.push(s);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>FILE </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.FP = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};
+
+SBPRuntime.prototype.FE = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};
+
+SBPRuntime.prototype.FN = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};
+
+SBPRuntime.prototype.FG = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};
+
+SBPRuntime.prototype.FC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};
+
+SBPRuntime.prototype.FS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>MOVE </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1 X"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed);
+	<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.MY = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1Y"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed);
+	<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.MZ = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1Z"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movez_speed);
+	<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.MA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1A"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movea_speed);
+	<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.MB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1B"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.moveb_speed);
+	<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.MC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1C"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movec_speed);
+	<span class="hljs-keyword">this</span>.cmd_posc = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.M2 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.M3 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.M4 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"A"</span> + args[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">3</span>];
+	}
+	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.M5 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"A"</span> + args[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">3</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"B"</span> + args[<span class="hljs-number">4</span>];
+		<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">4</span>];
+	}
+	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.M6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}	
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"A"</span> + args[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">3</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"B"</span> + args[<span class="hljs-number">4</span>];
+		<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">4</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"C"</span> + args[<span class="hljs-number">5</span>];
+		<span class="hljs-keyword">this</span>.cmd_posc = args[<span class="hljs-number">5</span>];
+	}
+	outStr = outStr + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.MH = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1X0Y0"</span> + <span class="hljs-string">" F"</span> + sbp_settings.movexy_speed);
+	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-number">0</span>;
+};
+
+SBPRuntime.prototype.MS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movexy_speed = args[<span class="hljs-number">0</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movez_speed = args[<span class="hljs-number">1</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movea_speed = args[<span class="hljs-number">2</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.moveb_speed = args[<span class="hljs-number">3</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movec_speed = args[<span class="hljs-number">4</span>];
+};
+
+SBPRuntime.prototype.MI = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};
+
+SBPRuntime.prototype.MO = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//?????????????????????????????????????????????</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>JOG </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0X"</span> + args[<span class="hljs-number">0</span>]);
+	<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.JY = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0Y"</span> + args[<span class="hljs-number">0</span>]);
+	<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.JZ = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0Z"</span> + args[<span class="hljs-number">0</span>]);
+	<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.JA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0A"</span> + args[<span class="hljs-number">0</span>]);
+	<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.JB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0B"</span> + args[<span class="hljs-number">0</span>]);
+	<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.JC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0C"</span> + args[<span class="hljs-number">0</span>]);
+	<span class="hljs-keyword">this</span>.cmd_posc = args[<span class="hljs-number">0</span>];
+};
+
+SBPRuntime.prototype.J2 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.J3 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.J4 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"A"</span> + args[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">3</span>];
+	}
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.J5 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"A"</span> + args[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">3</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"B"</span> + args[<span class="hljs-number">4</span>];
+		<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">4</span>];
+	}
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.J6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Y"</span> + args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"Z"</span> + args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"A"</span> + args[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">3</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"B"</span> + args[<span class="hljs-number">4</span>];
+		<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">4</span>];
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span>) {
+		outStr = outStr + <span class="hljs-string">"C"</span> + args[<span class="hljs-number">5</span>];
+		<span class="hljs-keyword">this</span>.cmd_posc = args[<span class="hljs-number">5</span>];
+	}
+	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
+};
+
+SBPRuntime.prototype.JH = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0X0Y0"</span>);
+};
+
+SBPRuntime.prototype.JS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogxy_speed = args[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'xvm'</span>:sbp_settings.jogxy_speed});
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'yvm'</span>:sbp_settings.jogxy_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogz_speed = args[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'zvm'</span>:sbp_settings.jogz_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.joga_speed = args[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'avm'</span>:sbp_settings.joga_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogb_speed = args[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'bvm'</span>:sbp_settings.jogb_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogc_speed = args[<span class="hljs-number">4</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'cvm'</span>:sbp_settings.jogc_speed});
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>CUTS </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.CG = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	sbp_settings.cutterDia = <span class="hljs-number">0.25</span>;
+	sbp_settings.pocketOverlap  = <span class="hljs-number">10</span>;
+	sbp_settings.safeZpullUp = <span class="hljs-number">0.25</span>;
+
+    startX = <span class="hljs-keyword">this</span>.cmd_posx;
+    startY = <span class="hljs-keyword">this</span>.cmd_posy;
+    startZ = <span class="hljs-keyword">this</span>.cmd_posz;
+    endX = args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">1</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if endX == undefined {}</p></div></div><div class="code"><div class="wrapper">    endY = args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">2</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if endY == undefined {}</p></div></div><div class="code"><div class="wrapper">    centerX = args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">3</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if centerX == undefined {}</p></div></div><div class="code"><div class="wrapper">    centerY = args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">4</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if centerY == undefined {}</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">var</span> OIT = args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">5</span>] : <span class="hljs-string">"T"</span>;
+    <span class="hljs-keyword">var</span> Dir = args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">6</span>] : <span class="hljs-number">1</span>; 
+    <span class="hljs-keyword">var</span> Plg = args[<span class="hljs-number">7</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">7</span>] : <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">var</span> reps = args[<span class="hljs-number">8</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">8</span>] : <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">var</span> propX = args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">9</span>] : <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">var</span> propY = args[<span class="hljs-number">10</span>] !== <span class="hljs-literal">undefined</span> ? [<span class="hljs-number">10</span>] : <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">var</span> optCG = args[<span class="hljs-number">11</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">11</span>] : <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">var</span> noPullUp = args[<span class="hljs-number">12</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">12</span>] : <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">var</span> plgFromZero = args[<span class="hljs-number">13</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">13</span>] : <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> currentZ ;
+	<span class="hljs-keyword">var</span> outStr;
+
+    <span class="hljs-keyword">if</span> (Plg !== <span class="hljs-number">0</span> &amp;&amp; plgFromZero == <span class="hljs-number">1</span>){ currentZ = <span class="hljs-number">0</span>; }
+    <span class="hljs-keyword">else</span> { currentZ = startZ; }
+    <span class="hljs-keyword">var</span> safeZCG = currentZ + sbp_settings.safeZpullUp;
+
+    <span class="hljs-keyword">if</span> ( optCG == <span class="hljs-number">2</span> ) {    	
+   		circRadius = <span class="hljs-built_in">Math</span>.sqrt((centerX * centerX) + (centerY * centerY));
+   		PocketAngle = <span class="hljs-built_in">Math</span>.atan2(centerY, centerX);								<span class="hljs-comment">// Find the angle of the step over between passes</span>
+   		stepOver = sbp_settings.cutterDia * ((<span class="hljs-number">100</span> - sbp_settings.pocketOverlap) / <span class="hljs-number">100</span>);	<span class="hljs-comment">// Calculate the overlap</span>
+   		Pocket_StepX = stepOver * <span class="hljs-built_in">Math</span>.cos(PocketAngle);						<span class="hljs-comment">// Calculate the stepover in X based on the radius of the cutter * overlap</span>
+   		Pocket_StepY = stepOver * <span class="hljs-built_in">Math</span>.sin(PocketAngle);						<span class="hljs-comment">// Calculate the stepover in Y based on the radius of the cutter * overlap</span>
+    }
+
+    <span class="hljs-keyword">if</span> ( plgFromZero == <span class="hljs-number">1</span> ) {										<span class="hljs-comment">// If plunge depth is specified move to that depth * number of reps</span>
+    	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ + <span class="hljs-string">"F"</span> + sbp_settings.movez_speed );
+    }
+
+    <span class="hljs-keyword">for</span> (i=<span class="hljs-number">0</span>; i&lt;reps;i++){
+    	<span class="hljs-keyword">if</span> (Plg !== <span class="hljs-number">0</span> &amp;&amp; optCG &lt; <span class="hljs-number">3</span> ) {										<span class="hljs-comment">// If plunge depth is specified move to that depth * number of reps</span>
+    		currentZ += Plg;
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ + <span class="hljs-string">"F"</span> + sbp_settings.movez_speed );
+    	}
+  
+    	<span class="hljs-keyword">if</span> (optCG == <span class="hljs-number">2</span>) { 															<span class="hljs-comment">// Pocket circle from the outside inward to center</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Loop passes until overlapping the center</p></div></div><div class="code"><div class="wrapper">    		<span class="hljs-keyword">for</span> (j=<span class="hljs-number">0</span>; (<span class="hljs-built_in">Math</span>.abs(Pocket_StepX * j) &lt;= circRadius) &amp;&amp; (<span class="hljs-built_in">Math</span>.abs(Pocket_StepY * j) &lt;= circRadius) ; j++){
+    		   	<span class="hljs-keyword">if</span> ( j &gt; <span class="hljs-number">0</span>) {
+    		   		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1X"</span> + ((j * Pocket_StepX) + startX).toFixed(<span class="hljs-number">4</span>) + 
+    		   			               <span class="hljs-string">"Y"</span> + ((j * Pocket_StepY) + startY).toFixed(<span class="hljs-number">4</span>) + 
+    		   			               <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed);
+    		   	}
+    		   	<span class="hljs-keyword">if</span> (Dir == <span class="hljs-number">1</span> ) { outStr = <span class="hljs-string">"G2"</span>; }	<span class="hljs-comment">// Clockwise circle/arc</span>
+    			<span class="hljs-keyword">else</span> {outStr = <span class="hljs-string">"G3"</span>; }	<span class="hljs-comment">// CounterClockwise circle/arc</span>
+    			outStr = outStr + <span class="hljs-string">"X"</span> + (startX + (j * Pocket_StepX)).toFixed(<span class="hljs-number">4</span>) + 
+    					 		  <span class="hljs-string">"Y"</span> + (startY + (j * Pocket_StepY)).toFixed(<span class="hljs-number">4</span>) +
+    							  <span class="hljs-string">"I"</span> + (centerX - (j*Pocket_StepX)).toFixed(<span class="hljs-number">4</span>) +
+    							  <span class="hljs-string">"J"</span> + (centerY - (j*Pocket_StepY)).toFixed(<span class="hljs-number">4</span>) +
+    							  <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+    			<span class="hljs-keyword">this</span>.emit_gcode( outStr );										
+    		}
+    		<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0Z"</span> + safeZCG );										<span class="hljs-comment">// Pull up Z</span>
+    	   	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0X"</span> + startX + <span class="hljs-string">"Y"</span> + startY);							<span class="hljs-comment">// Jog to the start point</span>
+    	} 
+    	<span class="hljs-keyword">else</span> {
+    		<span class="hljs-keyword">if</span> (Dir == <span class="hljs-number">1</span> ) { outStr = <span class="hljs-string">"G2X"</span> + endX + <span class="hljs-string">"Y"</span> + endY; }	<span class="hljs-comment">// Clockwise circle/arc</span>
+    		<span class="hljs-keyword">else</span> { outStr = <span class="hljs-string">"G3X"</span> + endX + <span class="hljs-string">"Y"</span> + endY; }			<span class="hljs-comment">// CounterClockwise circle/arc</span>
+			
+			<span class="hljs-keyword">if</span> (Plg !== <span class="hljs-number">0</span> &amp;&amp; optCG === <span class="hljs-number">3</span> ) { 
+		    	outStr = outStr + <span class="hljs-string">"Z"</span> + (currentZ + Plg); 
+		    	currentZ += Plg;
+			} <span class="hljs-comment">// Add Z for spiral plunge</span>
+
+			outStr += <span class="hljs-string">"I"</span> + centerX + <span class="hljs-string">"K"</span> + centerY + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;	<span class="hljs-comment">// Add Center offset</span>
+			<span class="hljs-keyword">this</span>.emit_gcode(outStr); 
+	    	
+	    	<span class="hljs-keyword">if</span>( i+<span class="hljs-number">1</span> &lt; reps &amp;&amp; ( endX != startX || endY != startY ) ){					<span class="hljs-comment">//If an arc, pullup and jog back to the start position</span>
+    			<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + safeZCG );
+    		   	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0X"</span> + startX + <span class="hljs-string">"Y"</span> + startY );
+			}
+		}
+
+    }
+
+    <span class="hljs-keyword">if</span> (optCG == <span class="hljs-number">4</span> ) { <span class="hljs-comment">// Add bottom circle if spiral with bottom clr is specified</span>
+        <span class="hljs-keyword">if</span>( endX != startX || endY != startY ) {	<span class="hljs-comment">//If an arc, pullup and jog back to the start position</span>
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + safeZCG );
+    	   	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0X"</span> + startX + <span class="hljs-string">"Y"</span> + startY);
+    	   	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ + <span class="hljs-string">" F"</span> + sbp_settings.movez_speed);		
+    	}
+    	<span class="hljs-keyword">if</span> (Dir === <span class="hljs-number">1</span> ){ outStr = <span class="hljs-string">"G2"</span>; } 		<span class="hljs-comment">// Clockwise circle/arc</span>
+    	<span class="hljs-keyword">else</span> { outStr = <span class="hljs-string">"G3"</span>; }					<span class="hljs-comment">// CounterClockwise circle/arc</span>
+		outStr += <span class="hljs-string">"X"</span> + endX + <span class="hljs-string">"Y"</span> + endY + <span class="hljs-string">"I"</span> + centerX + <span class="hljs-string">"K"</span> + centerY + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;	<span class="hljs-comment">// Add Center offset</span>
+		<span class="hljs-keyword">this</span>.emit_gcode(outStr); 
+    }
+
+    <span class="hljs-keyword">if</span>(noPullUp === <span class="hljs-number">0</span> &amp;&amp; currentZ != startZ){    	<span class="hljs-comment">//If No pull-up is set to YES, pull up to the starting Z location</span>
+    	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + startZ);
+    	<span class="hljs-keyword">this</span>.cmd_posz = startZ;
+    }
+    <span class="hljs-keyword">else</span>{				    						<span class="hljs-comment">//If not, stay at the ending Z height</span>
+    	<span class="hljs-keyword">if</span> ( optCG &gt; <span class="hljs-number">1</span> &amp;&amp; optCG &lt; <span class="hljs-number">3</span>) {
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ ); 
+    	}
+  		<span class="hljs-keyword">this</span>.cmd_posz = currentZ;
+    }
+
+    <span class="hljs-keyword">this</span>.cmd_posx = endX;
+	<span class="hljs-keyword">this</span>.cmd_posy = endY;
+};
+
+SBPRuntime.prototype.CR = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-comment">//calc and output commands to cut a rectangle</span>
+	<span class="hljs-keyword">var</span> startX = <span class="hljs-keyword">this</span>.cmd_posx;
+    <span class="hljs-keyword">var</span> startY = <span class="hljs-keyword">this</span>.cmd_posy;
+    <span class="hljs-keyword">var</span> startZ = <span class="hljs-keyword">this</span>.cmd_posz;
+    <span class="hljs-keyword">var</span> xDir = <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">var</span> yDir = <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">var</span> order = [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>];
+    <span class="hljs-keyword">var</span> pckt_startX = startX;
+    <span class="hljs-keyword">var</span> pckt_startY = startY;
+    <span class="hljs-keyword">var</span> pckt_stepX = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> pckt_stepY = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> steps = <span class="hljs-number">1.0</span>;
+    <span class="hljs-keyword">var</span> n = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> currentZ;
+
+    <span class="hljs-keyword">var</span> lenX = args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">0</span>] : <span class="hljs-literal">undefined</span>; 
+    <span class="hljs-keyword">var</span> lenY = args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">1</span>] : <span class="hljs-literal">undefined</span>;
+    <span class="hljs-keyword">var</span> OIT = args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">2</span>] : <span class="hljs-string">"T"</span>;
+    <span class="hljs-keyword">var</span> Dir = args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">3</span>] : <span class="hljs-number">1</span>; 
+    <span class="hljs-keyword">var</span> stCorn = args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">4</span>] : <span class="hljs-number">4</span>;			<span class="hljs-comment">// Start Corner - default is 4, the bottom left corner</span>
+    <span class="hljs-keyword">var</span> Plg = args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">5</span>] : <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> reps = args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">6</span>] : <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">var</span> optCR = args[<span class="hljs-number">7</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">7</span>] : <span class="hljs-number">0</span>;				<span class="hljs-comment">// Options - 1-Tab, 2-Pocket Outside-In, 3-Pocket Inside-Out</span>
+
+    <span class="hljs-keyword">if</span> (optCR &gt; <span class="hljs-number">1</span>) {
+    	stepOver = sbp_settings.cutterDia * ((<span class="hljs-number">100</span> - sbp_settings.pocketOverlap) / <span class="hljs-number">100</span>);	<span class="hljs-comment">// Calculate the overlap</span>
+    	Pocket_Step = stepOver * <span class="hljs-built_in">Math</span>.cos(<span class="hljs-number">0.785398163</span>);			<span class="hljs-comment">// Calculate the stepover in X based on the radius of the cutter at 45 degrees</span>
+    }
+
+    <span class="hljs-keyword">var</span> plgFromZero = args[<span class="hljs-number">8</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">8</span>] : <span class="hljs-number">0</span>;		<span class="hljs-comment">// Start Plunge from Zero &lt;0-NO, 1-YES&gt;</span>
+    <span class="hljs-keyword">var</span> RotationAngle = args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">9</span>] : <span class="hljs-number">0.0</span>;		<span class="hljs-comment">// Angle to rotate rectangle around starting point</span>
+    <span class="hljs-keyword">var</span> PlgAxis = args[<span class="hljs-number">10</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">10</span>] : <span class="hljs-string">'Z'</span>;
+	<span class="hljs-keyword">var</span> spiralPlg = args[<span class="hljs-number">11</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">11</span>] : <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> PlgSp = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">var</span> noPullUp = <span class="hljs-number">0</span>;
+    
+    <span class="hljs-keyword">if</span> (RotationAngle !== <span class="hljs-number">0</span> ) { 
+    	RotationAngle *= <span class="hljs-built_in">Math</span>.PI / <span class="hljs-number">180</span>;							<span class="hljs-comment">// Convert rotation angle in degrees to radians</span>
+    	cosRA = <span class="hljs-built_in">Math</span>.cos(RotationAngle);						<span class="hljs-comment">// Calculate the Cosine of the rotation angle</span>
+    	sinRA = <span class="hljs-built_in">Math</span>.sin(RotationAngle);						<span class="hljs-comment">// Calculate the Sine of the rotation angle</span>
+    	rotPtX = startX;										<span class="hljs-comment">// Rotation point X</span>
+    	rotPtY = startY;										<span class="hljs-comment">// Rotation point Y</span>
+    }
+    
+    <span class="hljs-keyword">if</span> (Plg !== <span class="hljs-number">0</span> &amp;&amp; plgFromZero == <span class="hljs-number">1</span>){ currentZ = <span class="hljs-number">0</span>; }
+    <span class="hljs-keyword">else</span>{ currentZ = startZ; }
+    <span class="hljs-keyword">var</span> safeZCG = currentZ + sbp_settings.safeZpullUp;
+
+    <span class="hljs-keyword">if</span> ( stCorn == <span class="hljs-number">1</span> ) { 
+
+    	yDir = -<span class="hljs-number">1</span>;
+    	<span class="hljs-keyword">if</span> ( Dir == -<span class="hljs-number">1</span> ) { 
+    		order = [<span class="hljs-number">3</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>]; 
+    	}
+
+    	pckt_stepY *= -<span class="hljs-number">1</span>;
+    }	
+
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( stCorn == <span class="hljs-number">2</span> ) {
+    	xDir = -<span class="hljs-number">1</span>;
+    	yDir = -<span class="hljs-number">1</span>;
+    	<span class="hljs-keyword">if</span> ( Dir == <span class="hljs-number">1</span> ) { 
+    		order = [<span class="hljs-number">3</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>]; 
+    	}
+    	pckt_stepX *= -<span class="hljs-number">1</span>;
+    	pckt_stepY *= -<span class="hljs-number">1</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( stCorn == <span class="hljs-number">3</span> ) { 
+    	xDir = -<span class="hljs-number">1</span>; 
+    	<span class="hljs-keyword">if</span> ( Dir == -<span class="hljs-number">1</span> ) {
+    		order = [<span class="hljs-number">3</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>]; 
+    	}
+    	pckt_stepX *= -<span class="hljs-number">1</span>;
+    }
+    <span class="hljs-keyword">else</span> { 
+    	<span class="hljs-keyword">if</span> ( Dir == <span class="hljs-number">1</span> ) {
+    		order = [<span class="hljs-number">3</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>]; 
+    	}
+    }
+
+    <span class="hljs-keyword">if</span> ( OIT == <span class="hljs-string">"O"</span> ) { 
+    	lenX = (lenX + sbp_settings.cutterDia) * xDir;
+    	lenY = (lenY + sbp_settings.cutterDia) * yDir;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( OIT == <span class="hljs-string">"I"</span> ) {
+    	lenX = (lenX - sbp_settings.cutterDia) * xDir;
+    	lenY = (lenY - sbp_settings.cutterDia) * yDir;
+    }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If an inside-out pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> ( optCR == <span class="hljs-number">3</span>) {
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + safeZCG );
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed);
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + startZ + <span class="hljs-string">"F"</span> + sbp_settings.movez_speed);
+   	}
+
+    <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; reps; i++) {
+    
+    	<span class="hljs-keyword">if</span> ( spiralPlg != <span class="hljs-number">1</span> ) {								<span class="hljs-comment">// If plunge depth is specified move to that depth * number of reps</span>
+    		currentZ += Plg;
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ + <span class="hljs-string">"F"</span> + sbp_settings.movez_speed );    		
+    	}
+    	<span class="hljs-keyword">else</span> {
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ + <span class="hljs-string">"F"</span> + sbp_settings.movez_speed );    		
+    	}
+    	
+    	pass = cnt = <span class="hljs-number">0</span>;
+    	<span class="hljs-keyword">var</span> nextX = <span class="hljs-number">0.0</span>;
+    	<span class="hljs-keyword">var</span> nextY = <span class="hljs-number">0.0</span>;
+
+    	<span class="hljs-keyword">for</span> ( j = <span class="hljs-number">0</span>; j &lt; steps; j++ ){
+   			<span class="hljs-keyword">do</span> {
+	   			<span class="hljs-keyword">for</span> ( k=<span class="hljs-number">0</span>; k&lt;<span class="hljs-number">4</span>; k++ ){
+	   				n = order[k];
+	   				<span class="hljs-keyword">switch</span> (n){
+	   					<span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xL,yS </p></div></div><div class="code"><div class="wrapper">    						<span class="hljs-keyword">if</span> (RotationAngle === <span class="hljs-number">0</span>) { outStr = <span class="hljs-string">"G1X"</span> + ((startX + lenX) - (pckt_stepX * j)) + 
+    															 <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j)) + 
+    															 <span class="hljs-string">"F"</span> + sbp_settings.movez_speed ; }
+    						<span class="hljs-keyword">else</span> {
+    							nextX = pckt_startX + lenX - (pckt_stepX * j);
+    							nextY = pckt_startY + (pckt_stepY * j);
+    							outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
+    									   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
+    									   <span class="hljs-string">"F"</span> + sbp_settings.movez_speed ; 
+    						}
+    						<span class="hljs-keyword">if</span> ( spiralPlg == <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) {
+    							PlgSp = currentZ + (Plg * <span class="hljs-number">0.25</span>); 
+    							outStr += <span class="hljs-string">"Z"</span> + PlgSp;
+    						}	
+    						<span class="hljs-keyword">this</span>.emit_gcode (outStr);
+    					<span class="hljs-keyword">break</span>;
+
+    					<span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xL,yL</p></div></div><div class="code"><div class="wrapper">   		    				<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + ((startX + lenX) - (pckt_stepX * j)) +
+   		    														<span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j)) + 
+   		    														<span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; }
+   							<span class="hljs-keyword">else</span> {
+   								nextX = pckt_startX + lenX - (pckt_stepX * j);
+   								nextY = pckt_startY + lenY - (pckt_stepY * j);
+   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
+   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) +
+   										   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+   							}
+   							<span class="hljs-keyword">if</span> ( spiralPlg === <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) { 
+   								PlgSp = currentZ + (Plg * <span class="hljs-number">0.5</span>);	
+   								outStr += <span class="hljs-string">"Z"</span> + PlgSp;
+   							}
+   							<span class="hljs-keyword">this</span>.emit_gcode (outStr);
+   						<span class="hljs-keyword">break</span>;
+
+   						<span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xS,yL</p></div></div><div class="code"><div class="wrapper">   							<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * j)) + 
+   																   <span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j)) + 
+   																   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; }
+   							<span class="hljs-keyword">else</span> {
+   								nextX = pckt_startX + (pckt_stepX * j);
+   								nextY = pckt_startY + lenY - (pckt_stepY * j);
+   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
+   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
+   										   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+   							}
+   							<span class="hljs-keyword">if</span> ( spiralPlg == <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) { 
+   								PlgSp = currentZ + (Plg * <span class="hljs-number">0.75</span>);	
+   								outStr += <span class="hljs-string">"Z"</span> + PlgSp; 
+   							}	
+   							<span class="hljs-keyword">this</span>.emit_gcode (outStr);
+    					<span class="hljs-keyword">break</span>;
+
+    					<span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xS,yS</p></div></div><div class="code"><div class="wrapper">   							<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * j)) + 
+   																	<span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j)) + 
+   																	<span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; }
+   							<span class="hljs-keyword">else</span> {
+   								nextX = pckt_startX + (pckt_stepX * j);
+   								nextY = pckt_startY + (pckt_stepY * j);
+   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
+   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
+   										   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+   							}
+   							<span class="hljs-keyword">if</span> ( spiralPlg === <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) {
+   								currentZ += Plg; 
+   								outStr += <span class="hljs-string">"Z"</span> + currentZ;
+								pass = <span class="hljs-number">1</span>; 
+   							}
+   							<span class="hljs-keyword">else</span> { cnt = <span class="hljs-number">1</span>; }
+   							<span class="hljs-keyword">this</span>.emit_gcode (outStr);
+   						<span class="hljs-keyword">break</span>;
+
+   						<span class="hljs-keyword">default</span>:
+   							<span class="hljs-keyword">throw</span> <span class="hljs-string">"Unhandled operation: "</span> + expr.op;
+   					} <span class="hljs-comment">// switch</span>
+   				} <span class="hljs-comment">// for k</span>
+			} <span class="hljs-keyword">while</span> ( cnt &lt; <span class="hljs-number">1</span> );
+
+			<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { 
+				outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * (j+<span class="hljs-number">1</span>))) + 
+   						   <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * (j+<span class="hljs-number">1</span>))) + 
+   						   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>              this.emit_gcode ( &quot;  startX = &quot; + startX + &quot; startY = &quot; + startY + 
+                                &quot; pckt_stepX = &quot; + pckt_stepX + &quot; pckt_stepY = &quot; + pckt_stepY );                                    </code></pre></div></div><div class="code"><div class="wrapper">   			}
+   			<span class="hljs-keyword">else</span> {
+   				nextX = pckt_startX + (pckt_stepX * j+<span class="hljs-number">1</span>);
+   				nextY = pckt_startY + (pckt_stepY * j+<span class="hljs-number">1</span>);
+   				outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
+   						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
+   						   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+   			}
+   			<span class="hljs-keyword">this</span>.emit_gcode (outStr);
+
+   		} <span class="hljs-comment">//for j</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">	    <span class="hljs-keyword">if</span> ( optCR &gt; <span class="hljs-number">1</span>) {
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + safeZCG );
+    		<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) {
+	    		outStr = <span class="hljs-string">"G1X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+    		}
+    		<span class="hljs-keyword">else</span> {	
+				nextX = pckt_startX + (pckt_stepX * j);
+				nextY = pckt_startY + (pckt_stepY * j);
+				outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
+						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) +
+						   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+			} 
+     		<span class="hljs-keyword">this</span>.emit_gcode( outStr );
+     		<span class="hljs-keyword">if</span> ( ( i + <span class="hljs-number">1</span> ) != reps ) { <span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ ); }
+   		}
+
+    } <span class="hljs-comment">// for i</span>
+
+    <span class="hljs-keyword">if</span>( noPullUp === <span class="hljs-number">0</span> &amp;&amp; currentZ !== startZ ){    	<span class="hljs-comment">//If No pull-up is set to YES, pull up to the starting Z location</span>
+    	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + startZ);
+    	<span class="hljs-keyword">this</span>.cmd_posz = startZ;
+    }
+    <span class="hljs-keyword">else</span>{				    						<span class="hljs-comment">//If not, stay at the ending Z height</span>
+  		<span class="hljs-keyword">this</span>.cmd_posz = currentZ;
+    }
+
+    <span class="hljs-keyword">if</span> ( optCR === <span class="hljs-number">3</span> ) {
+		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0X"</span> + startX + <span class="hljs-string">"Y"</span> + startY );
+    }
+
+    <span class="hljs-keyword">this</span>.cmd_posx = startX;
+	<span class="hljs-keyword">this</span>.cmd_posy = startY;
+
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>ZERO </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.ZX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpox'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+		<span class="hljs-keyword">this</span>.machine.driver.set(<span class="hljs-string">'g55x'</span>,(value + <span class="hljs-keyword">this</span>.machine.status.posz + zoffset), <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+			callback();
+			<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-keyword">this</span>.posx = <span class="hljs-number">0</span>;
+		}.bind(<span class="hljs-keyword">this</span>));
+	}.bind(<span class="hljs-keyword">this</span>));
+};
+
+SBPRuntime.prototype.ZY = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpoy'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+		<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 Y"</span> + value);
+	 	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-keyword">this</span>.posy = <span class="hljs-number">0</span>;
+		callback();
+	}.bind(<span class="hljs-keyword">this</span>));
+};
+
+SBPRuntime.prototype.ZZ = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpoz'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+		<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 Z"</span> + value);
+	 	<span class="hljs-keyword">this</span>.cmd_posz = <span class="hljs-keyword">this</span>.posz = <span class="hljs-number">0</span>;
+		callback();
+	}.bind(<span class="hljs-keyword">this</span>));
+};
+
+SBPRuntime.prototype.ZA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpoa'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+		<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 A"</span> + value);
+	 	<span class="hljs-keyword">this</span>.cmd_posa = <span class="hljs-keyword">this</span>.posa = <span class="hljs-number">0</span>;
+		callback();
+	}.bind(<span class="hljs-keyword">this</span>));	
+};
+
+SBPRuntime.prototype.ZB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpob'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+		<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 B"</span> + value);
+	 	<span class="hljs-keyword">this</span>.cmd_posb = <span class="hljs-keyword">this</span>.posb = <span class="hljs-number">0</span>;
+		callback();
+	}.bind(<span class="hljs-keyword">this</span>));	
+};
+
+SBPRuntime.prototype.ZC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpoc'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+		<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 C"</span> + value);
+	 	<span class="hljs-keyword">this</span>.cmd_posc = <span class="hljs-keyword">this</span>.posc = <span class="hljs-number">0.0</span>;
+		callback();
+	}.bind(<span class="hljs-keyword">this</span>));	
+};
+
+SBPRuntime.prototype.Z2 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span>  {</span>
+	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpox'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value1)</span> {</span>
+		<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpoy'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value2)</span> {</span>
+		    <span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 X"</span> + value1 + <span class="hljs-string">"Y"</span> + value2);
+			<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-keyword">this</span>.posx = <span class="hljs-number">0.0</span>;
+			<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-keyword">this</span>.posy = <span class="hljs-number">0.0</span>;
+			callback();
+		}.bind(<span class="hljs-keyword">this</span>));
+	}.bind(<span class="hljs-keyword">this</span>));
+};
+
+SBPRuntime.prototype.Z3 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 X"</span> + <span class="hljs-keyword">this</span>.posx + <span class="hljs-string">" Y"</span> + <span class="hljs-keyword">this</span>.posy + <span class="hljs-string">" Z"</span> + <span class="hljs-keyword">this</span>.posz);
+	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-keyword">this</span>.posx = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-keyword">this</span>.posy = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posz = <span class="hljs-keyword">this</span>.posz = <span class="hljs-number">0.0</span>;
+};
+
+SBPRuntime.prototype.Z4 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 X"</span> + <span class="hljs-keyword">this</span>.posx + <span class="hljs-string">" Y"</span> + <span class="hljs-keyword">this</span>.posy + <span class="hljs-string">" Z"</span> + <span class="hljs-keyword">this</span>.posz + <span class="hljs-string">" A"</span> + <span class="hljs-keyword">this</span>.posa);
+	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-keyword">this</span>.posx = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-keyword">this</span>.posy = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posz = <span class="hljs-keyword">this</span>.posz = <span class="hljs-number">0.0</span>;
+ 	<span class="hljs-keyword">this</span>.cmd_posa = <span class="hljs-keyword">this</span>.posa = <span class="hljs-number">0.0</span>;
+};
+
+SBPRuntime.prototype.Z5 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 X"</span> + <span class="hljs-keyword">this</span>.posx + <span class="hljs-string">" Y"</span> + <span class="hljs-keyword">this</span>.posy + <span class="hljs-string">" Z"</span> + <span class="hljs-keyword">this</span>.posz + <span class="hljs-string">" A"</span> + <span class="hljs-keyword">this</span>.posa + <span class="hljs-string">" B"</span> + <span class="hljs-keyword">this</span>.posb);
+	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-keyword">this</span>.posx = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-keyword">this</span>.posy = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posz = <span class="hljs-keyword">this</span>.posz = <span class="hljs-number">0.0</span>;
+ 	<span class="hljs-keyword">this</span>.cmd_posa = <span class="hljs-keyword">this</span>.posa = <span class="hljs-number">0.0</span>;
+ 	<span class="hljs-keyword">this</span>.cmd_posb = <span class="hljs-keyword">this</span>.posb = <span class="hljs-number">0.0</span>;
+};
+
+SBPRuntime.prototype.Z6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G10 L2 P2 X"</span> + <span class="hljs-keyword">this</span>.posx + <span class="hljs-string">" Y"</span> + <span class="hljs-keyword">this</span>.posy + <span class="hljs-string">" Z"</span> + <span class="hljs-keyword">this</span>.posz + <span class="hljs-string">" A"</span> + <span class="hljs-keyword">this</span>.posa + <span class="hljs-string">" B"</span> + <span class="hljs-keyword">this</span>.posb + <span class="hljs-string">" C"</span> + <span class="hljs-keyword">this</span>.posc);
+ 	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-keyword">this</span>.posx = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-keyword">this</span>.posy = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">this</span>.cmd_posz = <span class="hljs-keyword">this</span>.posz = <span class="hljs-number">0.0</span>;
+ 	<span class="hljs-keyword">this</span>.cmd_posa = <span class="hljs-keyword">this</span>.posa = <span class="hljs-number">0.0</span>;
+ 	<span class="hljs-keyword">this</span>.cmd_posb = <span class="hljs-keyword">this</span>.posb = <span class="hljs-number">0.0</span>;
+ 	<span class="hljs-keyword">this</span>.cmd_posc = <span class="hljs-keyword">this</span>.posc = <span class="hljs-number">0.0</span>;
+};
+
+SBPRuntime.prototype.ZT = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+    <span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G54"</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>SETTINGS </p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set to Absolute coordinates</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.SA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G90"</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p> Set to Relative coordinates</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.SR = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G91"</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set to MOVE mode</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.SM = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set to PREVIEW mode</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.SP = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set to table base coordinates</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.ST = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G54"</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set to table base coordinates</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.C6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"M4"</span>);
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"M8"</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set to table base coordinates</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.C7 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"M5"</span>);
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"M9"</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>VALUES </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.VA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>?????????? Needs work to make function like VA in ShopBot    </p></div></div><div class="code"><div class="wrapper">	log.debug(<span class="hljs-string">"VA Command: "</span> + args);
+	<span class="hljs-keyword">var</span> zoffset = -args[<span class="hljs-number">2</span>];
+	<span class="hljs-keyword">if</span>(zoffset !== <span class="hljs-literal">undefined</span>) {
+		<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'g55z'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+			<span class="hljs-keyword">this</span>.machine.driver.set(<span class="hljs-string">'g55z'</span>,(value + <span class="hljs-keyword">this</span>.machine.status.posz + zoffset), <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+				callback();
+			});
+		}.bind(<span class="hljs-keyword">this</span>));
+	} <span class="hljs-keyword">else</span> {
+		log.error(<span class="hljs-string">"NO Z OFFSET"</span>);
+	}
+};
+
+SBPRuntime.prototype.VC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.cutterDia = args[<span class="hljs-number">0</span>];		<span class="hljs-comment">// Cutter Diameter</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>args[1] = Obsolete
+args[2] = Obsolete</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.safeZpullUp = args[<span class="hljs-number">3</span>];	<span class="hljs-comment">// safe-Z-pull-up</span>
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.plungeDir = args[<span class="hljs-number">4</span>];		<span class="hljs-comment">// plunge direction</span>
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.pocketOverlap = args[<span class="hljs-number">5</span>];	<span class="hljs-comment">// % pocket overlap</span>
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.safeApullUp = args[<span class="hljs-number">6</span>];	<span class="hljs-comment">// safe-A-pull-up</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if (args[7] !== undefined) sbp_settings.triggeredOutput = args[7];    // triggered output switch
+if (args[8] !== undefined) sbp_settings.triggerONthreshold = args[8];    // trigger ON threshold
+if (args[9] !== undefined) sbp_settings.triggerOFFthreshold = args[9];    // trigger OFF threshold
+if (args[10] !== undefined) sbp_settings.vertAxisMonitor = args[10];    // vertical axis monitored
+if (args[11] !== undefined) sbp_settings.triggerOutputNum = args[11];    // triggered output switch #</p></div></div><div class="code"><div class="wrapper">};
+
+SBPRuntime.prototype.VD = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Number of Axes
+XYZ Unit type
+A Unit type
+B Unit type
+Show control console
+Display File Comments
+Keypad fixed distance
+Keypad remote
+Keypad Switch AutoOff
+Write Part File Log
+Write System File Log
+Message Screen Location X
+Message Screen Location Y
+Message Screen Size X
+Message Screen Size Y
+Keypad switches Auto-Off
+Show file Progress
+Main Display Type</p></div></div><div class="code"><div class="wrapper">};	
+
+SBPRuntime.prototype.VL = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>X - Low Limit
+X - High Limit
+Y - Low Limit
+Y - High Limit
+Z - Low Limit
+Z - High Limit
+A - Low Limit
+A - High Limit
+B - Low Limit
+B - High Limit
+C - Low Limit
+C - High Limit
+3D Threshold
+Minimum Distance to Check
+Slow Corner Speed
+Keypad Ramp Rate</p></div></div><div class="code"><div class="wrapper">};	
+
+SBPRuntime.prototype.VN = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Limits 0-OFF, 1-ON
+Input #4 Switch mode 0-Nrm Closed Stop, 1-Nrm Open Stop, 2-Not Used 
+Enable Torch Height Controller, Laser or Analog Control
+    0-Off, 1-Torch, 2-Laser, 3-An1 Control, 4-An2 Control, 5-An1 &amp; An2 Control</p></div></div><div class="code"><div class="wrapper">	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Input Switch Modes = 0-Standard Switch, 1-Nrm Open Limit, 2-Nrm Closed Limit, 3-Nrm Open Stop, 4-Nrm Closed Stop
+Input #1 Switch mode
+Input #2 Switch mode
+Input #3 Switch mode
+Input #5 Switch mode
+Input #6 Switch mode
+Input #7 Switch mode<br>Input #8 Switch mode
+Input #9 Switch mode
+Input #10 Switch mode
+Input #11 Switch mode
+Input #12 Switch mode
+Output Switch Modes = 0-StdON/FileOFF, 1-StdON/NoOFF, 2-StdON/LIStpOFF, 3-AutoON/FileOFF, 4-AutoON/NoOFF, 5-AutoON/FIStpOFF
+Output #1 Mode 
+Output #2 Mode
+Output #3 Mode
+Output #5 Mode
+Output #6 Mode
+Output #7 Mode
+Output #8 Mode
+Output #9 Mode
+Output #10 Mode
+Output #11 Mode
+Output #12 Mode</p></div></div><div class="code"><div class="wrapper">};	
+
+SBPRuntime.prototype.VP = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Grid
+Table Size X
+Table Size Y
+Table Size Z
+Simulate Cutting
+Draw Tool
+Start Actual Location
+Show Jugs</p></div></div><div class="code"><div class="wrapper">};	
+
+SBPRuntime.prototype.VR = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>XY Move Ramp Speed
+Z Move Ramp Speed
+A Move Ramp Speed
+B Move Ramp Speed
+C Move Ramp Speed
+XY Jog Ramp Speed
+Z Jog Ramp Speed
+A Jog Ramp Speed
+B Jog Ramp Speed
+C Jog Ramp Speed
+Move Ramp Rate
+Jog Ramp Rate
+3D Threshold
+Minimum Distance to Check
+Slow Corner Speed
+Keypad Ramp Rate</p></div></div><div class="code"><div class="wrapper">};	
+
+SBPRuntime.prototype.VS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movexy_speed = args[<span class="hljs-number">0</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movez_speed = args[<span class="hljs-number">1</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movea_speed = args[<span class="hljs-number">2</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.moveb_speed = args[<span class="hljs-number">3</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movec_speed = args[<span class="hljs-number">4</span>];
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogxy_speed = args[<span class="hljs-number">5</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'xvm'</span>:sbp_settings.jogxy_speed});
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'yvm'</span>:sbp_settings.jogxy_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogz_speed = args[<span class="hljs-number">6</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'zvm'</span>:sbp_settings.jogz_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">7</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.joga_speed = args[<span class="hljs-number">7</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'avm'</span>:sbp_settings.joga_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">8</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogb_speed = args[<span class="hljs-number">8</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'bvm'</span>:sbp_settings.jogb_speed});
+	}
+	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span>) {
+		sbp_settings.jogc_speed = args[<span class="hljs-number">9</span>];
+		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'cvm'</span>:sbp_settings.jogc_speed});
+	}
+};
+
+SBPRuntime.prototype.VU = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsX = args[<span class="hljs-number">1</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsY = args[<span class="hljs-number">2</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsZ = args[<span class="hljs-number">3</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsA = args[<span class="hljs-number">4</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsB = args[<span class="hljs-number">9</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsC = args[<span class="hljs-number">6</span>]; }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if ( args[5] !== undefined ) { circRes = args[5]; }
+if ( args[8] !== undefined ) { circSml = args[8]; }</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">10</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMX = args[<span class="hljs-number">10</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">11</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMY = args[<span class="hljs-number">11</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">12</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMZ = args[<span class="hljs-number">12</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">13</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMA = args[<span class="hljs-number">13</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">14</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMB = args[<span class="hljs-number">14</span>]; }
+	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">15</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMC = args[<span class="hljs-number">15</span>]; }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if ( args[16] !== undefined ) { StepIntDiv = args[16]; }</p></div></div><div class="code"><div class="wrapper">};
+
+SBPRuntime.prototype.EP = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G38.2 Z"</span> + args[<span class="hljs-number">0</span>]);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>TOOLS </p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>UTILITIES </p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>HELP 
+runtime = new SBPRuntime();
+runtime.runFileSync(&#39;example.sbp&#39;);
+console.log(runtime.user_vars);</p></div></div><div class="code"><div class="wrapper">exports.SBPRuntime = SBPRuntime;</div></div></div></div></body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><title>routes</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="routes"><meta name="groc-project-path" content="routes.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">routes.js</div></div><div id="document"><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> author jimmy</span></p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> restify = <span class="hljs-built_in">require</span>(<span class="hljs-string">'restify'</span>);
+<span class="hljs-keyword">var</span> socketio = <span class="hljs-built_in">require</span>(<span class="hljs-string">'socket.io'</span>);
+
+<span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Load the route handlers</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> files_module = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./files_module_handlers'</span>);
+<span class="hljs-keyword">var</span> config_module = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./config_module_handlers'</span>);
+<span class="hljs-keyword">var</span> file_commands_module = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./file_commands_module_handlers'</span>);
+<span class="hljs-keyword">var</span> direct_commands_module = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./direct_commands_module_handlers'</span>);
+<span class="hljs-keyword">var</span> wifi_manager_module = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./wifi_manager_handlers'</span>);
+<span class="hljs-keyword">var</span> passthrough_module = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./passthrough_module_handlers'</span>);
+
+module.exports = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(server)</span> {</span>
+
+	<span class="hljs-comment">/************** Status &amp; config module **************/</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>get the status of the tool </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/status'</span>, config_module.get_status); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>get the config of the tool </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/config'</span>,config_module.get_config); <span class="hljs-comment">//TODO </span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>get the informations of the tool </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/info'</span>,config_module.get_info); <span class="hljs-comment">//TODO </span>
+
+	<span class="hljs-comment">/****************************************************/</span>
+
+
+
+	<span class="hljs-comment">/******************* File module ********************/</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>get the list of files on the upload directory </p></div></div><div class="code"><div class="wrapper">	
+	server.get(<span class="hljs-string">'/file'</span>, files_module.get_files); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>upload a file </p></div></div><div class="code"><div class="wrapper">	server.post(<span class="hljs-string">'/file'</span>,files_module.upload_file); <span class="hljs-comment">//OK</span>
+
+	server.del(<span class="hljs-string">'/file/:id'</span>,files_module.delete_file); <span class="hljs-comment">//OK</span>
+
+	server.get(<span class="hljs-string">'/file/:id'</span>,files_module.download_file); <span class="hljs-comment">//OK</span>
+	
+	server.get(<span class="hljs-string">'/file/:id/view'</span>,files_module.view_file); <span class="hljs-comment">//OK</span>
+
+	<span class="hljs-comment">/****************************************************/</span>
+
+
+
+	<span class="hljs-comment">/************** file commands module ****************/</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>run a file by id </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/run/:id'</span>, file_commands_module.run); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>abort the execution of the current running file </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/quit'</span>,file_commands_module.quit); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>pause the execution of the current running file </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/pause'</span>,file_commands_module.pause); <span class="hljs-comment">//OK </span>
+	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>resume the execution of the current running file </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/resume'</span>,file_commands_module.resume); <span class="hljs-comment">//OK </span>
+
+	<span class="hljs-comment">/****************************************************/</span>
+
+
+
+	<span class="hljs-comment">/************* Direct commands module ***************/</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>send a gcode command to the tool </p></div></div><div class="code"><div class="wrapper">	server.post(<span class="hljs-string">'/direct/sbp'</span>,direct_commands_module.send_sbp); <span class="hljs-comment">//OK</span>
+	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>send a gcode command to the tool </p></div></div><div class="code"><div class="wrapper">	server.post(<span class="hljs-string">'/direct/gcode'</span>,direct_commands_module.send_gcode); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>move the tool in the given direction </p></div></div><div class="code"><div class="wrapper">	server.post(<span class="hljs-string">'/direct/move'</span>,direct_commands_module.move); <span class="hljs-comment">//TODO :improve it</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>jog the tool in the given direction </p></div></div><div class="code"><div class="wrapper">	server.post(<span class="hljs-string">'/direct/jog'</span>,direct_commands_module.jog); <span class="hljs-comment">//TODO  :improve it</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>move the tool to a given position </p></div></div><div class="code"><div class="wrapper">	server.post(<span class="hljs-string">'/direct/goto'</span>,direct_commands_module.goto); <span class="hljs-comment">//OK</span>
+
+	<span class="hljs-comment">/****************************************************/</span>
+
+
+
+
+	<span class="hljs-comment">/************** Wifi manager module *****************/</span>
+
+	<span class="hljs-keyword">if</span>(settings.wifi_manager){</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>get the list of detectable wifi networks </p></div></div><div class="code"><div class="wrapper">	
+	server.get(<span class="hljs-string">'/wifi_manager/detection'</span>,wifi_manager_module.detection); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>get the list of existing profiles </p></div></div><div class="code"><div class="wrapper">	server.get(<span class="hljs-string">'/wifi_manager/profiles'</span>,wifi_manager_module.list_profiles); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>create a new profile </p></div></div><div class="code"><div class="wrapper">	server.post(<span class="hljs-string">'/wifi_manager/profile'</span>,wifi_manager_module.add_profile); <span class="hljs-comment">//OK</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>delete an existing profile </p></div></div><div class="code"><div class="wrapper">	server.del(<span class="hljs-string">'/wifi_manager/profile/:ssid'</span>,wifi_manager_module.delete_profile); <span class="hljs-comment">//OK</span>
+	}
+	<span class="hljs-comment">/****************************************************/</span>
+
+	<span class="hljs-keyword">var</span> io = socketio.listen(server.server);
+
+
+	server.get(<span class="hljs-string">"/passthrough"</span>,passthrough_module.passthrough_app);
+
+	io.of(<span class="hljs-string">'/passthrough'</span>).on(<span class="hljs-string">'connection'</span>, passthrough_module.connect);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>here are connections from /passthrough</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-comment">/****************************************************/</span>
+
+	server.get(<span class="hljs-regexp">/.*/</span>, restify.serveStatic({
+   		directory: <span class="hljs-string">'./static'</span>,
+   		<span class="hljs-keyword">default</span>: <span class="hljs-string">'index.html'</span>
+	}));
+
+	
+};</div></div></div></div></body></html>

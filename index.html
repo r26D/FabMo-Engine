@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="en"><head><title>index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="index"><meta name="groc-project-path" content="README.md"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">README.md</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="the-fabmo-engine">The FabMo Engine</h1>
+<p>The FabMo engine is host software that connects to a G2 motion control platform and manages it, exposing a web interface.  The engine serves the following major functions:</p>
+<ul>
+<li>Streaming of G-Code files to G2</li>
+<li>Monitoring of G2 motion state and cycle progress</li>
+<li>Storage and management of files (that currently cannot be stored on G2)</li>
+<li>Interpretation of the OpenSBP (ShopBot) language</li>
+<li>Exposure of an API that allows clients to connect to the motion system through the web</li>
+</ul>
+<h2 id="dependencies">Dependencies</h2>
+<p>The engine runs best on linux, but can run with limited functionality on windows.  To run the engine, you need the following software packages:</p>
+<ul>
+<li>NodeJS (<a href="http://nodejs.org/">http://nodejs.org/</a>)</li>
+<li>restify </li>
+<li>serialport</li>
+<li>process</li>
+<li>colors (optional, for colorized log output)</li>
+<li>tingodb</li>
+</ul>
+<h2 id="installing-the-engine">Installing the Engine</h2>
+<p>The engine is run from source, and only needs to be checked out and stored in a local directory.   There are a few directories that you need to have created for the engine to work properly.  Under linux, these are <code>/opt/shopbot/parts</code> and <code>/opt/shopbot/tmp</code>.  On windows, use <code>c:\opt\shopbot\parts</code> and <code>c:\opt\shopbot\tmp</code> The process that is running the engine server needs read/write access to both of these directories.</p>
+<h2 id="running-the-engine">Running the Engine</h2>
+<p>For debugging the engine, you can run it directly from the command prompt with <code>node server.js</code></p></div></div></div></div></body></html>

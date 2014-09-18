@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="en"><head><title>gcode</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="gcode"><meta name="groc-project-path" content="gcode.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">gcode.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'gcode'</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">GCodeRuntime</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>.machine = <span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.driver = <span class="hljs-literal">null</span>;
+}
+
+GCodeRuntime.prototype.connect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(machine)</span> {</span>
+	<span class="hljs-keyword">this</span>.machine = machine;
+	<span class="hljs-keyword">this</span>.driver = machine.driver;
+
+	<span class="hljs-keyword">this</span>.state_change_handler =<span class="hljs-keyword">this</span>._onDriverStateChange.bind(<span class="hljs-keyword">this</span>);
+	<span class="hljs-keyword">this</span>.status_handler =  <span class="hljs-keyword">this</span>._onDriverStatus.bind(<span class="hljs-keyword">this</span>);
+
+	<span class="hljs-keyword">this</span>.driver.on(<span class="hljs-string">'state'</span>, <span class="hljs-keyword">this</span>.state_change_handler);
+	<span class="hljs-keyword">this</span>.driver.on(<span class="hljs-string">'status'</span>,<span class="hljs-keyword">this</span>.status_handler);
+};
+
+GCodeRuntime.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>.driver.removeListener(<span class="hljs-string">'state'</span>, <span class="hljs-keyword">this</span>.state_change_handler);
+	<span class="hljs-keyword">this</span>.driver.removeListener(<span class="hljs-string">'status'</span>, <span class="hljs-keyword">this</span>.status_handler);
+};
+
+GCodeRuntime.prototype._onDriverStatus = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(status)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Update our copy of the system status</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> key <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.machine.status) {
+		<span class="hljs-keyword">if</span>(key <span class="hljs-keyword">in</span> status) {
+			<span class="hljs-keyword">this</span>.machine.status[key] = status[key];
+		}
+	}
+};
+
+GCodeRuntime.prototype._idle = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">'idle'</span>);
+	<span class="hljs-keyword">this</span>.machine.status.current_file = <span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.machine.status.line=<span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">this</span>.machine.status.nb_lines=<span class="hljs-literal">null</span>;
+};
+
+GCodeRuntime.prototype._onDriverStateChange = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(states)</span> {</span>
+	old_state = states[<span class="hljs-number">0</span>];
+	new_state = states[<span class="hljs-number">1</span>];
+	log.debug(<span class="hljs-string">"State change: "</span> + <span class="hljs-keyword">this</span>.machine.status.state + <span class="hljs-string">' -&gt; '</span> + states);
+	<span class="hljs-keyword">switch</span>(<span class="hljs-keyword">this</span>.machine.status.state) {
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"not_ready"</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>This shouldn&#39;t happen.</p></div></div><div class="code"><div class="wrapper">			log.error(<span class="hljs-string">"Got a state change event from Driver before ready"</span>);
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"running"</span>:
+			<span class="hljs-keyword">switch</span>(old_state) {
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_complete'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"paused"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_pause'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+					}
+					<span class="hljs-keyword">break</span>;
+
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+				<span class="hljs-keyword">case</span> STAT_HOLDING:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>,<span class="hljs-string">"running"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_resume'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_complete'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOMING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>,<span class="hljs-string">"homing"</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_PROBE:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"probing"</span>);
+							<span class="hljs-keyword">break</span>;
+					} <span class="hljs-comment">// new_state</span>
+					<span class="hljs-keyword">break</span>;
+
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOMING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"homing"</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_PROBE:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"probing"</span>);
+							<span class="hljs-keyword">break</span>;
+					} <span class="hljs-comment">// new_state</span>
+					<span class="hljs-keyword">break</span>;
+				<span class="hljs-keyword">default</span>:
+					log.error(<span class="hljs-string">'Old state was '</span> + old_state + <span class="hljs-string">' while running.... ('</span> +  new_state + <span class="hljs-string">')'</span>); 
+			} <span class="hljs-comment">// old_state</span>
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"homing"</span>:
+			<span class="hljs-keyword">switch</span>(old_state) {
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOMING:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_complete'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:	
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>,<span class="hljs-string">"paused"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_pause'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+					}
+					<span class="hljs-keyword">break</span>;
+
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"running"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_resume'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_complete'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+					} <span class="hljs-comment">// new_state</span>
+					<span class="hljs-keyword">break</span>;
+			} <span class="hljs-comment">// old_state</span>
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"idle"</span>:
+			<span class="hljs-keyword">switch</span>(old_state) {
+				<span class="hljs-keyword">case</span> <span class="hljs-literal">undefined</span>:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"running"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_resume'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-comment">//console.log('Got an unexpected switch to END from IDLE');</span>
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOMING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"homing"</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_PROBE:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"probing"</span>);
+							<span class="hljs-keyword">break</span>;
+					} <span class="hljs-comment">// new_state</span>
+					<span class="hljs-keyword">break</span>;
+				<span class="hljs-keyword">default</span>:
+					log.error(<span class="hljs-string">"UNKNOWN STATE "</span> + old_state);
+					<span class="hljs-keyword">break</span>;
+			} <span class="hljs-comment">// old_state</span>
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"paused"</span>:
+			<span class="hljs-keyword">switch</span>(old_state) {
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+					<span class="hljs-keyword">switch</span>(new_state) { 
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"running"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_resume'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_complete'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+					} <span class="hljs-comment">// new_state</span>
+					<span class="hljs-keyword">break</span>;
+			} <span class="hljs-comment">// old_state</span>
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"manual"</span>:
+			<span class="hljs-keyword">switch</span>(old_state) {
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">break</span>;
+                        <span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+							<span class="hljs-comment">//this._idle();</span>
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"paused"</span>);
+							<span class="hljs-keyword">break</span>;
+					}
+					<span class="hljs-keyword">break</span>;
+
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"manual"</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">break</span>;
+					} <span class="hljs-comment">// new_state</span>
+					<span class="hljs-keyword">break</span>;
+			} <span class="hljs-comment">// old_state</span>
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">"probing"</span>:
+			<span class="hljs-keyword">switch</span>(old_state) {
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_PROBE:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_complete'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:	
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"paused"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_pause'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+					}
+					<span class="hljs-keyword">break</span>;
+
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+				<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
+					<span class="hljs-keyword">switch</span>(new_state) {
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_RUNNING:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"running"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_resume'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_PROBE:
+							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"probing"</span>);
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_resume'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
+							<span class="hljs-keyword">this</span>._idle();
+							<span class="hljs-keyword">this</span>.machine.emit(<span class="hljs-string">'job_complete'</span>, <span class="hljs-keyword">this</span>);
+							<span class="hljs-keyword">break</span>;
+					} <span class="hljs-comment">// new_state</span>
+					<span class="hljs-keyword">break</span>;
+			} <span class="hljs-comment">// old_state</span>
+			<span class="hljs-keyword">break</span>;
+
+	} <span class="hljs-comment">// this.status.state</span>
+}; <span class="hljs-comment">// _onDriverStateChange</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Run the provided string
+callback runs only when execution is complete.</p></div></div><div class="code"><div class="wrapper">GCodeRuntime.prototype.runString = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(string, callback)</span> {</span>
+	<span class="hljs-comment">//log.debug('Running String ' + string)</span>
+	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.machine.status.state === <span class="hljs-string">'idle'</span>) {
+		<span class="hljs-keyword">var</span> lines =  string.split(<span class="hljs-string">'\n'</span>);
+		<span class="hljs-keyword">this</span>.machine.status.nb_lines = lines.length;
+		<span class="hljs-keyword">for</span> (i=<span class="hljs-number">0</span>;i&lt;lines.length;i++){
+			<span class="hljs-keyword">if</span> (lines[i][<span class="hljs-number">0</span>]!==<span class="hljs-literal">undefined</span> &amp;&amp; lines[i][<span class="hljs-number">0</span>].toUpperCase() !== <span class="hljs-string">'N'</span> ){
+				lines[i]= <span class="hljs-string">'N'</span>+ (i+<span class="hljs-number">1</span>) + lines[i];
+			}
+		}
+		string = lines.join(<span class="hljs-string">"\n"</span>);
+		<span class="hljs-keyword">this</span>.driver.runString(string);
+	}
+
+};
+
+exports.GCodeRuntime = GCodeRuntime;</div></div></div></div></body></html>

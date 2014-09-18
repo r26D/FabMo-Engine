@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="en"><head><title>server</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="server"><meta name="groc-project-path" content="server.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">server.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);
+<span class="hljs-keyword">var</span> restify = <span class="hljs-built_in">require</span>(<span class="hljs-string">'restify'</span>);
+<span class="hljs-keyword">var</span> process = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>);
+<span class="hljs-keyword">var</span> detection_daemon = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./detection_daemon'</span>);
+<span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine'</span>);
+<span class="hljs-keyword">var</span> PLATFORM = process.platform;
+
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'server'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Connect to G2</p></div></div><div class="code"><div class="wrapper">machine.machine = machine.connect(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error, data)</span> {</span>
+	<span class="hljs-keyword">if</span>(error) {
+		log.error(<span class="hljs-string">"There was an error connecting to the tool: "</span> + data);
+		process.exit(<span class="hljs-number">1</span>);
+	} <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Successful connection made to G2: Setup the server.</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> server = restify.createServer({name:<span class="hljs-string">"FabMo Engine"</span>});</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Allow JSON over Cross-origin resource sharing </p></div></div><div class="code"><div class="wrapper">		server.use(
+		  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">crossOrigin</span><span class="hljs-params">(req,res,next)</span>{</span>
+		    res.header(<span class="hljs-string">"Access-Control-Allow-Origin"</span>, <span class="hljs-string">"*"</span>);
+		    res.header(<span class="hljs-string">"Access-Control-Allow-Headers"</span>, <span class="hljs-string">"X-Requested-With"</span>);
+		    <span class="hljs-keyword">return</span> next();
+		  }
+		);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Configure local directory for uploading files</p></div></div><div class="code"><div class="wrapper">		server.use(restify.bodyParser({<span class="hljs-string">'uploadDir'</span>:settings.upload_dir}));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The routes module maps URLs to functions of the API</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> routes = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./routes'</span>)(server);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Kick off the server listening for connections</p></div></div><div class="code"><div class="wrapper">		server.listen(settings.server_port, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+		  log.info(server.name+ <span class="hljs-string">' listening at '</span>+ server.url);
+		});
+	}
+});</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Initialize a detection daemon.
+This is a beacon server that allows the tool to be auto-discovered on the network.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">new</span> detection_daemon(<span class="hljs-number">24862</span>);</div></div></div></div></body></html>

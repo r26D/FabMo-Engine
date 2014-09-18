@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><title>config_loader</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="config_loader"><meta name="groc-project-path" content="config_loader.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">config_loader.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> configuration = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./configuration'</span>);
+<span class="hljs-keyword">var</span> process=<span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>);
+<span class="hljs-keyword">var</span> machine=<span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine'</span>).machine;
+<span class="hljs-keyword">var</span> log=<span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'config_loader'</span>);;
+
+<span class="hljs-keyword">var</span> ALLOWED_COMMANDS = [<span class="hljs-string">"1ma"</span>,<span class="hljs-string">"1sa"</span>,<span class="hljs-string">"1tr"</span>,<span class="hljs-string">"1mi"</span>,<span class="hljs-string">"1po"</span>,<span class="hljs-string">"1pm"</span>,<span class="hljs-string">"2ma"</span>,<span class="hljs-string">"2sa"</span>,
+<span class="hljs-string">"2tr"</span>,<span class="hljs-string">"2mi"</span>,<span class="hljs-string">"2po"</span>,<span class="hljs-string">"2pm"</span>,<span class="hljs-string">"3ma"</span>,<span class="hljs-string">"3sa"</span>,<span class="hljs-string">"3tr"</span>,<span class="hljs-string">"3mi"</span>,<span class="hljs-string">"3po"</span>,<span class="hljs-string">"3pm"</span>,<span class="hljs-string">"4ma"</span>,
+<span class="hljs-string">"4sa"</span>,<span class="hljs-string">"4tr"</span>,<span class="hljs-string">"4mi"</span>,<span class="hljs-string">"4po"</span>,<span class="hljs-string">"4pm"</span>,<span class="hljs-string">"5ma"</span>,<span class="hljs-string">"5sa"</span>,<span class="hljs-string">"5tr"</span>,<span class="hljs-string">"5mi"</span>,<span class="hljs-string">"5po"</span>,<span class="hljs-string">"5pm"</span>,
+<span class="hljs-string">"6ma"</span>,<span class="hljs-string">"6sa"</span>,<span class="hljs-string">"6tr"</span>,<span class="hljs-string">"6mi"</span>,<span class="hljs-string">"6po"</span>,<span class="hljs-string">"6pm"</span>,<span class="hljs-string">"xam"</span>,<span class="hljs-string">"xvm"</span>,<span class="hljs-string">"xfr"</span>,<span class="hljs-string">"xtm"</span>,<span class="hljs-string">"xjm"</span>,
+<span class="hljs-string">"xjh"</span>,<span class="hljs-string">"xjd"</span>,<span class="hljs-string">"xsn"</span>,<span class="hljs-string">"xsx"</span>,<span class="hljs-string">"xsv"</span>,<span class="hljs-string">"xlv"</span>,<span class="hljs-string">"xzb"</span>,<span class="hljs-string">"yam"</span>,<span class="hljs-string">"yvm"</span>,<span class="hljs-string">"yfr"</span>,<span class="hljs-string">"ytm"</span>,
+<span class="hljs-string">"yjm"</span>,<span class="hljs-string">"yjh"</span>,<span class="hljs-string">"yjd"</span>,<span class="hljs-string">"ysn"</span>,<span class="hljs-string">"ysx"</span>,<span class="hljs-string">"ysv"</span>,<span class="hljs-string">"ylv"</span>,<span class="hljs-string">"yzb"</span>,<span class="hljs-string">"zam"</span>,<span class="hljs-string">"zvm"</span>,<span class="hljs-string">"zfr"</span>,
+<span class="hljs-string">"ztm"</span>,<span class="hljs-string">"zjm"</span>,<span class="hljs-string">"zjh"</span>,<span class="hljs-string">"zjd"</span>,<span class="hljs-string">"zsn"</span>,<span class="hljs-string">"zsx"</span>,<span class="hljs-string">"zsv"</span>,<span class="hljs-string">"zlv"</span>,<span class="hljs-string">"zzb"</span>,<span class="hljs-string">"aam"</span>,<span class="hljs-string">"avm"</span>,
+<span class="hljs-string">"afr"</span>,<span class="hljs-string">"atm"</span>,<span class="hljs-string">"ajm"</span>,<span class="hljs-string">"ajh"</span>,<span class="hljs-string">"ajd"</span>,<span class="hljs-string">"ara"</span>,<span class="hljs-string">"asn"</span>,<span class="hljs-string">"asx"</span>,<span class="hljs-string">"asv"</span>,<span class="hljs-string">"alv"</span>,<span class="hljs-string">"azb"</span>,
+<span class="hljs-string">"bam"</span>,<span class="hljs-string">"bvm"</span>,<span class="hljs-string">"bfr"</span>,<span class="hljs-string">"btm"</span>,<span class="hljs-string">"bjm"</span>,<span class="hljs-string">"bjd"</span>,<span class="hljs-string">"bra"</span>,<span class="hljs-string">"cam"</span>,<span class="hljs-string">"cvm"</span>,<span class="hljs-string">"cfr"</span>,<span class="hljs-string">"ctm"</span>,
+<span class="hljs-string">"cjm"</span>,<span class="hljs-string">"cjd"</span>,<span class="hljs-string">"cra"</span>,<span class="hljs-string">"p1frq"</span>,<span class="hljs-string">"p1csl"</span>,<span class="hljs-string">"p1csh"</span>,<span class="hljs-string">"p1cpl"</span>,<span class="hljs-string">"p1cph"</span>,<span class="hljs-string">"p1wsl"</span>,<span class="hljs-string">"p1wsh"</span>,
+<span class="hljs-string">"p1wpl"</span>,<span class="hljs-string">"p1wph"</span>,<span class="hljs-string">"p1pof"</span>,<span class="hljs-string">"fb"</span>,<span class="hljs-string">"fv"</span>,<span class="hljs-string">"hv"</span>,<span class="hljs-string">"id"</span>,<span class="hljs-string">"ja"</span>,<span class="hljs-string">"ct"</span>,<span class="hljs-string">"st"</span>,<span class="hljs-string">"mt"</span>,<span class="hljs-string">"ej"</span>,
+<span class="hljs-string">"jv"</span>,<span class="hljs-string">"tv"</span>,<span class="hljs-string">"qv"</span>,<span class="hljs-string">"sv"</span>,<span class="hljs-string">"si"</span>,<span class="hljs-string">"ic"</span>,<span class="hljs-string">"ec"</span>,<span class="hljs-string">"ee"</span>,<span class="hljs-string">"ex"</span>,<span class="hljs-string">"baud"</span>,<span class="hljs-string">"gpl"</span>,<span class="hljs-string">"gun"</span>,<span class="hljs-string">"gco"</span>,
+<span class="hljs-string">"gpa"</span>,<span class="hljs-string">"gdi"</span>,<span class="hljs-string">"sr"</span>,<span class="hljs-string">"qr"</span>,<span class="hljs-string">"qf"</span>,<span class="hljs-string">"md"</span>,<span class="hljs-string">"me"</span>,<span class="hljs-string">"test"</span>,<span class="hljs-string">"defa"</span>,<span class="hljs-string">"boot"</span>,<span class="hljs-string">"help"</span>,<span class="hljs-string">"qr"</span>,
+<span class="hljs-string">"qf"</span>,<span class="hljs-string">"md"</span>,<span class="hljs-string">"me"</span>,<span class="hljs-string">"test"</span>,<span class="hljs-string">"defa"</span>,<span class="hljs-string">"boot"</span>,<span class="hljs-string">"help"</span>,<span class="hljs-string">"ml"</span>,<span class="hljs-string">"ma"</span>,<span class="hljs-string">"ms"</span>,<span class="hljs-string">"qrh"</span>,<span class="hljs-string">"qrl"</span>,
+<span class="hljs-string">"st"</span>,<span class="hljs-string">"xjh"</span>,<span class="hljs-string">"xsn"</span>,<span class="hljs-string">"xsx"</span>,<span class="hljs-string">"xtm"</span>,<span class="hljs-string">"xsv"</span>,<span class="hljs-string">"xlv"</span>,<span class="hljs-string">"xlb"</span>,<span class="hljs-string">"xzb"</span>,<span class="hljs-string">"yjh"</span>,<span class="hljs-string">"ysn"</span>,<span class="hljs-string">"ysx"</span>,
+<span class="hljs-string">"ytm"</span>,<span class="hljs-string">"ysv"</span>,<span class="hljs-string">"ylv"</span>,<span class="hljs-string">"ylb"</span>,<span class="hljs-string">"yzb"</span>,<span class="hljs-string">"zjh"</span>,<span class="hljs-string">"zsn"</span>,<span class="hljs-string">"zsx"</span>,<span class="hljs-string">"ztm"</span>,<span class="hljs-string">"zsv"</span>,<span class="hljs-string">"zlv"</span>,
+<span class="hljs-string">"zlb"</span>,<span class="hljs-string">"zzb"</span>,<span class="hljs-string">"asn"</span>,<span class="hljs-string">"asx"</span>];
+
+<span class="hljs-keyword">var</span> sent = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">var</span> recv = <span class="hljs-number">0</span>;
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">config_single</span><span class="hljs-params">(driver, cmd, success_callback)</span> {</span>
+	driver.on(<span class="hljs-string">'message'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handler</span><span class="hljs-params">(resp)</span> {</span>
+		<span class="hljs-keyword">if</span> (resp &amp;&amp; (resp <span class="hljs-keyword">instanceof</span> <span class="hljs-built_in">Object</span>) &amp;&amp; (<span class="hljs-string">'r'</span> <span class="hljs-keyword">in</span> resp)) { <span class="hljs-comment">// filter for response</span>
+			r = resp.r;
+			cmd_key = <span class="hljs-built_in">Object</span>.keys(cmd)[<span class="hljs-number">0</span>].toLowerCase();
+			<span class="hljs-keyword">try</span> {
+				r_key = <span class="hljs-built_in">Object</span>.keys(r)[<span class="hljs-number">0</span>].toLowerCase();
+			} <span class="hljs-keyword">catch</span>(e) {
+				<span class="hljs-keyword">return</span>;
+			}
+			<span class="hljs-keyword">if</span> ( cmd_key === r_key ) { <span class="hljs-comment">//check if response correspond to the request</span>
+				<span class="hljs-keyword">if</span>(resp.f) { <span class="hljs-comment">//check if there is a feedback</span>
+					<span class="hljs-keyword">if</span> (resp.f[<span class="hljs-number">1</span>] === <span class="hljs-number">0</span>) {
+						driver.removeListener(<span class="hljs-string">'message'</span>, handler);
+						recv += <span class="hljs-number">1</span>;
+						<span class="hljs-keyword">typeof</span> success_callback === <span class="hljs-string">'function'</span> &amp;&amp; success_callback(driver);
+					}
+					<span class="hljs-keyword">else</span> {
+						driver.removeListener(<span class="hljs-string">'message'</span>, handler);
+						log.error(<span class="hljs-built_in">JSON</span>.stringify(cmd) + <span class="hljs-string">'not executed correctly! LOAD FAILED. EXIT.'</span>);
+						process.exit(-<span class="hljs-number">1</span>);
+					}
+				}
+			}
+		}
+	});
+	sent += <span class="hljs-number">1</span>;
+	driver.command(cmd);
+};
+
+exports.load = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(driver, callback)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>HARD CODED QUEUE REPORT VERBOSITY</p></div></div><div class="code"><div class="wrapper">	configuration.unshift({<span class="hljs-string">"sr"</span>:{<span class="hljs-string">"posx"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"posy"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"posz"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"posa"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"posb"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"vel"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"stat"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"hold"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"line"</span>:<span class="hljs-literal">true</span>, <span class="hljs-string">"coor"</span>:<span class="hljs-literal">true</span>}});
+	configuration.unshift({<span class="hljs-string">'qv'</span>:<span class="hljs-number">2</span>});
+	config_single(driver, configuration.shift(), <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">next</span><span class="hljs-params">()</span> {</span>
+		next_cmd = configuration.shift()
+		<span class="hljs-keyword">if</span>(next_cmd) {
+			config_single(driver, next_cmd, next);
+		} <span class="hljs-keyword">else</span> {
+			<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">'function'</span> &amp;&amp; callback(driver);
+		}
+	});
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">allowed_commands</span><span class="hljs-params">(command)</span>{</span>
+	<span class="hljs-keyword">if</span> (ALLOWED_COMMANDS.indexOf(command.toLowerCase())!== -<span class="hljs-number">1</span>)
+	{
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+	}
+	<span class="hljs-keyword">else</span>
+	{
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+	}
+};</div></div></div></div></body></html>

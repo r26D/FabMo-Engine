@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="en"><head><title>TestSBP_CR</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="TestSBP_CR"><meta name="groc-project-path" content="TestSBP_CR.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">TestSBP_CR.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> opensbp = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./opensbp'</span>);
+
+sbp = <span class="hljs-keyword">new</span> opensbp.SBPRuntime();
+
+sbp.cmd_posx = <span class="hljs-number">0</span>;
+sbp.cmd_posy = <span class="hljs-number">0</span>;
+sbp.cmd_posz = <span class="hljs-number">.25</span>;
+
+p0 = <span class="hljs-number">4</span>;				<span class="hljs-comment">// lenX (X)</span>
+p1 = <span class="hljs-number">2</span>;				<span class="hljs-comment">// lenY (Y)</span>
+p2 = <span class="hljs-string">"T"</span>;			<span class="hljs-comment">// O-I-T</span>
+p3 = -<span class="hljs-number">1</span>;				<span class="hljs-comment">// Dir</span>
+p4 = <span class="hljs-number">4</span>;				<span class="hljs-comment">// Starting Corner</span>
+p5 = -<span class="hljs-number">0.1</span>;		<span class="hljs-comment">// Plunge</span>
+p6 = <span class="hljs-number">2</span>;				<span class="hljs-comment">// Repetitions</span>
+p7 = <span class="hljs-number">2</span>;		<span class="hljs-comment">// Options - 1-Tab, 2-Pocket Outside-In, 3-Pocket Inside-Out</span>
+p8 = <span class="hljs-number">1</span>;				<span class="hljs-comment">// Start Plunge from Zero &lt;0-NO, 1-YES&gt;</span>
+p9 = <span class="hljs-literal">undefined</span>;		<span class="hljs-comment">// Rotation Angle</span>
+p10 = <span class="hljs-literal">undefined</span>;	<span class="hljs-comment">// Plunge Axis</span>
+p11 = <span class="hljs-number">1</span>;			<span class="hljs-comment">// Spiral Plunge &lt;1-Yes&gt;</span>
+p12 = <span class="hljs-number">0</span>;	<span class="hljs-comment">// noPullUp at end</span>
+
+sbp.CR([p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12]);
+
+console.log(sbp.current_chunk);</div></div></div></div></body></html>
