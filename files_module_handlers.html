@@ -3,9 +3,7 @@
 <span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine'</span>).machine;
 <span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);
 <span class="hljs-keyword">var</span> db = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./db'</span>);
-<span class="hljs-keyword">var</span> File=db.File; <span class="hljs-comment">// link to the files database collection</span>
-
-ALLOWED_EXTENSIONS = [<span class="hljs-string">'.nc'</span>,<span class="hljs-string">'.g'</span>,<span class="hljs-string">'.sbp'</span>,<span class="hljs-string">'.gc'</span>,<span class="hljs-string">'.gcode'</span>];
+<span class="hljs-keyword">var</span> File=db.File;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p><em>TODO:</em> This is defined in two places, we should fix that.</p></div></div><div class="code"><div class="wrapper">ALLOWED_EXTENSIONS = [<span class="hljs-string">'.nc'</span>,<span class="hljs-string">'.g'</span>,<span class="hljs-string">'.sbp'</span>,<span class="hljs-string">'.gc'</span>,<span class="hljs-string">'.gcode'</span>];
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">allowed_file</span><span class="hljs-params">(filename)</span>{</span>
 	<span class="hljs-keyword">if</span> (ALLOWED_EXTENSIONS.indexOf(path.extname(filename).toLowerCase()) !== -<span class="hljs-number">1</span>)
@@ -25,30 +23,30 @@ exports.get_files = <span class="hljs-function"><span class="hljs-keyword">funct
 
 exports.upload_file = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	<span class="hljs-keyword">var</span> file = req.files.file;
-    <span class="hljs-keyword">if</span>(file &amp;&amp; allowed_file(file.name))
-    {
-    	<span class="hljs-keyword">var</span> filename=file.name;
-    	console.log(<span class="hljs-string">"Saving: "</span> + filename);
-       	<span class="hljs-keyword">var</span> full_path = path.join(settings.upload_dir, filename);
-       	console.log(full_path);
-       	fs.rename(file.path, full_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
-       		<span class="hljs-keyword">if</span> (err){
-       			<span class="hljs-keyword">throw</span> err;
-       		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>delete the temporary file, so that the explicitly set temporary upload dir does not get filled with unwanted files</p></div></div><div class="code"><div class="wrapper">        	fs.unlink(file.path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-        		<span class="hljs-keyword">if</span> (err) {<span class="hljs-keyword">throw</span> err;}
-        		<span class="hljs-keyword">new</span> File(filename, full_path).save(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span>{</span>
+	<span class="hljs-keyword">if</span>(file &amp;&amp; allowed_file(file.name))
+	{
+		<span class="hljs-keyword">var</span> filename=file.name;
+		console.log(<span class="hljs-string">"Saving: "</span> + filename);
+		<span class="hljs-keyword">var</span> full_path = path.join(settings.upload_dir, filename);
+		console.log(full_path);
+		fs.rename(file.path, full_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+			<span class="hljs-keyword">if</span> (err){
+				<span class="hljs-keyword">throw</span> err;
+			}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>delete the temporary file, so that the explicitly set temporary upload dir does not get filled with unwanted files</p></div></div><div class="code"><div class="wrapper">			fs.unlink(file.path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+				<span class="hljs-keyword">if</span> (err) {<span class="hljs-keyword">throw</span> err;}
+				<span class="hljs-keyword">new</span> File(filename, full_path).save(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span>{</span>
 				res.send(<span class="hljs-number">302</span>,file); <span class="hljs-comment">// file saved</span>
 			}); <span class="hljs-comment">//save in db</span>
-        		
-        	});
-        });
-    }
-    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (file){
+				
+			});
+		});
+	}
+	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (file){
 	res.send(<span class="hljs-number">415</span>); <span class="hljs-comment">// wrong format</span>
-    }
-    <span class="hljs-keyword">else</span>{
+	}
+	<span class="hljs-keyword">else</span>{
 	res.send(<span class="hljs-number">400</span>);<span class="hljs-comment">// problem reciving the file (bad request)	</span>
-    }
+	}
 };
 
 exports.delete_file = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>

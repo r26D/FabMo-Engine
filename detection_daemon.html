@@ -3,65 +3,53 @@
 <span class="hljs-keyword">var</span> EventEmitter = <span class="hljs-built_in">require</span>(<span class="hljs-string">'events'</span>).EventEmitter;
 <span class="hljs-keyword">var</span> dgram = <span class="hljs-built_in">require</span>(<span class="hljs-string">'dgram'</span>);
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'detection'</span>);
-<span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);
-
-<span class="hljs-keyword">var</span> OK = <span class="hljs-string">"YES I M !\0"</span>;
+<span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Direct socket messages</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> OK = <span class="hljs-string">"YES I M !\0"</span>;
 <span class="hljs-keyword">var</span> ERR = <span class="hljs-string">"I DNT UNDRSTND !\0"</span>;
 <span class="hljs-keyword">var</span> HOSTNAME = <span class="hljs-string">"U NAME ?\0"</span>;
 <span class="hljs-keyword">var</span> REQ = <span class="hljs-string">"R U A SBT ?\0"</span>;
-<span class="hljs-keyword">var</span> default_port = <span class="hljs-number">24862</span>; <span class="hljs-comment">// = 7777 without conversion</span>
-
-<span class="hljs-keyword">var</span> start = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(port)</span> {</span>
+<span class="hljs-keyword">var</span> default_port = <span class="hljs-number">24862</span>; <span class="hljs-comment">// = 7777 without conversion</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Kick off the &quot;detection daemon&quot; which is the process that listens for incoming scans by the FabMo linker
+The detection daemon is what we as a FabMo device run so that we can be discovered by the FabMo linker/dashboard</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> start = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(port)</span> {</span>
 	<span class="hljs-keyword">var</span> socket = dgram.createSocket(<span class="hljs-string">'udp4'</span>);
 	<span class="hljs-keyword">var</span> that = <span class="hljs-keyword">this</span>;
-	<span class="hljs-keyword">var</span> Port = port || default_port;	
-		socket.bind(Port);
-		
-		socket.on(<span class="hljs-string">"message"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( data, rinfo )</span> {</span>
-			<span class="hljs-keyword">if</span>(data.toString() == REQ)
-			{
-				log.info(<span class="hljs-string">'scan in progress by '</span>+ rinfo.address);
-				socket.send(<span class="hljs-keyword">new</span> Buffer(OK), <span class="hljs-number">0</span>, OK.length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
-							<span class="hljs-keyword">if</span> (err) {
-								console.log(err);
-							}
-							<span class="hljs-keyword">else</span> {
-								<span class="hljs-comment">//console.log("reply yes to "+rinfo.address+" on port "+rinfo.port);</span>
-							}
-						});
-			}
-			<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(data.toString() == HOSTNAME) <span class="hljs-comment">// if the device is a sbt, continue the dialog.</span>
-			{
-				<span class="hljs-comment">//console.log("hostname asked");</span>
-				<span class="hljs-keyword">var</span> result = {};
-				result.hostname= os.hostname();
-				result.networks=[];
-				result.port = settings.server_port;
-				<span class="hljs-built_in">Object</span>.keys(os.networkInterfaces()).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key,index,arr)</span>{</span> <span class="hljs-comment">//val = ip adresses , key = name of interface</span>
-					<span class="hljs-keyword">var</span> networks_list = <span class="hljs-keyword">this</span>;
-					networks_list[key].forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(val2,key2,arr2)</span>{</span>
-						<span class="hljs-keyword">if</span> (val2.internal === <span class="hljs-literal">false</span> &amp;&amp; val2.family === <span class="hljs-string">'IPv4'</span>)
-						{
-							result.networks.push({<span class="hljs-string">'interface'</span> : key , <span class="hljs-string">'ip_address'</span> : val2.address});
-						}
-					});
-				},os.networkInterfaces());
-				socket.send(<span class="hljs-keyword">new</span> Buffer(<span class="hljs-built_in">JSON</span>.stringify(result)), <span class="hljs-number">0</span>, <span class="hljs-built_in">JSON</span>.stringify(result).length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
-					<span class="hljs-keyword">if</span> (err) log.error(err);
-							<span class="hljs-comment">//console.log("ask info");</span>
-					});
-				that.emit(<span class="hljs-string">'client_scan'</span>,rinfo.address);
-			}
-			<span class="hljs-keyword">else</span>
-			{
-				log.info(<span class="hljs-string">"[detection_tool.js] received from "</span>+rinfo.address+<span class="hljs-string">" : unknown message : '"</span>+ data.toString() +<span class="hljs-string">"'"</span>);
-			}
-		});
+	<span class="hljs-keyword">var</span> port = port || default_port;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Listen on the specified port</p></div></div><div class="code"><div class="wrapper">	socket.bind(port);
 
-
+	socket.on(<span class="hljs-string">"message"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( data, rinfo )</span> {</span>
+		<span class="hljs-keyword">if</span>(data.toString() == REQ) <span class="hljs-comment">// Respond properly to queries asking if we are a FabMo device</span>
+		{
+			log.info(<span class="hljs-string">'scan in progress by '</span>+ rinfo.address);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Respond indicating that we are a FabMo system</p></div></div><div class="code"><div class="wrapper">			socket.send(<span class="hljs-keyword">new</span> Buffer(OK), <span class="hljs-number">0</span>, OK.length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
+				<span class="hljs-keyword">if</span> (err) {
+					log.error(err);
+				}
+			});
+		}
+		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(data.toString() == HOSTNAME) <span class="hljs-comment">// Respond properly to continued dialog in the autodetect process</span>
+		{
+			<span class="hljs-keyword">var</span> result = {};
+			result.hostname= os.hostname();
+			result.networks=[];
+			result.port = settings.server_port;
+			<span class="hljs-built_in">Object</span>.keys(os.networkInterfaces()).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key,index,arr)</span>{</span> <span class="hljs-comment">//val = ip adresses , key = name of interface</span>
+				<span class="hljs-keyword">var</span> networks_list = <span class="hljs-keyword">this</span>;
+				networks_list[key].forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(val2,key2,arr2)</span>{</span>
+					<span class="hljs-keyword">if</span> (val2.internal === <span class="hljs-literal">false</span> &amp;&amp; val2.family === <span class="hljs-string">'IPv4'</span>)
+					{
+						result.networks.push({<span class="hljs-string">'interface'</span> : key , <span class="hljs-string">'ip_address'</span> : val2.address});
+					}
+				});
+			},os.networkInterfaces());
+			socket.send(<span class="hljs-keyword">new</span> Buffer(<span class="hljs-built_in">JSON</span>.stringify(result)), <span class="hljs-number">0</span>, <span class="hljs-built_in">JSON</span>.stringify(result).length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
+				<span class="hljs-keyword">if</span> (err) log.error(err);
+						<span class="hljs-comment">//console.log("ask info");</span>
+				});
+			that.emit(<span class="hljs-string">'client_scan'</span>,rinfo.address);
+		}
+		<span class="hljs-keyword">else</span>
+		{
+			log.info(<span class="hljs-string">"[detection_tool.js] received from "</span>+rinfo.address+<span class="hljs-string">" : unknown message : '"</span>+ data.toString() +<span class="hljs-string">"'"</span>);
+		}
+	});
 
 	<span class="hljs-keyword">this</span>.on(<span class="hljs-string">'newListener'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(listener)</span> {</span>});
-
 };
-util.inherits(start , EventEmitter);
-module.exports = start;</div></div></div></div></body></html>
+
+util.inherits(start , EventEmitter);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>detection_daemon.start kicks off the listening process</p></div></div><div class="code"><div class="wrapper">module.exports = start;</div></div></div></div></body></html>

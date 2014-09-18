@@ -12,11 +12,19 @@
 				base: <span class="hljs-string">'docs-dist'</span>
 			},
 			src: [<span class="hljs-string">'**'</span>]
-		}
+		},
+        <span class="hljs-string">'open'</span> : {
+            <span class="hljs-string">'file'</span> : {
+                path : <span class="hljs-string">'docs-dist/index.html'</span>
+            }
+        }
 	});
 	grunt.loadNpmTasks(<span class="hljs-string">'grunt-groc'</span>);
 	grunt.loadNpmTasks(<span class="hljs-string">'grunt-gh-pages'</span>);
-	grunt.registerTask(<span class="hljs-string">'doc'</span>, [<span class="hljs-string">'groc'</span>]);
+	grunt.loadNpmTasks(<span class="hljs-string">'grunt-open'</span>);
+	
+    grunt.registerTask(<span class="hljs-string">'doc'</span>, [<span class="hljs-string">'groc'</span>]);
 	grunt.registerTask(<span class="hljs-string">'doc-dist'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'gh-pages'</span>]);
+	grunt.registerTask(<span class="hljs-string">'doc-view'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'open'</span>]);
 
 };</div></div></div></div></body></html>

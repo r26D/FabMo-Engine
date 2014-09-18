@@ -13,9 +13,9 @@
 <span class="hljs-keyword">var</span> STAT_HOLDING = <span class="hljs-number">6</span>;
 <span class="hljs-keyword">var</span> STAT_PROBE = <span class="hljs-number">7</span>;
 <span class="hljs-keyword">var</span> STAT_CYCLING = <span class="hljs-number">8</span>;
-<span class="hljs-keyword">var</span> STAT_HOMING = <span class="hljs-number">9</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>When jogging, &quot;keepalive&quot; jog commands must arrive faster than this interval (ms)</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> JOG_TIMEOUT = <span class="hljs-number">500</span>;
-
-<span class="hljs-keyword">var</span> JOG_AXES = {<span class="hljs-string">'x'</span>:<span class="hljs-string">'X'</span>, 
+<span class="hljs-keyword">var</span> STAT_HOMING = <span class="hljs-number">9</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>When jogging, &quot;keepalive&quot; jog commands must arrive faster than this interval (ms)
+This can be slowed down if necessary for spotty connections, but a slow timeout means
+the machine has more time to run away before stopping.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> JOG_TIMEOUT = <span class="hljs-number">500</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Map used by the jog command to turn incoming direction specifiers to g-code</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> JOG_AXES = {<span class="hljs-string">'x'</span>:<span class="hljs-string">'X'</span>, 
 				<span class="hljs-string">'-x'</span>:<span class="hljs-string">'X-'</span>, 
 				<span class="hljs-string">'y'</span>:<span class="hljs-string">'Y'</span>,
 				<span class="hljs-string">'-y'</span>:<span class="hljs-string">'Y-'</span>,
@@ -26,7 +26,8 @@
 				<span class="hljs-string">'b'</span>:<span class="hljs-string">'B'</span>,
 				<span class="hljs-string">'-b'</span>:<span class="hljs-string">'B-'</span>,
 				<span class="hljs-string">'c'</span>:<span class="hljs-string">'C'</span>,
-				<span class="hljs-string">'-c'</span>:<span class="hljs-string">'C-'</span>};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Error codes defined by G2</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">try</span> {
+				<span class="hljs-string">'-c'</span>:<span class="hljs-string">'C-'</span>};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Error codes defined by G2
+See <a href="https://github.com/synthetos/g2/blob/edge/TinyG2/tinyg2.h">https://github.com/synthetos/g2/blob/edge/TinyG2/tinyg2.h</a> for the latest error codes and messages</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">try</span> {
 	<span class="hljs-keyword">var</span> G2_ERRORS = <span class="hljs-built_in">JSON</span>.parse(fs.readFileSync(<span class="hljs-string">'./data/g2_errors.json'</span>,<span class="hljs-string">'utf8'</span>));
 } <span class="hljs-keyword">catch</span>(e) {
 	<span class="hljs-keyword">var</span> G2_ERRORS = {};
@@ -63,7 +64,7 @@ util.inherits(G2, events.EventEmitter);</div></div></div><div class="segment"><d
 			driver.command(<span class="hljs-string">'M30'</span>);
 			driver.requestStatusReport();
 			driver.connected = <span class="hljs-literal">true</span>;
-			callback(<span class="hljs-literal">false</span>, driver);  <span class="hljs-comment">// TODO, maybe this should come after the first status report</span>
+			callback(<span class="hljs-literal">false</span>, driver);  <span class="hljs-comment">// *TODO* maybe this should come after the first status report</span>
 		});
 
 	});
