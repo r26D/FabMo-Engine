@@ -116,66 +116,6 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/TestSBP.js",
-        "projectPath": "TestSBP.js",
-        "targetPath": "TestSBP",
-        "pageTitle": "TestSBP",
-        "title": "TestSBP"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/TestSBP_CG.js",
-        "projectPath": "TestSBP_CG.js",
-        "targetPath": "TestSBP_CG",
-        "pageTitle": "TestSBP_CG",
-        "title": "TestSBP_CG"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/TestSBP_CR.js",
-        "projectPath": "TestSBP_CR.js",
-        "targetPath": "TestSBP_CR",
-        "pageTitle": "TestSBP_CR",
-        "title": "TestSBP_CR"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
         "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config_loader.js",
         "projectPath": "config_loader.js",
         "targetPath": "config_loader",

@@ -1000,14 +1000,31 @@ SBPRuntime.prototype.CR = <span class="hljs-function"><span class="hljs-keyword"
 	<span class="hljs-keyword">var</span> spiralPlg = args[<span class="hljs-number">11</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">11</span>] : <span class="hljs-number">0</span>;
 	<span class="hljs-keyword">var</span> PlgSp = <span class="hljs-number">0.0</span>;
 	<span class="hljs-keyword">var</span> noPullUp = <span class="hljs-number">0</span>;
-    
-    <span class="hljs-keyword">if</span> (RotationAngle !== <span class="hljs-number">0</span> ) { 
+	<span class="hljs-keyword">var</span> cosRA = <span class="hljs-number">0.0</span>;
+	<span class="hljs-keyword">var</span> sinRA = <span class="hljs-number">0.0</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, calculate the step over and number of steps to pocket out the complete rectangle.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (optCR &gt; <span class="hljs-number">1</span>) {
+    	<span class="hljs-keyword">var</span> stepOver = sbp_settings.cutterDia * ((<span class="hljs-number">100</span> - sbp_settings.pocketOverlap) / <span class="hljs-number">100</span>);	<span class="hljs-comment">// Calculate the overlap</span>
+    	pckt_stepX = pckt_stepY = stepOver;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Base the numvber of steps on the short side of the rectangle.</p></div></div><div class="code"><div class="wrapper">	   	<span class="hljs-keyword">if</span> ( <span class="hljs-built_in">Math</span>.abs(lenX) &lt; <span class="hljs-built_in">Math</span>.abs(lenY) ) {
+	   		steps = <span class="hljs-built_in">Math</span>.floor((<span class="hljs-built_in">Math</span>.abs(lenX)/<span class="hljs-number">2</span>)/<span class="hljs-built_in">Math</span>.abs(stepOver)); 
+	   	}
+	   	<span class="hljs-keyword">else</span> {	<span class="hljs-comment">// If a square or the X is shorter, use the X length.</span>
+	   		steps = <span class="hljs-built_in">Math</span>.floor((<span class="hljs-built_in">Math</span>.abs(lenY)/<span class="hljs-number">2</span>)/<span class="hljs-built_in">Math</span>.abs(stepOver)); 
+	   	}
+   		</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If an inside-out pocket, reverse the step over direction and find the pocket start point near the center</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span> ( optCR == <span class="hljs-number">3</span> ) {
+    		pckt_stepX *= -<span class="hljs-number">1</span>;
+    		pckt_stepY *= -<span class="hljs-number">1</span>;
+    		pckt_startX += (steps * pckt_stepX);
+    		pckt_startY += (steps * pckt_stepY);
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + currentZ);
+    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY );
+    	}
+    }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>this.emit_gcode( &quot;cmd_posx = &quot; + this.cmd_posx + &quot;  cmd_posy = &quot; + this.cmd_posy );
+this.emit_gcode( &quot;pckt_startX = &quot; + pckt_startX + &quot;  pckt_startY = &quot; + pckt_startY );</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (RotationAngle !== <span class="hljs-number">0</span> ) { 
     	RotationAngle *= <span class="hljs-built_in">Math</span>.PI / <span class="hljs-number">180</span>;							<span class="hljs-comment">// Convert rotation angle in degrees to radians</span>
     	cosRA = <span class="hljs-built_in">Math</span>.cos(RotationAngle);						<span class="hljs-comment">// Calculate the Cosine of the rotation angle</span>
     	sinRA = <span class="hljs-built_in">Math</span>.sin(RotationAngle);						<span class="hljs-comment">// Calculate the Sine of the rotation angle</span>
     	rotPtX = startX;										<span class="hljs-comment">// Rotation point X</span>
     	rotPtY = startY;										<span class="hljs-comment">// Rotation point Y</span>
-    }
+    	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"'cosRA = "</span> + cosRA + <span class="hljs-string">"  sinRA = "</span> + sinRA );</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>   this.emit_gcode( &quot;pckt_stepX = &quot; + pckt_stepX + &quot;  pckt_stepY = &quot; + pckt_stepY );</code></pre></div></div><div class="code"><div class="wrapper">    }
     
     <span class="hljs-keyword">if</span> (Plg !== <span class="hljs-number">0</span> &amp;&amp; plgFromZero == <span class="hljs-number">1</span>){ currentZ = <span class="hljs-number">0</span>; }
     <span class="hljs-keyword">else</span>{ currentZ = startZ; }
@@ -1078,72 +1095,72 @@ SBPRuntime.prototype.CR = <span class="hljs-function"><span class="hljs-keyword"
 	   				n = order[k];
 	   				<span class="hljs-keyword">switch</span> (n){
 	   					<span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xL,yS </p></div></div><div class="code"><div class="wrapper">    						<span class="hljs-keyword">if</span> (RotationAngle === <span class="hljs-number">0</span>) { outStr = <span class="hljs-string">"G1X"</span> + ((startX + lenX) - (pckt_stepX * j)) + 
-    															 <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j)) + 
-    															 <span class="hljs-string">"F"</span> + sbp_settings.movez_speed ; }
+    															 <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j));
+    						}
     						<span class="hljs-keyword">else</span> {
     							nextX = pckt_startX + lenX - (pckt_stepX * j);
     							nextY = pckt_startY + (pckt_stepY * j);
-    							outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
-    									   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
-    									   <span class="hljs-string">"F"</span> + sbp_settings.movez_speed ; 
+    							outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+    									   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
     						}
     						<span class="hljs-keyword">if</span> ( spiralPlg == <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) {
     							PlgSp = currentZ + (Plg * <span class="hljs-number">0.25</span>); 
-    							outStr += <span class="hljs-string">"Z"</span> + PlgSp;
-    						}	
+    							outStr += <span class="hljs-string">"Z"</span> + (PlgSp).toFixed(<span class="hljs-number">4</span>);
+    						}
+    						outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
     						<span class="hljs-keyword">this</span>.emit_gcode (outStr);
     					<span class="hljs-keyword">break</span>;
 
     					<span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xL,yL</p></div></div><div class="code"><div class="wrapper">   		    				<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + ((startX + lenX) - (pckt_stepX * j)) +
-   		    														<span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j)) + 
-   		    														<span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; }
+   		    														<span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j));
+   		    				}
    							<span class="hljs-keyword">else</span> {
    								nextX = pckt_startX + lenX - (pckt_stepX * j);
    								nextY = pckt_startY + lenY - (pckt_stepY * j);
-   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
-   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) +
-   										   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
    							}
    							<span class="hljs-keyword">if</span> ( spiralPlg === <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) { 
    								PlgSp = currentZ + (Plg * <span class="hljs-number">0.5</span>);	
-   								outStr += <span class="hljs-string">"Z"</span> + PlgSp;
+   								outStr += <span class="hljs-string">"Z"</span> + (PlgSp).toFixed(<span class="hljs-number">4</span>);
    							}
-   							<span class="hljs-keyword">this</span>.emit_gcode (outStr);
+   							outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+    						<span class="hljs-keyword">this</span>.emit_gcode (outStr);
    						<span class="hljs-keyword">break</span>;
 
    						<span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xS,yL</p></div></div><div class="code"><div class="wrapper">   							<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * j)) + 
-   																   <span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j)) + 
-   																   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; }
+   																   <span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j)); 
+   							}
    							<span class="hljs-keyword">else</span> {
    								nextX = pckt_startX + (pckt_stepX * j);
    								nextY = pckt_startY + lenY - (pckt_stepY * j);
-   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
-   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
-   										   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
    							}
    							<span class="hljs-keyword">if</span> ( spiralPlg == <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) { 
    								PlgSp = currentZ + (Plg * <span class="hljs-number">0.75</span>);	
-   								outStr += <span class="hljs-string">"Z"</span> + PlgSp; 
+   								outStr += <span class="hljs-string">"Z"</span> + (PlgSp).toFixed(<span class="hljs-number">4</span>); 
    							}	
-   							<span class="hljs-keyword">this</span>.emit_gcode (outStr);
+   							outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+    						<span class="hljs-keyword">this</span>.emit_gcode (outStr);
     					<span class="hljs-keyword">break</span>;
 
     					<span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xS,yS</p></div></div><div class="code"><div class="wrapper">   							<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * j)) + 
-   																	<span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j)) + 
-   																	<span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; }
+   																	<span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j));
+   							}
    							<span class="hljs-keyword">else</span> {
    								nextX = pckt_startX + (pckt_stepX * j);
    								nextY = pckt_startY + (pckt_stepY * j);
-   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
-   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
-   										   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+   								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+   										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
    							}
    							<span class="hljs-keyword">if</span> ( spiralPlg === <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) {
    								currentZ += Plg; 
-   								outStr += <span class="hljs-string">"Z"</span> + currentZ;
+   								outStr += <span class="hljs-string">"Z"</span> + (currentZ).toFixed(<span class="hljs-number">4</span>);
 								pass = <span class="hljs-number">1</span>; 
    							}
    							<span class="hljs-keyword">else</span> { cnt = <span class="hljs-number">1</span>; }
+   							outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
    							<span class="hljs-keyword">this</span>.emit_gcode (outStr);
    						<span class="hljs-keyword">break</span>;
 
@@ -1152,35 +1169,38 @@ SBPRuntime.prototype.CR = <span class="hljs-function"><span class="hljs-keyword"
    					} <span class="hljs-comment">// switch</span>
    				} <span class="hljs-comment">// for k</span>
 			} <span class="hljs-keyword">while</span> ( cnt &lt; <span class="hljs-number">1</span> );
-
-			<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { 
-				outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * (j+<span class="hljs-number">1</span>))) + 
-   						   <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * (j+<span class="hljs-number">1</span>))) + 
-   						   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>              this.emit_gcode ( &quot;  startX = &quot; + startX + &quot; startY = &quot; + startY + 
-                                &quot; pckt_stepX = &quot; + pckt_stepX + &quot; pckt_stepY = &quot; + pckt_stepY );                                    </code></pre></div></div><div class="code"><div class="wrapper">   			}
-   			<span class="hljs-keyword">else</span> {
-   				nextX = pckt_startX + (pckt_stepX * j+<span class="hljs-number">1</span>);
-   				nextY = pckt_startY + (pckt_stepY * j+<span class="hljs-number">1</span>);
-   				outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
-   						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) + 
-   						   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
+  
+			<span class="hljs-keyword">if</span> ( (j + <span class="hljs-number">1</span>) &lt; steps &amp;&amp; optCR &gt; <span class="hljs-number">1</span> ) {
+				<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { 
+			  		outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * (j+<span class="hljs-number">1</span>))) + 
+   							   <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * (j+<span class="hljs-number">1</span>)));
+   				}
+   				<span class="hljs-keyword">else</span> {
+   					nextX = pckt_startX + (pckt_stepX * (j+<span class="hljs-number">1</span>));
+   					nextY = pckt_startY + (pckt_stepY * (j+<span class="hljs-number">1</span>));
+   					outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+   							   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
+   				}
+   				outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+    			<span class="hljs-keyword">this</span>.emit_gcode (outStr);
    			}
-   			<span class="hljs-keyword">this</span>.emit_gcode (outStr);
 
-   		} <span class="hljs-comment">//for j</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">	    <span class="hljs-keyword">if</span> ( optCR &gt; <span class="hljs-number">1</span>) {
+   		} <span class="hljs-comment">//for j</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">	    <span class="hljs-keyword">if</span> ( optCR &gt; <span class="hljs-number">1</span> ) {
     		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + safeZCG );
     		<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) {
-	    		outStr = <span class="hljs-string">"G1X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+	    		outStr = <span class="hljs-string">"G1X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY;
     		}
     		<span class="hljs-keyword">else</span> {	
-				nextX = pckt_startX + (pckt_stepX * j);
-				nextY = pckt_startY + (pckt_stepY * j);
-				outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)) +
-						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRa) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)) +
-						   <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
+				nextX = pckt_startX;
+				nextY = pckt_startY;
+				outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>);
 			} 
+			outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
      		<span class="hljs-keyword">this</span>.emit_gcode( outStr );
-     		<span class="hljs-keyword">if</span> ( ( i + <span class="hljs-number">1</span> ) != reps ) { <span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ ); }
+     		<span class="hljs-keyword">if</span> ( ( i + <span class="hljs-number">1</span> ) != reps ) { 
+     			<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ ); 
+     		}
    		}
 
     } <span class="hljs-comment">// for i</span>
