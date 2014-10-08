@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><title>engine</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="engine"><meta name="groc-project-path" content="engine.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">engine.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> restify = <span class="hljs-built_in">require</span>(<span class="hljs-string">'restify'</span>);
+<span class="hljs-keyword">var</span> async = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
+<span class="hljs-keyword">var</span> process = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>);
+<span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine'</span>);
+<span class="hljs-keyword">var</span> detection_daemon = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./detection_daemon'</span>);
+<span class="hljs-keyword">var</span> config = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./config'</span>);
+<span class="hljs-keyword">var</span> PLATFORM = process.platform;
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'server'</span>);
+
+<span class="hljs-keyword">var</span> Engine = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+}
+
+Engine.prototype.stop = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+    <span class="hljs-keyword">this</span>.machine.disconnect();
+}
+
+Engine.prototype.start = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+
+    async.series([</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Load the engine configuration from disk</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">load_engine_config</span><span class="hljs-params">(callback)</span> {</span>
+            log.info(<span class="hljs-string">"Loading engine configuration..."</span>)
+            config.configure_engine(callback);
+        },</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>&quot;Apply&quot; the engine configuration, that is, take the configuration values loaded and actually
+set up the application based on them.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">apply_engine_config</span><span class="hljs-params">(callback)</span> {</span>
+            log.info(<span class="hljs-string">"Applying engine configuration..."</span>)
+            config.engine.apply(callback);
+        },</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Connect to G2 and initialize machine runtimes</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">connect</span><span class="hljs-params">(callback)</span> {</span>
+            log.info(<span class="hljs-string">"Connecting to G2..."</span>)
+            machine.connect(callback);
+        }.bind(<span class="hljs-keyword">this</span>),</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Configure G2 by loading all its json settings and static configuration parameters</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">load_driver_config</span><span class="hljs-params">(callback)</span> {</span>
+            <span class="hljs-keyword">this</span>.machine = machine.machine
+            log.info(<span class="hljs-string">"Configuring G2..."</span>)
+            config.configure_driver(machine.machine.driver, callback);
+        }.bind(<span class="hljs-keyword">this</span>),</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Kick off the server if all of the above went OK.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">start_server</span><span class="hljs-params">(callback)</span> {</span>
+            log.info(<span class="hljs-string">"Setting up the webserver..."</span>)
+            <span class="hljs-keyword">var</span> server = restify.createServer({name:<span class="hljs-string">"FabMo Engine"</span>});
+            <span class="hljs-keyword">this</span>.server = server;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Allow JSON over Cross-origin resource sharing </p></div></div><div class="code"><div class="wrapper">            log.info(<span class="hljs-string">"Configuring cross-origin requests..."</span>)
+            server.use(
+                <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">crossOrigin</span><span class="hljs-params">(req,res,next)</span>{</span>
+                    res.header(<span class="hljs-string">"Access-Control-Allow-Origin"</span>, <span class="hljs-string">"*"</span>);
+                    res.header(<span class="hljs-string">"Access-Control-Allow-Headers"</span>, <span class="hljs-string">"X-Requested-With"</span>);
+                    <span class="hljs-keyword">return</span> next();
+                }
+            );</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Configure local directory for uploading files</p></div></div><div class="code"><div class="wrapper">            log.info(<span class="hljs-string">"Cofiguring upload directory..."</span>)
+            server.use(restify.bodyParser({<span class="hljs-string">'uploadDir'</span>:config.engine.get(<span class="hljs-string">'upload_dir'</span>)}));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Import the routes module and apply the routes to the server</p></div></div><div class="code"><div class="wrapper">            log.info(<span class="hljs-string">"Loading routes..."</span>)
+            <span class="hljs-keyword">var</span> routes = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./routes'</span>)(server);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Kick off the server listening for connections</p></div></div><div class="code"><div class="wrapper">            server.listen(config.engine.get(<span class="hljs-string">'server_port'</span>), <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+                log.info(server.name+ <span class="hljs-string">' listening at '</span>+ server.url);
+                callback(<span class="hljs-literal">null</span>, server);
+
+            });
+        }.bind(<span class="hljs-keyword">this</span>),
+        </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Initialize a detection daemon.
+This is a beacon server that allows the tool to be auto-discovered on the network.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">start_detection_server</span><span class="hljs-params">(callback)</span> {</span>
+            log.info(<span class="hljs-string">"Starting detection daemon..."</span>);
+            <span class="hljs-keyword">try</span> {
+                <span class="hljs-keyword">var</span> daemon = <span class="hljs-keyword">new</span> detection_daemon(<span class="hljs-number">24862</span>);
+                <span class="hljs-keyword">this</span>.detection_daemon = daemon;
+                callback(<span class="hljs-literal">null</span>, daemon);
+            } <span class="hljs-keyword">catch</span> (e) {
+                callback(e);
+            }
+        }.bind(<span class="hljs-keyword">this</span>)
+        ],
+
+        <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, results)</span> {</span>
+            <span class="hljs-keyword">if</span>(err) {
+                log.error(err);
+                <span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">'function'</span> &amp;&amp; callback(err);
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">'function'</span> &amp;&amp; callback(<span class="hljs-literal">null</span>, <span class="hljs-keyword">this</span>);
+            }
+        }.bind(<span class="hljs-keyword">this</span>)        
+    );
+}
+
+exports.Engine = Engine;</div></div></div></div></body></html>

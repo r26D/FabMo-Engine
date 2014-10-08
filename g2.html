@@ -1,9 +1,9 @@
 <!DOCTYPE html><html lang="en"><head><title>g2</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="g2"><meta name="groc-project-path" content="g2.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">g2.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> serialport = <span class="hljs-built_in">require</span>(<span class="hljs-string">"serialport"</span>);
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">"fs"</span>);
 <span class="hljs-keyword">var</span> events = <span class="hljs-built_in">require</span>(<span class="hljs-string">'events'</span>);
+<span class="hljs-keyword">var</span> async = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
 <span class="hljs-keyword">var</span> util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'util'</span>);
 <span class="hljs-keyword">var</span> Queue = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./util'</span>).Queue;
-<span class="hljs-keyword">var</span> config = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./config_loader'</span>);
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'g2'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Values of the <strong>stat</strong> field that is returned from G2 status reports</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> STAT_INIT = <span class="hljs-number">0</span>;
 <span class="hljs-keyword">var</span> STAT_READY = <span class="hljs-number">1</span>;
 <span class="hljs-keyword">var</span> STAT_ALARM = <span class="hljs-number">2</span>;
@@ -48,27 +48,20 @@ See <a href="https://github.com/synthetos/g2/blob/edge/TinyG2/tinyg2.h">https://
 	<span class="hljs-keyword">this</span>.setMaxListeners(<span class="hljs-number">50</span>);
 }
 util.inherits(G2, events.EventEmitter);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Informative summary string</p></div></div><div class="code"><div class="wrapper">G2.prototype.toString = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-    <span class="hljs-keyword">return</span> <span class="hljs-string">"[G2 Driver on '"</span> + <span class="hljs-keyword">this</span>.path + <span class="hljs-string">"']"</span>;
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Actually open the serial port and configure G2 based on stored settings</p></div></div><div class="code"><div class="wrapper">G2.prototype.connect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(path, callback)</span> {</span>
-	<span class="hljs-keyword">this</span>.path = path;
-	<span class="hljs-keyword">this</span>.connect_callback = callback;
- 	<span class="hljs-keyword">this</span>.port = <span class="hljs-keyword">new</span> serialport.SerialPort(path, {rtscts:<span class="hljs-literal">true</span>});
-	<span class="hljs-comment">//this.port.on("open", this.onOpen.bind(this));</span>
-	<span class="hljs-keyword">this</span>.port.on(<span class="hljs-string">"error"</span>, <span class="hljs-keyword">this</span>.onSerialError.bind(<span class="hljs-keyword">this</span>));
-	<span class="hljs-keyword">this</span>.port.on(<span class="hljs-string">'data'</span>, <span class="hljs-keyword">this</span>.onData.bind(<span class="hljs-keyword">this</span>));
-	<span class="hljs-keyword">this</span>.on(<span class="hljs-string">"ready"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(driver)</span> {</span>
+	<span class="hljs-keyword">return</span> <span class="hljs-string">"[G2 Driver on '"</span> + <span class="hljs-keyword">this</span>.path + <span class="hljs-string">"']"</span>;
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Actually open the serial port and configure G2 based on stored settings</p></div></div><div class="code"><div class="wrapper">G2.prototype.connect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(path, callback)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Store serial path</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.path = path;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Store callback to issue once connection has been made</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.connect_callback = callback;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create serial port object</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.port = <span class="hljs-keyword">new</span> serialport.SerialPort(path, {rtscts:<span class="hljs-literal">true</span>});</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create port bindings</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.port.on(<span class="hljs-string">"error"</span>, <span class="hljs-keyword">this</span>.onSerialError.bind(<span class="hljs-keyword">this</span>));
+	<span class="hljs-keyword">this</span>.port.on(<span class="hljs-string">'data'</span>, <span class="hljs-keyword">this</span>.onData.bind(<span class="hljs-keyword">this</span>));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create driver object bindings</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.on(<span class="hljs-string">"ready"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(driver)</span> {</span>
 		driver.command({<span class="hljs-string">"gun"</span>:<span class="hljs-number">0</span>});
 		driver.command(<span class="hljs-string">'M30'</span>);
-		config.load(<span class="hljs-keyword">this</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(driver)</span> {</span>
-			driver.command({<span class="hljs-string">"gun"</span>:<span class="hljs-number">0</span>});
-			driver.command(<span class="hljs-string">'M30'</span>);
-			driver.requestStatusReport();
-			driver.connected = <span class="hljs-literal">true</span>;
-			callback(<span class="hljs-literal">false</span>, driver);  <span class="hljs-comment">// *TODO* maybe this should come after the first status report</span>
-		});
-
+		driver.requestStatusReport();
+		driver.connected = <span class="hljs-literal">true</span>;
+		callback(<span class="hljs-literal">false</span>, <span class="hljs-keyword">this</span>);  <span class="hljs-comment">// *TODO* maybe this should come after the first status report</span>
 	});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Log serial errors.  Most of these are exit-able offenses, though.</p></div></div><div class="code"><div class="wrapper">G2.prototype.onSerialError = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>
+};
+
+G2.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.port.close(callback);
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Log serial errors.  Most of these are exit-able offenses, though.</p></div></div><div class="code"><div class="wrapper">G2.prototype.onSerialError = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>
 	log.error(data);
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Write data to the serial port.  Log to the system logger.</p></div></div><div class="code"><div class="wrapper">G2.prototype.write = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(s)</span> {</span>
 	t = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
@@ -115,7 +108,7 @@ G2.prototype.jog_keepalive = <span class="hljs-function"><span class="hljs-keywo
 
 G2.prototype.stopJog = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.jog_direction) {
-        log.debug(<span class="hljs-string">'JOG stop.'</span>);
+		log.debug(<span class="hljs-string">'JOG stop.'</span>);
 		clearTimeout(<span class="hljs-keyword">this</span>.jog_heartbeat);
 		<span class="hljs-keyword">this</span>.jog_direction = <span class="hljs-literal">null</span>;
 		<span class="hljs-keyword">this</span>.jog_command = <span class="hljs-literal">null</span>;
@@ -129,7 +122,7 @@ G2.prototype.requestStatusReport = <span class="hljs-function"><span class="hljs
 
 G2.prototype.requestQueueReport = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span> <span class="hljs-keyword">this</span>.command({<span class="hljs-string">'qr'</span>:<span class="hljs-literal">null</span>}); };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Called for every chunk of data returned from G2</p></div></div><div class="code"><div class="wrapper">G2.prototype.onData = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>
 	t = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
-	log.debug(<span class="hljs-string">'&lt;----'</span> + t + <span class="hljs-string">'---- '</span> + data);
+	<span class="hljs-comment">//log.debug('&lt;----' + t + '---- ' + data);</span>
 	<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'raw_data'</span>,data);
 	<span class="hljs-keyword">var</span> s = data.toString(<span class="hljs-string">'ascii'</span>);
 	<span class="hljs-keyword">var</span> len = s.length;
@@ -138,20 +131,20 @@ G2.prototype.requestQueueReport = <span class="hljs-function"><span class="hljs-
 		<span class="hljs-keyword">if</span>(c === <span class="hljs-string">'\n'</span>) {
 			<span class="hljs-keyword">var</span> json_string = <span class="hljs-keyword">this</span>.current_data.join(<span class="hljs-string">''</span>);
 			t = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
-		    log.debug(<span class="hljs-string">'&lt;----'</span> + t + <span class="hljs-string">'---- '</span> + json_string);
-		    obj = <span class="hljs-literal">null</span>;
-		    <span class="hljs-keyword">try</span> {
-		    	obj = <span class="hljs-built_in">JSON</span>.parse(json_string);
-		    }<span class="hljs-keyword">catch</span>(e){</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>A JSON parse error usually means the asynchronous LOADER SEGMENT NOT READY MESSAGE</p></div></div><div class="code"><div class="wrapper">		    	<span class="hljs-keyword">if</span>(json_string.trim() === <span class="hljs-string">'######## LOADER - SEGMENT NOT READY'</span>) {
-		    		<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'error'</span>, [-<span class="hljs-number">1</span>, <span class="hljs-string">'LOADER_SEGMENT_NOT_READY'</span>, <span class="hljs-string">'Asynchronous error: Segment not ready.'</span>]);
-		    	} <span class="hljs-keyword">else</span> {
-		    		<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'error'</span>, [-<span class="hljs-number">1</span>, <span class="hljs-string">'JSON_PARSE_ERROR'</span>, <span class="hljs-string">"Could not parse response: '"</span> + json_string + <span class="hljs-string">"' ("</span> + e.toString() + <span class="hljs-string">")"</span>]);
-		    	}
-		    } <span class="hljs-keyword">finally</span> {
-		    	<span class="hljs-keyword">if</span>(obj) {
-		    		<span class="hljs-keyword">this</span>.onMessage(obj);
-		    	}
-		    }
+			log.debug(<span class="hljs-string">'&lt;----'</span> + t + <span class="hljs-string">'---- '</span> + json_string);
+			obj = <span class="hljs-literal">null</span>;
+			<span class="hljs-keyword">try</span> {
+				obj = <span class="hljs-built_in">JSON</span>.parse(json_string);
+			}<span class="hljs-keyword">catch</span>(e){</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>A JSON parse error usually means the asynchronous LOADER SEGMENT NOT READY MESSAGE</p></div></div><div class="code"><div class="wrapper">				<span class="hljs-keyword">if</span>(json_string.trim() === <span class="hljs-string">'######## LOADER - SEGMENT NOT READY'</span>) {
+					<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'error'</span>, [-<span class="hljs-number">1</span>, <span class="hljs-string">'LOADER_SEGMENT_NOT_READY'</span>, <span class="hljs-string">'Asynchronous error: Segment not ready.'</span>]);
+				} <span class="hljs-keyword">else</span> {
+					<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'error'</span>, [-<span class="hljs-number">1</span>, <span class="hljs-string">'JSON_PARSE_ERROR'</span>, <span class="hljs-string">"Could not parse response: '"</span> + json_string + <span class="hljs-string">"' ("</span> + e.toString() + <span class="hljs-string">")"</span>]);
+				}
+			} <span class="hljs-keyword">finally</span> {
+				<span class="hljs-keyword">if</span>(obj) {
+					<span class="hljs-keyword">this</span>.onMessage(obj);
+				}
+			}
 			<span class="hljs-keyword">this</span>.current_data = [];
 		} <span class="hljs-keyword">else</span> {
 			<span class="hljs-keyword">this</span>.current_data.push(c);
@@ -313,21 +306,69 @@ G2.prototype.quit = <span class="hljs-function"><span class="hljs-keyword">funct
 };
 
 G2.prototype.get = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key, callback)</span> {</span>
-	cmd = {}
-	cmd[key] = <span class="hljs-literal">null</span>
-	log.warn(<span class="hljs-keyword">this</span>.readers)
-	<span class="hljs-keyword">if</span> (key <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.readers) {
-		<span class="hljs-keyword">this</span>.readers[key].push(callback);
+	<span class="hljs-keyword">var</span> keys;
+	<span class="hljs-keyword">if</span>(key <span class="hljs-keyword">instanceof</span> <span class="hljs-built_in">Array</span>) {
+		keys = key;
+		is_array = <span class="hljs-literal">true</span>;
 	} <span class="hljs-keyword">else</span> {
-		<span class="hljs-keyword">this</span>.readers[key] = [callback]
+		is_array = <span class="hljs-literal">false</span>;
+		keys = [key];
 	}
-	<span class="hljs-keyword">this</span>.command(cmd);
+	async.map(keys, </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Function called for each item in the keys array</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(k, cb)</span> {</span>
+			cmd = {}
+			cmd[k] = <span class="hljs-literal">null</span>
+			<span class="hljs-keyword">if</span>(k <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.readers) {
+				<span class="hljs-keyword">this</span>.readers[k].push(cb.bind(<span class="hljs-keyword">this</span>));
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">this</span>.readers[k] = [cb.bind(<span class="hljs-keyword">this</span>)]
+			}
+			<span class="hljs-keyword">this</span>.command(cmd);
+		}.bind(<span class="hljs-keyword">this</span>),
+	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Function to call with the list of results</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+			<span class="hljs-keyword">if</span>(err) {
+				<span class="hljs-keyword">return</span> callback(err, result);
+			} <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If given an array, return one.  Else, return a single item.</p></div></div><div class="code"><div class="wrapper">				<span class="hljs-keyword">if</span>(is_array) {
+					<span class="hljs-keyword">return</span> callback(err, result);
+				} <span class="hljs-keyword">else</span> {
+					<span class="hljs-keyword">return</span> callback(err, result[<span class="hljs-number">0</span>]);
+				}
+			}
+		}
+	);
+}
+
+G2.prototype.setMany = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(obj, callback)</span> {</span>
+	<span class="hljs-keyword">var</span> keys = <span class="hljs-built_in">Object</span>.keys(obj);
+	async.map(keys, </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Function called for each item in the keys array</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(k, cb)</span> {</span>
+			cmd = {}
+			cmd[k] = obj[k]
+			<span class="hljs-keyword">if</span>(k <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.readers) {
+				<span class="hljs-keyword">this</span>.readers[k].push(cb.bind(<span class="hljs-keyword">this</span>));
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">this</span>.readers[k] = [cb.bind(<span class="hljs-keyword">this</span>)]
+			}
+			<span class="hljs-keyword">this</span>.command(cmd);
+		}.bind(<span class="hljs-keyword">this</span>),</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Function to call with the list of results</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+			<span class="hljs-keyword">if</span>(err) {
+				<span class="hljs-keyword">return</span> callback(err, result);
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">var</span> retval = {};
+				<span class="hljs-keyword">try</span> {
+					<span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>; i&lt;keys.length; i++) {
+						retval[keys[i]] = result[i];
+					}
+				} <span class="hljs-keyword">catch</span>(e) {
+					callback(e, <span class="hljs-literal">null</span>);
+				}
+				<span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, retval);
+			}
+		}
+	);
 }
 
 G2.prototype.set = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key, value, callback)</span> {</span>
 	cmd = {}
 	cmd[key] = value
-	log.warn(<span class="hljs-keyword">this</span>.readers)
 	<span class="hljs-keyword">if</span> (key <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.readers) {
 		<span class="hljs-keyword">this</span>.readers[key].push(callback);
 	} <span class="hljs-keyword">else</span> {
@@ -354,7 +395,7 @@ An M30 will be placed at the end to put the machine back in the &quot;idle&quot;
 		<span class="hljs-keyword">this</span>.pause_flag = <span class="hljs-literal">false</span>;
 		<span class="hljs-keyword">this</span>.requestQueueReport();
 	} <span class="hljs-keyword">else</span> {
-		<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">"function"</span> &amp;&amp; callback(<span class="hljs-literal">true</span>, <span class="hljs-string">"No G-codes were present in the provided string"</span>);				
+		<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">"function"</span> &amp;&amp; callback(<span class="hljs-literal">true</span>, <span class="hljs-string">"No G-codes were present in the provided string"</span>);
 	}
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Function works like &quot;once()&quot; for a state change
 callbacks is an associative array mapping states to callbacks

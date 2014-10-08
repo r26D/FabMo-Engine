@@ -7,12 +7,10 @@
 <span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
 
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'machine'</span>);
-<span class="hljs-keyword">var</span> GCodeRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./gcode'</span>).GCodeRuntime;
-<span class="hljs-keyword">var</span> SBPRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./opensbp'</span>).SBPRuntime;
-<span class="hljs-keyword">var</span> ManualRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./manual'</span>).ManualRuntime;
-<span class="hljs-keyword">var</span> PassthroughRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./passthrough'</span>).PassthroughRuntime;
-
-
+<span class="hljs-keyword">var</span> GCodeRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./runtime/gcode'</span>).GCodeRuntime;
+<span class="hljs-keyword">var</span> SBPRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./runtime/opensbp'</span>).SBPRuntime;
+<span class="hljs-keyword">var</span> ManualRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./runtime/manual'</span>).ManualRuntime;
+<span class="hljs-keyword">var</span> PassthroughRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./runtime/passthrough'</span>).PassthroughRuntime;
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">connect</span><span class="hljs-params">(callback)</span> {</span>
 
@@ -39,7 +37,7 @@
 			<span class="hljs-keyword">break</span>;
 	}
 	<span class="hljs-keyword">if</span>(serial_path) {
-		<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Machine(serial_path, callback);
+		exports.machine = <span class="hljs-keyword">new</span> Machine(serial_path, callback);
 	} <span class="hljs-keyword">else</span> {
 		<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">"function"</span> &amp;&amp; callback(<span class="hljs-literal">true</span>, <span class="hljs-string">"No supported serial path for platform "</span> + PLATFORM);
 		<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
@@ -55,12 +53,9 @@
 
 	<span class="hljs-keyword">this</span>.driver = <span class="hljs-keyword">new</span> g2.G2();
 	<span class="hljs-keyword">this</span>.driver.on(<span class="hljs-string">"error"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>log.error(data);});
-
 	<span class="hljs-keyword">this</span>.driver.connect(serial_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
 		<span class="hljs-keyword">if</span>(err){log.error(err);<span class="hljs-keyword">return</span>;}
-		<span class="hljs-keyword">this</span>.status.state = <span class="hljs-string">"idle"</span>;
-
-		<span class="hljs-keyword">this</span>.gcode_runtime = <span class="hljs-keyword">new</span> GCodeRuntime();
+		<span class="hljs-keyword">this</span>.status.state = <span class="hljs-string">"idle"</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create runtimes for different functions/command languages</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">this</span>.gcode_runtime = <span class="hljs-keyword">new</span> GCodeRuntime();
 		<span class="hljs-keyword">this</span>.sbp_runtime = <span class="hljs-keyword">new</span> SBPRuntime();
 		<span class="hljs-keyword">this</span>.manual_runtime = <span class="hljs-keyword">new</span> ManualRuntime();
 		<span class="hljs-keyword">this</span>.passthrough_runtime = <span class="hljs-keyword">new</span> PassthroughRuntime();
@@ -73,6 +68,10 @@
 	}.bind(<span class="hljs-keyword">this</span>));
 }
 util.inherits(Machine, events.EventEmitter);
+
+Machine.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+	<span class="hljs-keyword">this</span>.driver.disconnect(callback);
+}
 
 Machine.prototype.toString = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
     <span class="hljs-keyword">return</span> <span class="hljs-string">"[Machine Model on '"</span> + <span class="hljs-keyword">this</span>.driver.path + <span class="hljs-string">"']"</span>;
@@ -92,20 +91,20 @@ Machine.prototype.runFile = <span class="hljs-function"><span class="hljs-keywor
 	fs.readFile(filename, <span class="hljs-string">'utf8'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err,data)</span> {</span>
 		<span class="hljs-keyword">if</span> (err) {
 			log.error(<span class="hljs-string">'Error reading file '</span> + filename);
-		    	log.error(err);
-		    	<span class="hljs-keyword">return</span>;
+				log.error(err);
+				<span class="hljs-keyword">return</span>;
 		} <span class="hljs-keyword">else</span> {
-            		parts = filename.split(path.sep);
-        		ext = path.extname(filename).toLowerCase();
-            		log.debug(filename);
-            		log.debug(parts);
-		  	<span class="hljs-keyword">this</span>.status.current_file = parts[parts.length-<span class="hljs-number">1</span>];
+			parts = filename.split(path.sep);
+			ext = path.extname(filename).toLowerCase();
+			log.debug(filename);
+			log.debug(parts);
+			<span class="hljs-keyword">this</span>.status.current_file = parts[parts.length-<span class="hljs-number">1</span>];
 
-		  	<span class="hljs-keyword">if</span>(ext == <span class="hljs-string">'.sbp'</span>) {
-		  		<span class="hljs-keyword">this</span>.setRuntime(<span class="hljs-keyword">this</span>.sbp_runtime);
-		  	} <span class="hljs-keyword">else</span> {
+			<span class="hljs-keyword">if</span>(ext == <span class="hljs-string">'.sbp'</span>) {
+				<span class="hljs-keyword">this</span>.setRuntime(<span class="hljs-keyword">this</span>.sbp_runtime);
+			} <span class="hljs-keyword">else</span> {
 				<span class="hljs-keyword">this</span>.setRuntime(<span class="hljs-keyword">this</span>.gcode_runtime);
-		  	}
+			}
 			<span class="hljs-keyword">this</span>.current_runtime.runString(data);
 		}
 	}.bind(<span class="hljs-keyword">this</span>));
@@ -131,7 +130,9 @@ Machine.prototype.setRuntime = <span class="hljs-function"><span class="hljs-key
 
 		} <span class="hljs-keyword">finally</span> {
 			<span class="hljs-keyword">this</span>.current_runtime = runtime;
-			runtime.connect(<span class="hljs-keyword">this</span>);
+			<span class="hljs-keyword">if</span>(runtime) {
+				runtime.connect(<span class="hljs-keyword">this</span>);
+			}
 		}
 	}
 };

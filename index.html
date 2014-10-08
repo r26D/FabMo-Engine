@@ -9,16 +9,11 @@
 </ul>
 <p>The source code documentation is available here: <a href="http://shopbottools.github.io/FabMo-Engine/">http://shopbottools.github.io/FabMo-Engine/</a> </p>
 <h2 id="dependencies">Dependencies</h2>
-<p>The engine runs best on linux, but can run with limited functionality on windows.  To run the engine, you need the following software packages:</p>
-<ul>
-<li>NodeJS (<a href="http://nodejs.org/">http://nodejs.org/</a>)</li>
-<li>restify </li>
-<li>serialport</li>
-<li>process</li>
-<li>colors (optional, for colorized log output)</li>
-<li>tingodb</li>
-</ul>
+<p>The engine runs best on linux, but can run with limited functionality on windows.  To run the engine, you need to install the dependencies, which can be done automatically with npm:</p>
+<pre><code>npm install</code></pre>
 <h2 id="installing-the-engine">Installing the Engine</h2>
 <p>The engine is run from source, and only needs to be checked out and stored in a local directory.   There are a few directories that you need to have created for the engine to work properly.  Under linux, these are <code>/opt/shopbot/parts</code> and <code>/opt/shopbot/tmp</code>.  On windows, use <code>c:\opt\shopbot\parts</code> and <code>c:\opt\shopbot\tmp</code> The process that is running the engine server needs read/write access to both of these directories.</p>
 <h2 id="running-the-engine">Running the Engine</h2>
-<p>For debugging the engine, you can run it directly from the command prompt with <code>node server.js</code></p></div></div></div></div></body></html>
+<p>For debugging the engine, you can run it directly from the command prompt with <code>npm start</code> or <code>node server.js</code></p>
+<h2 id="development">Development</h2>
+<p>A number of grunt tasks have been set up to facilitate engine development.  To see them, run <code>grunt</code> with no arguments in the source directory, and a list will be produced with explanations.  Currently, tasks exist for testing and generating/publishing documentation.</p></div></div></div></div></body></html>

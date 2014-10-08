@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><title>config/config</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="config/config"><meta name="groc-project-path" content="config/config.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">config/config.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper">async = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
+fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Config is the superclass from which all configuration objects descend
+Common functionality is implemented here.</p></div></div><div class="code"><div class="wrapper">Config = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">this</span>._cache = {}
+}
+
+Config.prototype.get = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(k)</span> {</span>
+	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._cache[k];
+}
+
+Config.prototype.set = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(k,v, callback)</span> {</span>
+	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.update({k:v}, callback);
+}
+
+Config.prototype.getData = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._cache;
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The load function retreives a configuration from disk and loads it into the configuration object</p></div></div><div class="code"><div class="wrapper">Config.prototype.load = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(filename, callback)</span> {</span>
+	fs.readFile(filename, <span class="hljs-string">'utf8'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, data)</span> {</span>
+		<span class="hljs-keyword">if</span> (err) { <span class="hljs-keyword">return</span> callback(err); }
+		<span class="hljs-keyword">try</span> {
+			data = <span class="hljs-built_in">JSON</span>.parse(data);
+		} <span class="hljs-keyword">catch</span> (e) {
+			<span class="hljs-keyword">return</span> callback(e);
+		}
+		<span class="hljs-keyword">this</span>.update(data, callback);
+	}.bind(<span class="hljs-keyword">this</span>));
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The init function performs an initial load() from the configuration&#39;s settings files.
+For this to work, the Config object has to have a default_config_file and config_file member</p></div></div><div class="code"><div class="wrapper">Config.prototype.init = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+		async.series(
+		[
+			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span> <span class="hljs-keyword">this</span>.load(<span class="hljs-keyword">this</span>.default_config_file, callback); }.bind(<span class="hljs-keyword">this</span>),
+			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span> <span class="hljs-keyword">this</span>.load(<span class="hljs-keyword">this</span>.config_file, callback); }.bind(<span class="hljs-keyword">this</span>),
+		],
+		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, results)</span> {</span>
+			<span class="hljs-keyword">if</span>(err) { callback(err); }
+			<span class="hljs-keyword">else</span> { callback(<span class="hljs-literal">null</span>, <span class="hljs-keyword">this</span>); }
+		}.bind(<span class="hljs-keyword">this</span>)
+	);
+}
+
+exports.Config = Config</div></div></div></div></body></html>

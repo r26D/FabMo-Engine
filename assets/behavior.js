@@ -13,7 +13,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "commentsOnly": true,
           "name": "Markdown"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/README.md",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/README.md",
         "projectPath": "README.md",
         "targetPath": "index",
         "pageTitle": "index",
@@ -51,6 +51,14 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
                 "slug": "running-the-engine"
               },
               "depth": 2
+            }, {
+              "type": "heading",
+              "data": {
+                "level": 2,
+                "title": "Development",
+                "slug": "development"
+              },
+              "depth": 2
             }
           ]
         },
@@ -82,6 +90,14 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
             "slug": "running-the-engine"
           },
           "depth": 2
+        }, {
+          "type": "heading",
+          "data": {
+            "level": 2,
+            "title": "Development",
+            "slug": "development"
+          },
+          "depth": 2
         }
       ]
     }, {
@@ -96,7 +112,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/Gruntfile.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/Gruntfile.js",
         "projectPath": "Gruntfile.js",
         "targetPath": "Gruntfile",
         "pageTitle": "Gruntfile",
@@ -105,25 +121,95 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
       "depth": 1,
       "outline": []
     }, {
-      "type": "file",
+      "type": "folder",
       "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config_loader.js",
-        "projectPath": "config_loader.js",
-        "targetPath": "config_loader",
-        "pageTitle": "config_loader",
-        "title": "config_loader"
+        "path": "config",
+        "title": "config"
       },
       "depth": 1,
-      "outline": []
+      "children": [
+        {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/config.js",
+            "projectPath": "config/config.js",
+            "targetPath": "config/config",
+            "pageTitle": "config/config",
+            "title": "config"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/engine_config.js",
+            "projectPath": "config/engine_config.js",
+            "targetPath": "config/engine_config",
+            "pageTitle": "config/engine_config",
+            "title": "engine_config"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/g2_config.js",
+            "projectPath": "config/g2_config.js",
+            "targetPath": "config/g2_config",
+            "pageTitle": "config/g2_config",
+            "title": "g2_config"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/index.js",
+            "projectPath": "config/index.js",
+            "targetPath": "config/index",
+            "pageTitle": "config/index",
+            "title": "index"
+          },
+          "depth": 2,
+          "outline": []
+        }
+      ]
     }, {
       "type": "file",
       "data": {
@@ -136,27 +222,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config_module_handlers.js",
-        "projectPath": "config_module_handlers.js",
-        "targetPath": "config_module_handlers",
-        "pageTitle": "config_module_handlers",
-        "title": "config_module_handlers"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/db.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/db.js",
         "projectPath": "db.js",
         "targetPath": "db",
         "pageTitle": "db",
@@ -176,7 +242,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/detection_daemon.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/detection_daemon.js",
         "projectPath": "detection_daemon.js",
         "targetPath": "detection_daemon",
         "pageTitle": "detection_daemon",
@@ -196,11 +262,11 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/direct_commands_module_handlers.js",
-        "projectPath": "direct_commands_module_handlers.js",
-        "targetPath": "direct_commands_module_handlers",
-        "pageTitle": "direct_commands_module_handlers",
-        "title": "direct_commands_module_handlers"
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/engine.js",
+        "projectPath": "engine.js",
+        "targetPath": "engine",
+        "pageTitle": "engine",
+        "title": "engine"
       },
       "depth": 1,
       "outline": []
@@ -216,47 +282,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/file_commands_module_handlers.js",
-        "projectPath": "file_commands_module_handlers.js",
-        "targetPath": "file_commands_module_handlers",
-        "pageTitle": "file_commands_module_handlers",
-        "title": "file_commands_module_handlers"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/files_module_handlers.js",
-        "projectPath": "files_module_handlers.js",
-        "targetPath": "files_module_handlers",
-        "pageTitle": "files_module_handlers",
-        "title": "files_module_handlers"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/g2.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/g2.js",
         "projectPath": "g2.js",
         "targetPath": "g2",
         "pageTitle": "g2",
@@ -276,27 +302,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/gcode.js",
-        "projectPath": "gcode.js",
-        "targetPath": "gcode",
-        "pageTitle": "gcode",
-        "title": "gcode"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/log.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/log.js",
         "projectPath": "log.js",
         "targetPath": "log",
         "pageTitle": "log",
@@ -316,7 +322,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/machine.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/machine.js",
         "projectPath": "machine.js",
         "targetPath": "machine",
         "pageTitle": "machine",
@@ -325,145 +331,341 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
       "depth": 1,
       "outline": []
     }, {
-      "type": "file",
+      "type": "folder",
       "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/manual.js",
-        "projectPath": "manual.js",
-        "targetPath": "manual",
-        "pageTitle": "manual",
-        "title": "manual"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/opensbp.js",
-        "projectPath": "opensbp.js",
-        "targetPath": "opensbp",
-        "pageTitle": "opensbp",
-        "title": "opensbp"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/parser.js",
-        "projectPath": "parser.js",
-        "targetPath": "parser",
-        "pageTitle": "parser",
-        "title": "parser"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/passthrough.js",
-        "projectPath": "passthrough.js",
-        "targetPath": "passthrough",
-        "pageTitle": "passthrough",
-        "title": "passthrough"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/passthrough_module_handlers.js",
-        "projectPath": "passthrough_module_handlers.js",
-        "targetPath": "passthrough_module_handlers",
-        "pageTitle": "passthrough_module_handlers",
-        "title": "passthrough_module_handlers"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes.js",
-        "projectPath": "routes.js",
-        "targetPath": "routes",
-        "pageTitle": "routes",
+        "path": "routes",
         "title": "routes"
       },
       "depth": 1,
-      "outline": []
+      "children": [
+        {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".md", ".markdown", ".mkd", ".mkdn", ".mdown"],
+              "commentsOnly": true,
+              "name": "Markdown"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/README.md",
+            "projectPath": "routes/README.md",
+            "targetPath": "routes/README",
+            "pageTitle": "routes/README",
+            "firstHeader": {
+              "type": "heading",
+              "data": {
+                "level": 1,
+                "title": "/routes",
+                "slug": "routes",
+                "isFileHeader": true
+              },
+              "depth": 1
+            },
+            "title": "/routes"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/config.js",
+            "projectPath": "routes/config.js",
+            "targetPath": "routes/config",
+            "pageTitle": "routes/config",
+            "title": "config"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/direct.js",
+            "projectPath": "routes/direct.js",
+            "targetPath": "routes/direct",
+            "pageTitle": "routes/direct",
+            "title": "direct"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/file_commands.js",
+            "projectPath": "routes/file_commands.js",
+            "targetPath": "routes/file_commands",
+            "pageTitle": "routes/file_commands",
+            "title": "file_commands"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/files.js",
+            "projectPath": "routes/files.js",
+            "targetPath": "routes/files",
+            "pageTitle": "routes/files",
+            "title": "files"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/index.js",
+            "projectPath": "routes/index.js",
+            "targetPath": "routes/index",
+            "pageTitle": "routes/index",
+            "title": "index"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/passthrough.js",
+            "projectPath": "routes/passthrough.js",
+            "targetPath": "routes/passthrough",
+            "pageTitle": "routes/passthrough",
+            "title": "passthrough"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/wifi_manager.js",
+            "projectPath": "routes/wifi_manager.js",
+            "targetPath": "routes/wifi_manager",
+            "pageTitle": "routes/wifi_manager",
+            "title": "wifi_manager"
+          },
+          "depth": 2,
+          "outline": []
+        }
+      ]
     }, {
-      "type": "file",
+      "type": "folder",
       "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/sbp_parser.js",
-        "projectPath": "sbp_parser.js",
-        "targetPath": "sbp_parser",
-        "pageTitle": "sbp_parser",
-        "title": "sbp_parser"
+        "path": "runtime",
+        "title": "runtime"
       },
       "depth": 1,
-      "outline": []
+      "children": [
+        {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/gcode.js",
+            "projectPath": "runtime/gcode.js",
+            "targetPath": "runtime/gcode",
+            "pageTitle": "runtime/gcode",
+            "title": "gcode"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/manual.js",
+            "projectPath": "runtime/manual.js",
+            "targetPath": "runtime/manual",
+            "pageTitle": "runtime/manual",
+            "title": "manual"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/opensbp.js",
+            "projectPath": "runtime/opensbp.js",
+            "targetPath": "runtime/opensbp",
+            "pageTitle": "runtime/opensbp",
+            "title": "opensbp"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/parser.js",
+            "projectPath": "runtime/parser.js",
+            "targetPath": "runtime/parser",
+            "pageTitle": "runtime/parser",
+            "title": "parser"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/passthrough.js",
+            "projectPath": "runtime/passthrough.js",
+            "targetPath": "runtime/passthrough",
+            "pageTitle": "runtime/passthrough",
+            "title": "passthrough"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/sbp_parser.js",
+            "projectPath": "runtime/sbp_parser.js",
+            "targetPath": "runtime/sbp_parser",
+            "pageTitle": "runtime/sbp_parser",
+            "title": "sbp_parser"
+          },
+          "depth": 2,
+          "outline": []
+        }
+      ]
+    }, {
+      "type": "folder",
+      "data": {
+        "path": "scripts",
+        "title": "scripts"
+      },
+      "depth": 1,
+      "children": [
+        {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/scripts/convert_sb3.js",
+            "projectPath": "scripts/convert_sb3.js",
+            "targetPath": "scripts/convert_sb3",
+            "pageTitle": "scripts/convert_sb3",
+            "title": "convert_sb3"
+          },
+          "depth": 2,
+          "outline": []
+        }
+      ]
     }, {
       "type": "file",
       "data": {
@@ -476,7 +678,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/server.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/server.js",
         "projectPath": "server.js",
         "targetPath": "server",
         "pageTitle": "server",
@@ -485,25 +687,75 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
       "depth": 1,
       "outline": []
     }, {
-      "type": "file",
+      "type": "folder",
       "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/settings.js",
-        "projectPath": "settings.js",
-        "targetPath": "settings",
-        "pageTitle": "settings",
-        "title": "settings"
+        "path": "test",
+        "title": "test"
       },
       "depth": 1,
-      "outline": []
+      "children": [
+        {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/test/test_base.js",
+            "projectPath": "test/test_base.js",
+            "targetPath": "test/test_base",
+            "pageTitle": "test/test_base",
+            "title": "test_base"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/test/test_config.js",
+            "projectPath": "test/test_config.js",
+            "targetPath": "test/test_config",
+            "pageTitle": "test/test_config",
+            "title": "test_config"
+          },
+          "depth": 2,
+          "outline": []
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/test/test_config_server.js",
+            "projectPath": "test/test_config_server.js",
+            "targetPath": "test/test_config_server",
+            "pageTitle": "test/test_config_server",
+            "title": "test_config_server"
+          },
+          "depth": 2,
+          "outline": []
+        }
+      ]
     }, {
       "type": "file",
       "data": {
@@ -516,31 +768,11 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/util.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/util.js",
         "projectPath": "util.js",
         "targetPath": "util",
         "pageTitle": "util",
         "title": "util"
-      },
-      "depth": 1,
-      "outline": []
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "multiLineComment": ["/*", "*", "*/"],
-          "singleLineComment": ["//"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/wifi_manager_handlers.js",
-        "projectPath": "wifi_manager_handlers.js",
-        "targetPath": "wifi_manager_handlers",
-        "pageTitle": "wifi_manager_handlers",
-        "title": "wifi_manager_handlers"
       },
       "depth": 1,
       "outline": []

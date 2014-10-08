@@ -2,8 +2,7 @@
 <span class="hljs-keyword">var</span> util=<span class="hljs-built_in">require</span>(<span class="hljs-string">'util'</span>);
 <span class="hljs-keyword">var</span> EventEmitter = <span class="hljs-built_in">require</span>(<span class="hljs-string">'events'</span>).EventEmitter;
 <span class="hljs-keyword">var</span> dgram = <span class="hljs-built_in">require</span>(<span class="hljs-string">'dgram'</span>);
-<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'detection'</span>);
-<span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Direct socket messages</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> OK = <span class="hljs-string">"YES I M !\0"</span>;
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'detection'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Direct socket messages</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> OK = <span class="hljs-string">"YES I M !\0"</span>;
 <span class="hljs-keyword">var</span> ERR = <span class="hljs-string">"I DNT UNDRSTND !\0"</span>;
 <span class="hljs-keyword">var</span> HOSTNAME = <span class="hljs-string">"U NAME ?\0"</span>;
 <span class="hljs-keyword">var</span> REQ = <span class="hljs-string">"R U A SBT ?\0"</span>;
@@ -27,7 +26,7 @@ The detection daemon is what we as a FabMo device run so that we can be discover
 			<span class="hljs-keyword">var</span> result = {};
 			result.hostname= os.hostname();
 			result.networks=[];
-			result.port = settings.server_port;
+			result.server_port = config.engine.get(<span class="hljs-string">'server_port'</span>);
 			<span class="hljs-built_in">Object</span>.keys(os.networkInterfaces()).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(key,index,arr)</span>{</span> <span class="hljs-comment">//val = ip adresses , key = name of interface</span>
 				<span class="hljs-keyword">var</span> networks_list = <span class="hljs-keyword">this</span>;
 				networks_list[key].forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(val2,key2,arr2)</span>{</span>
@@ -37,6 +36,7 @@ The detection daemon is what we as a FabMo device run so that we can be discover
 					}
 				});
 			},os.networkInterfaces());
+			console.log(<span class="hljs-built_in">JSON</span>.stringify(result))
 			socket.send(<span class="hljs-keyword">new</span> Buffer(<span class="hljs-built_in">JSON</span>.stringify(result)), <span class="hljs-number">0</span>, <span class="hljs-built_in">JSON</span>.stringify(result).length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
 				<span class="hljs-keyword">if</span> (err) log.error(err);
 						<span class="hljs-comment">//console.log("ask info");</span>

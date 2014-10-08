@@ -1,10 +1,9 @@
-<!DOCTYPE html><html lang="en"><head><title>opensbp</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="opensbp"><meta name="groc-project-path" content="opensbp.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">opensbp.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./settings'</span>);
-<span class="hljs-keyword">var</span> parser = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./parser'</span>);
+<!DOCTYPE html><html lang="en"><head><title>runtime/opensbp</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="runtime/opensbp"><meta name="groc-project-path" content="runtime/opensbp.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">runtime/opensbp.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> parser = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./parser'</span>);
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
-<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'sbp'</span>);
-<span class="hljs-keyword">var</span> g2 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./g2'</span>);
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'sbp'</span>);
+<span class="hljs-keyword">var</span> g2 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../g2'</span>);
 <span class="hljs-keyword">var</span> sbp_settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./sbp_settings'</span>);
-<span class="hljs-keyword">var</span> sb3_commands = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./data/sb3_commands'</span>);
+<span class="hljs-keyword">var</span> sb3_commands = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./sb3_commands'</span>);
 
 <span class="hljs-keyword">var</span> SYSVAR_RE = <span class="hljs-regexp">/\%\(([0-9]+)\)/i</span> ;
 <span class="hljs-keyword">var</span> USERVAR_RE = <span class="hljs-regexp">/\&amp;([a-zA-Z_]+[A-Za-z0-9_]*)/i</span> ;
@@ -534,37 +533,26 @@ SBPRuntime.prototype.FC = <span class="hljs-function"><span class="hljs-keyword"
 
 SBPRuntime.prototype.FS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-comment">//?????????????????????????????????????????????</span>
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>MOVE </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>MOVE Commands </p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move X axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1 X"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed);
 	<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.MY = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move Y axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MY = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1Y"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed);
 	<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.MZ = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move Z axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MZ = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1Z"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movez_speed);
 	<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.MA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move A axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1A"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movea_speed);
 	<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.MB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move B axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1B"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.moveb_speed);
 	<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.MC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move C axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1C"</span> + args[<span class="hljs-number">0</span>] + <span class="hljs-string">" F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movec_speed);
 	<span class="hljs-keyword">this</span>.cmd_posc = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.M2 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move 2 axes (XY). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.M2 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -576,9 +564,8 @@ SBPRuntime.prototype.M2 = <span class="hljs-function"><span class="hljs-keyword"
 	}
 	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.M3 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move 3 axes (XYZ). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.M3 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -594,9 +581,8 @@ SBPRuntime.prototype.M3 = <span class="hljs-function"><span class="hljs-keyword"
 	}
 	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.M4 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move 4 axes (XYZA). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.M4 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -616,9 +602,8 @@ SBPRuntime.prototype.M4 = <span class="hljs-function"><span class="hljs-keyword"
 	}
 	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.M5 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move 5 axes (XYZAB). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.M5 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -642,9 +627,8 @@ SBPRuntime.prototype.M5 = <span class="hljs-function"><span class="hljs-keyword"
 	}
 	outStr = outStr + <span class="hljs-string">"F"</span> + <span class="hljs-number">60.0</span>*sbp_settings.movexy_speed; 
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.M6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move all 6 axes (XYZABC). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.M6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G1"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -672,15 +656,11 @@ SBPRuntime.prototype.M6 = <span class="hljs-function"><span class="hljs-keyword"
 	}
 	outStr = outStr + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed; 
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.MH = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move to the XY home position (0,0)</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MH = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G1X0Y0"</span> + <span class="hljs-string">" F"</span> + sbp_settings.movexy_speed);
 	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-number">0</span>;
 	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-number">0</span>;
-};
-
-SBPRuntime.prototype.MS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set the move speeds for Axes XYZABC</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.MS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movexy_speed = args[<span class="hljs-number">0</span>];
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movez_speed = args[<span class="hljs-number">1</span>];
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>) sbp_settings.movea_speed = args[<span class="hljs-number">2</span>];
@@ -694,37 +674,26 @@ SBPRuntime.prototype.MI = <span class="hljs-function"><span class="hljs-keyword"
 
 SBPRuntime.prototype.MO = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-comment">//?????????????????????????????????????????????</span>
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>JOG </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>JOG Commands </p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) the X axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0X"</span> + args[<span class="hljs-number">0</span>]);
 	<span class="hljs-keyword">this</span>.cmd_posx = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.JY = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) the Y axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JY = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0Y"</span> + args[<span class="hljs-number">0</span>]);
 	<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.JZ = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) the Z axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JZ = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0Z"</span> + args[<span class="hljs-number">0</span>]);
 	<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.JA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) the A axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JA = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0A"</span> + args[<span class="hljs-number">0</span>]);
 	<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.JB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) the B axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0B"</span> + args[<span class="hljs-number">0</span>]);
 	<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.JC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) the C axis</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JC = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0C"</span> + args[<span class="hljs-number">0</span>]);
 	<span class="hljs-keyword">this</span>.cmd_posc = args[<span class="hljs-number">0</span>];
-};
-
-SBPRuntime.prototype.J2 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) 2 axes (XY). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.J2 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -735,9 +704,8 @@ SBPRuntime.prototype.J2 = <span class="hljs-function"><span class="hljs-keyword"
 		<span class="hljs-keyword">this</span>.cmd_posy = args[<span class="hljs-number">1</span>];
 	}
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.J3 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) 3 axes (XYZ). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.J3 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -752,9 +720,8 @@ SBPRuntime.prototype.J3 = <span class="hljs-function"><span class="hljs-keyword"
 		<span class="hljs-keyword">this</span>.cmd_posz = args[<span class="hljs-number">2</span>];
 	}
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.J4 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) 4 axes (XYZA). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.J4 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -773,9 +740,8 @@ SBPRuntime.prototype.J4 = <span class="hljs-function"><span class="hljs-keyword"
 		<span class="hljs-keyword">this</span>.cmd_posa = args[<span class="hljs-number">3</span>];
 	}
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.J5 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) 5 axes (XYZAB). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.J5 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -798,9 +764,8 @@ SBPRuntime.prototype.J5 = <span class="hljs-function"><span class="hljs-keyword"
 		<span class="hljs-keyword">this</span>.cmd_posb = args[<span class="hljs-number">4</span>];
 	}
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.J6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) 6 axes (XYZABC). This is a modal command, any axis location that is left out
+  of the command will default to it&#39;s current position and not move</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.J6 = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">var</span> outStr = <span class="hljs-string">"G0"</span>;
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		outStr = outStr + <span class="hljs-string">"X"</span> + args[<span class="hljs-number">0</span>];
@@ -827,15 +792,11 @@ SBPRuntime.prototype.J6 = <span class="hljs-function"><span class="hljs-keyword"
 		<span class="hljs-keyword">this</span>.cmd_posc = args[<span class="hljs-number">5</span>];
 	}
 	<span class="hljs-keyword">this</span>.emit_gcode(outStr);
-};
-
-SBPRuntime.prototype.JH = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jog (rapid) XY to the Home position (0,0) </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JH = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-number">0</span>;
 	<span class="hljs-keyword">this</span>.cmd_posy = <span class="hljs-number">0</span>;
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G0X0Y0"</span>);
-};
-
-SBPRuntime.prototype.JS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set the Jog (Rapid) speed for any of the 6 axes</p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.JS = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>) {
 		sbp_settings.jogxy_speed = args[<span class="hljs-number">0</span>];
 		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'xvm'</span>:sbp_settings.jogxy_speed});
@@ -857,7 +818,15 @@ SBPRuntime.prototype.JS = <span class="hljs-function"><span class="hljs-keyword"
 		sbp_settings.jogc_speed = args[<span class="hljs-number">4</span>];
 		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'cvm'</span>:sbp_settings.jogc_speed});
 	}
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>CUTS </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.CG = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>CUTS </p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The CG command will cut a circle. This command closely resembles a G-code circle (G02 or G03)
+    Though, this command has several added features that its G-code counterparts don&#39;t:</p>
+<pre><code>    - Spiral plunge with multiple passes
+    - Pocketing
+    - Pocketing with multiple passes
+Can also be used for Arcs and Arcs with multiple passes</code></pre>
+<p>Usage: CG,<no used>,<X End>,<Y End>,<X Center>,<Y Center>,<I-O-T>,<Direction>,<Plunge Depth>,
+          <Repetitions>,&lt;&gt;,&lt;&gt;,<Options-2=Pocket,3=Spiral Plunge,4=Spiral Plunge with Bottom pass>,
+          <No Pull Up after cut>,<Plunge from Z zero></p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.CG = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	sbp_settings.cutterDia = <span class="hljs-number">0.25</span>;
 	sbp_settings.pocketOverlap  = <span class="hljs-number">10</span>;
 	sbp_settings.safeZpullUp = <span class="hljs-number">0.25</span>;
@@ -865,7 +834,11 @@ SBPRuntime.prototype.JS = <span class="hljs-function"><span class="hljs-keyword"
     startX = <span class="hljs-keyword">this</span>.cmd_posx;
     startY = <span class="hljs-keyword">this</span>.cmd_posy;
     startZ = <span class="hljs-keyword">this</span>.cmd_posz;
-    endX = args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">1</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if endX == undefined {}</p></div></div><div class="code"><div class="wrapper">    endY = args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">2</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if endY == undefined {}</p></div></div><div class="code"><div class="wrapper">    centerX = args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">3</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if centerX == undefined {}</p></div></div><div class="code"><div class="wrapper">    centerY = args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">4</span>] : <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if centerY == undefined {}</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">var</span> OIT = args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">5</span>] : <span class="hljs-string">"T"</span>;
+    endX = args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">1</span>] : <span class="hljs-literal">undefined</span>;
+    endY = args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">2</span>] : <span class="hljs-literal">undefined</span>;
+    centerX = args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">3</span>] : <span class="hljs-literal">undefined</span>;
+    centerY = args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">4</span>] : <span class="hljs-literal">undefined</span>;
+    <span class="hljs-keyword">var</span> OIT = args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">5</span>] : <span class="hljs-string">"T"</span>;
     <span class="hljs-keyword">var</span> Dir = args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">6</span>] : <span class="hljs-number">1</span>; 
     <span class="hljs-keyword">var</span> Plg = args[<span class="hljs-number">7</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">7</span>] : <span class="hljs-number">0</span>;
     <span class="hljs-keyword">var</span> reps = args[<span class="hljs-number">8</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">8</span>] : <span class="hljs-number">1</span>;
@@ -962,99 +935,81 @@ SBPRuntime.prototype.JS = <span class="hljs-function"><span class="hljs-keyword"
 
     <span class="hljs-keyword">this</span>.cmd_posx = endX;
 	<span class="hljs-keyword">this</span>.cmd_posy = endY;
-};
-
-SBPRuntime.prototype.CR = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The CG command will cut a rectangle. It will generate the necessary G-code to profile and
+    pocket a rectangle. The features include:</p>
+<pre><code>    - Spiral plunge with multiple passes
+    - Pocketing
+    - Pocketing with multiple passes
+    - Rotation around the starting point</code></pre>
+<p>Usage: CR,<X Length>,<Y Length>,<I-O-T>,<Direction>,<Plunge Depth>,<Repetitions>,
+          <Options-2=Pocket OUT-IN,3=Pocket IN-OUT>,<Plunge from Z zero>,<Angle of Rotation>,
+          <Sprial Plunge></p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.CR = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-comment">//calc and output commands to cut a rectangle</span>
+    <span class="hljs-keyword">var</span> n = <span class="hljs-number">0.0</span>;
 	<span class="hljs-keyword">var</span> startX = <span class="hljs-keyword">this</span>.cmd_posx;
     <span class="hljs-keyword">var</span> startY = <span class="hljs-keyword">this</span>.cmd_posy;
     <span class="hljs-keyword">var</span> startZ = <span class="hljs-keyword">this</span>.cmd_posz;
-    <span class="hljs-keyword">var</span> xDir = <span class="hljs-number">1</span>;
-    <span class="hljs-keyword">var</span> yDir = <span class="hljs-number">1</span>;
-    <span class="hljs-keyword">var</span> order = [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>];
     <span class="hljs-keyword">var</span> pckt_startX = startX;
     <span class="hljs-keyword">var</span> pckt_startY = startY;
-    <span class="hljs-keyword">var</span> pckt_stepX = <span class="hljs-number">0.0</span>;
-    <span class="hljs-keyword">var</span> pckt_stepY = <span class="hljs-number">0.0</span>;
-    <span class="hljs-keyword">var</span> steps = <span class="hljs-number">1.0</span>;
-    <span class="hljs-keyword">var</span> n = <span class="hljs-number">0.0</span>;
-    <span class="hljs-keyword">var</span> currentZ;
+    <span class="hljs-keyword">var</span> currentZ = startZ;
+    <span class="hljs-keyword">var</span> rotPtX = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> rotPtY = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> xDir = <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">var</span> yDir = <span class="hljs-number">1</span>;
 
-    <span class="hljs-keyword">var</span> lenX = args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">0</span>] : <span class="hljs-literal">undefined</span>; 
-    <span class="hljs-keyword">var</span> lenY = args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">1</span>] : <span class="hljs-literal">undefined</span>;
-    <span class="hljs-keyword">var</span> OIT = args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">2</span>] : <span class="hljs-string">"T"</span>;
-    <span class="hljs-keyword">var</span> Dir = args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">3</span>] : <span class="hljs-number">1</span>; 
-    <span class="hljs-keyword">var</span> stCorn = args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">4</span>] : <span class="hljs-number">4</span>;			<span class="hljs-comment">// Start Corner - default is 4, the bottom left corner</span>
-    <span class="hljs-keyword">var</span> Plg = args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">5</span>] : <span class="hljs-number">0.0</span>;
-    <span class="hljs-keyword">var</span> reps = args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">6</span>] : <span class="hljs-number">1</span>;
-    <span class="hljs-keyword">var</span> optCR = args[<span class="hljs-number">7</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">7</span>] : <span class="hljs-number">0</span>;				<span class="hljs-comment">// Options - 1-Tab, 2-Pocket Outside-In, 3-Pocket Inside-Out</span>
-
-    <span class="hljs-keyword">if</span> (optCR &gt; <span class="hljs-number">1</span>) {
-    	stepOver = sbp_settings.cutterDia * ((<span class="hljs-number">100</span> - sbp_settings.pocketOverlap) / <span class="hljs-number">100</span>);	<span class="hljs-comment">// Calculate the overlap</span>
-    	Pocket_Step = stepOver * <span class="hljs-built_in">Math</span>.cos(<span class="hljs-number">0.785398163</span>);			<span class="hljs-comment">// Calculate the stepover in X based on the radius of the cutter at 45 degrees</span>
-    }
-
+    <span class="hljs-keyword">var</span> lenX = args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">0</span>] : <span class="hljs-literal">undefined</span>; 	<span class="hljs-comment">// X length</span>
+    <span class="hljs-keyword">var</span> lenY = args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">1</span>] : <span class="hljs-literal">undefined</span>;		<span class="hljs-comment">// Y length</span>
+    <span class="hljs-keyword">var</span> OIT = args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">2</span>] : <span class="hljs-string">"T"</span>;			<span class="hljs-comment">// Cutter compentsation (I=inside, T=no comp, O=outside)</span>
+    <span class="hljs-keyword">var</span> Dir = args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">3</span>] : <span class="hljs-number">1</span>; 				<span class="hljs-comment">// Direction of cut (-1=CCW, 1=CW)</span>
+    <span class="hljs-keyword">var</span> stCorner = args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">4</span>] : <span class="hljs-number">4</span>;			<span class="hljs-comment">// Start Corner - default is 4, the bottom left corner. 0=Center</span>
+    <span class="hljs-keyword">var</span> Plg = args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">5</span>] : <span class="hljs-number">0.0</span>;			<span class="hljs-comment">// Plunge depth per repetion</span>
+    <span class="hljs-keyword">var</span> reps = args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">6</span>] : <span class="hljs-number">1</span>;				<span class="hljs-comment">// Repetions</span>
+    <span class="hljs-keyword">var</span> optCR = args[<span class="hljs-number">7</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">7</span>] : <span class="hljs-number">0</span>;			<span class="hljs-comment">// Options - 1-Tab, 2-Pocket Outside-In, 3-Pocket Inside-Out</span>
     <span class="hljs-keyword">var</span> plgFromZero = args[<span class="hljs-number">8</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">8</span>] : <span class="hljs-number">0</span>;		<span class="hljs-comment">// Start Plunge from Zero &lt;0-NO, 1-YES&gt;</span>
-    <span class="hljs-keyword">var</span> RotationAngle = args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">9</span>] : <span class="hljs-number">0.0</span>;		<span class="hljs-comment">// Angle to rotate rectangle around starting point</span>
-    <span class="hljs-keyword">var</span> PlgAxis = args[<span class="hljs-number">10</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">10</span>] : <span class="hljs-string">'Z'</span>;
-	<span class="hljs-keyword">var</span> spiralPlg = args[<span class="hljs-number">11</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">11</span>] : <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">var</span> RotationAngle = args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">9</span>] : <span class="hljs-number">0.0</span>;	<span class="hljs-comment">// Angle to rotate rectangle around starting point</span>
+    <span class="hljs-keyword">var</span> PlgAxis = args[<span class="hljs-number">10</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">10</span>] : <span class="hljs-string">'Z'</span>;		<span class="hljs-comment">// Axis to plunge &lt;Z or A&gt;</span>
+	<span class="hljs-keyword">var</span> spiralPlg = args[<span class="hljs-number">11</span>] !== <span class="hljs-literal">undefined</span> ? args[<span class="hljs-number">11</span>] : <span class="hljs-number">0</span>;		<span class="hljs-comment">// Turn spiral plunge ON for first pass (0=OFF, 1=ON)</span>
+
 	<span class="hljs-keyword">var</span> PlgSp = <span class="hljs-number">0.0</span>;
 	<span class="hljs-keyword">var</span> noPullUp = <span class="hljs-number">0</span>;
 	<span class="hljs-keyword">var</span> cosRA = <span class="hljs-number">0.0</span>;
-	<span class="hljs-keyword">var</span> sinRA = <span class="hljs-number">0.0</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, calculate the step over and number of steps to pocket out the complete rectangle.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (optCR &gt; <span class="hljs-number">1</span>) {
-    	<span class="hljs-keyword">var</span> stepOver = sbp_settings.cutterDia * ((<span class="hljs-number">100</span> - sbp_settings.pocketOverlap) / <span class="hljs-number">100</span>);	<span class="hljs-comment">// Calculate the overlap</span>
-    	pckt_stepX = pckt_stepY = stepOver;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Base the numvber of steps on the short side of the rectangle.</p></div></div><div class="code"><div class="wrapper">	   	<span class="hljs-keyword">if</span> ( <span class="hljs-built_in">Math</span>.abs(lenX) &lt; <span class="hljs-built_in">Math</span>.abs(lenY) ) {
-	   		steps = <span class="hljs-built_in">Math</span>.floor((<span class="hljs-built_in">Math</span>.abs(lenX)/<span class="hljs-number">2</span>)/<span class="hljs-built_in">Math</span>.abs(stepOver)); 
-	   	}
-	   	<span class="hljs-keyword">else</span> {	<span class="hljs-comment">// If a square or the X is shorter, use the X length.</span>
-	   		steps = <span class="hljs-built_in">Math</span>.floor((<span class="hljs-built_in">Math</span>.abs(lenY)/<span class="hljs-number">2</span>)/<span class="hljs-built_in">Math</span>.abs(stepOver)); 
-	   	}
-   		</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If an inside-out pocket, reverse the step over direction and find the pocket start point near the center</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span> ( optCR == <span class="hljs-number">3</span> ) {
-    		pckt_stepX *= -<span class="hljs-number">1</span>;
-    		pckt_stepY *= -<span class="hljs-number">1</span>;
-    		pckt_startX += (steps * pckt_stepX);
-    		pckt_startY += (steps * pckt_stepY);
-    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + currentZ);
-    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY );
-    	}
-    }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>this.emit_gcode( &quot;cmd_posx = &quot; + this.cmd_posx + &quot;  cmd_posy = &quot; + this.cmd_posy );
-this.emit_gcode( &quot;pckt_startX = &quot; + pckt_startX + &quot;  pckt_startY = &quot; + pckt_startY );</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (RotationAngle !== <span class="hljs-number">0</span> ) { 
+	<span class="hljs-keyword">var</span> sinRA = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> stepOver = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> pckt_offsetX = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> pckt_offsetY = <span class="hljs-number">0.0</span>;    
+    <span class="hljs-keyword">var</span> order = [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>];
+    <span class="hljs-keyword">var</span> pckt_stepX = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> pckt_stepY = <span class="hljs-number">0.0</span>;
+    <span class="hljs-keyword">var</span> steps = <span class="hljs-number">1.0</span>;
+
+    <span class="hljs-keyword">if</span> (RotationAngle !== <span class="hljs-number">0</span> ) { 
     	RotationAngle *= <span class="hljs-built_in">Math</span>.PI / <span class="hljs-number">180</span>;							<span class="hljs-comment">// Convert rotation angle in degrees to radians</span>
     	cosRA = <span class="hljs-built_in">Math</span>.cos(RotationAngle);						<span class="hljs-comment">// Calculate the Cosine of the rotation angle</span>
     	sinRA = <span class="hljs-built_in">Math</span>.sin(RotationAngle);						<span class="hljs-comment">// Calculate the Sine of the rotation angle</span>
-    	rotPtX = startX;										<span class="hljs-comment">// Rotation point X</span>
-    	rotPtY = startY;										<span class="hljs-comment">// Rotation point Y</span>
-    	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"'cosRA = "</span> + cosRA + <span class="hljs-string">"  sinRA = "</span> + sinRA );</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>   this.emit_gcode( &quot;pckt_stepX = &quot; + pckt_stepX + &quot;  pckt_stepY = &quot; + pckt_stepY );</code></pre></div></div><div class="code"><div class="wrapper">    }
+    	rotPtX = pckt_startX; 									<span class="hljs-comment">// Rotation point X</span>
+    	rotPtY = pckt_startY;									<span class="hljs-comment">// Rotation point Y</span>
+    }
     
-    <span class="hljs-keyword">if</span> (Plg !== <span class="hljs-number">0</span> &amp;&amp; plgFromZero == <span class="hljs-number">1</span>){ currentZ = <span class="hljs-number">0</span>; }
+    <span class="hljs-keyword">if</span> (Plg !== <span class="hljs-number">0</span> &amp;&amp; plgFromZero === <span class="hljs-number">1</span>){ currentZ = <span class="hljs-number">0</span>; }
     <span class="hljs-keyword">else</span>{ currentZ = startZ; }
-    <span class="hljs-keyword">var</span> safeZCG = currentZ + sbp_settings.safeZpullUp;
-
-    <span class="hljs-keyword">if</span> ( stCorn == <span class="hljs-number">1</span> ) { 
-
+    <span class="hljs-keyword">var</span> safeZCG = currentZ + sbp_settings.safeZpullUp;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set Order and directions based on starting corner</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> ( stCorner == <span class="hljs-number">1</span> ) { 
     	yDir = -<span class="hljs-number">1</span>;
     	<span class="hljs-keyword">if</span> ( Dir == -<span class="hljs-number">1</span> ) { 
     		order = [<span class="hljs-number">3</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>]; 
     	}
-
-    	pckt_stepY *= -<span class="hljs-number">1</span>;
     }	
-
-    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( stCorn == <span class="hljs-number">2</span> ) {
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( stCorner == <span class="hljs-number">2</span> ) {
     	xDir = -<span class="hljs-number">1</span>;
     	yDir = -<span class="hljs-number">1</span>;
     	<span class="hljs-keyword">if</span> ( Dir == <span class="hljs-number">1</span> ) { 
     		order = [<span class="hljs-number">3</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>]; 
     	}
-    	pckt_stepX *= -<span class="hljs-number">1</span>;
-    	pckt_stepY *= -<span class="hljs-number">1</span>;
     }
-    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( stCorn == <span class="hljs-number">3</span> ) { 
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( stCorner == <span class="hljs-number">3</span> ) { 
     	xDir = -<span class="hljs-number">1</span>; 
     	<span class="hljs-keyword">if</span> ( Dir == -<span class="hljs-number">1</span> ) {
     		order = [<span class="hljs-number">3</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>,<span class="hljs-number">4</span>]; 
     	}
-    	pckt_stepX *= -<span class="hljs-number">1</span>;
     }
     <span class="hljs-keyword">else</span> { 
     	<span class="hljs-keyword">if</span> ( Dir == <span class="hljs-number">1</span> ) {
@@ -1063,16 +1018,63 @@ this.emit_gcode( &quot;pckt_startX = &quot; + pckt_startX + &quot;  pckt_startY 
     }
 
     <span class="hljs-keyword">if</span> ( OIT == <span class="hljs-string">"O"</span> ) { 
-    	lenX = (lenX + sbp_settings.cutterDia) * xDir;
-    	lenY = (lenY + sbp_settings.cutterDia) * yDir;
+    	lenX += sbp_settings.cutterDia * xDir;
+    	lenY += sbp_settings.cutterDia * yDir;
     }
     <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ( OIT == <span class="hljs-string">"I"</span> ) {
-    	lenX = (lenX - sbp_settings.cutterDia) * xDir;
-    	lenY = (lenY - sbp_settings.cutterDia) * yDir;
-    }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If an inside-out pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> ( optCR == <span class="hljs-number">3</span>) {
+    	lenX -= sbp_settings.cutterDia * xDir;
+    	lenY -= sbp_settings.cutterDia * yDir;
+    }
+    <span class="hljs-keyword">else</span> {
+    	lenX *= xDir;
+    	lenY *= yDir;
+    }
+
+   	<span class="hljs-keyword">if</span> ( stCorner === <span class="hljs-number">0</span> ) {
+   		pckt_startX = startX - (lenX/<span class="hljs-number">2</span>);
+   		pckt_startY = startY - (lenY/<span class="hljs-number">2</span>);    		
+   	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, calculate the step over and number of steps to pocket out the complete rectangle.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (optCR &gt; <span class="hljs-number">1</span>) {
+    	stepOver = sbp_settings.cutterDia * ((<span class="hljs-number">100</span> - sbp_settings.pocketOverlap) / <span class="hljs-number">100</span>);	<span class="hljs-comment">// Calculate the overlap</span>
+    	pckt_stepX = pckt_stepY = stepOver;
+   		pckt_stepX *= xDir;
+   		pckt_stepY *= yDir;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Base the numvber of steps on the short side of the rectangle.</p></div></div><div class="code"><div class="wrapper">	   	<span class="hljs-keyword">if</span> ( <span class="hljs-built_in">Math</span>.abs(lenX) &lt; <span class="hljs-built_in">Math</span>.abs(lenY) ) {
+	   		steps = <span class="hljs-built_in">Math</span>.floor((<span class="hljs-built_in">Math</span>.abs(lenX)/<span class="hljs-number">2</span>)/<span class="hljs-built_in">Math</span>.abs(stepOver)) + <span class="hljs-number">1</span>; 
+	   	}
+	   	<span class="hljs-keyword">else</span> {	<span class="hljs-comment">// If a square or the X is shorter, use the X length.</span>
+	   		steps = <span class="hljs-built_in">Math</span>.floor((<span class="hljs-built_in">Math</span>.abs(lenY)/<span class="hljs-number">2</span>)/<span class="hljs-built_in">Math</span>.abs(stepOver)) + <span class="hljs-number">1</span>; 
+	   	}   		</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If an inside-out pocket, reverse the step over direction and find the pocket start point near the center</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span> ( optCR === <span class="hljs-number">3</span> ) {
+    		pckt_stepX *= (-<span class="hljs-number">1</span>);
+    		pckt_stepY *= (-<span class="hljs-number">1</span>);
+    		pckt_offsetX = stepOver * (steps - <span class="hljs-number">1</span>) * xDir;
+    		pckt_offsetY = stepOver * (steps - <span class="hljs-number">1</span>) * yDir;
+
+    		nextX = pckt_startX + pckt_offsetX;
+    		nextY = pckt_startY + pckt_offsetY;
+
+			<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0.0</span> ) { 
+				outStr = <span class="hljs-string">"G0X"</span> + nextX + <span class="hljs-string">"Y"</span> + nextY;
+			}
+			<span class="hljs-keyword">else</span> {
+				outStr = <span class="hljs-string">"G0X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
+			}
+    		<span class="hljs-keyword">this</span>.emit_gcode( outStr);
+        }
+    }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If an inside-out pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> ( optCR == <span class="hljs-number">3</span> || stCorner === <span class="hljs-number">0</span> ) {
     		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + safeZCG );
-    		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY + <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed);
+
+    		nextX = pckt_startX + pckt_offsetX;
+    		nextY = pckt_startY + pckt_offsetY;
+
+			<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0.0</span> ) { 
+				outStr = <span class="hljs-string">"G1X"</span> + nextX + <span class="hljs-string">"Y"</span> + nextY;
+			}
+			<span class="hljs-keyword">else</span> {
+				outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
+						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
+			}
     		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + startZ + <span class="hljs-string">"F"</span> + sbp_settings.movez_speed);
+    		<span class="hljs-keyword">this</span>.emit_gcode( outStr );
    	}
 
     <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; reps; i++) {
@@ -1094,90 +1096,112 @@ this.emit_gcode( &quot;pckt_startX = &quot; + pckt_startX + &quot;  pckt_startY 
 	   			<span class="hljs-keyword">for</span> ( k=<span class="hljs-number">0</span>; k&lt;<span class="hljs-number">4</span>; k++ ){
 	   				n = order[k];
 	   				<span class="hljs-keyword">switch</span> (n){
-	   					<span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xL,yS </p></div></div><div class="code"><div class="wrapper">    						<span class="hljs-keyword">if</span> (RotationAngle === <span class="hljs-number">0</span>) { outStr = <span class="hljs-string">"G1X"</span> + ((startX + lenX) - (pckt_stepX * j)) + 
-    															 <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j));
+	   					<span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:
+    						nextX = (pckt_startX + lenX - pckt_offsetX) - (pckt_stepX * j);
+    						nextY = (pckt_startY + pckt_offsetY) + (pckt_stepY * j);
+    						
+    						<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0.0</span> ) { 
+    							outStr = <span class="hljs-string">"G1X"</span> + nextX + <span class="hljs-string">"Y"</span> + nextY;
     						}
     						<span class="hljs-keyword">else</span> {
-    							nextX = pckt_startX + lenX - (pckt_stepX * j);
-    							nextY = pckt_startY + (pckt_stepY * j);
     							outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
     									   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
     						}
+    						
     						<span class="hljs-keyword">if</span> ( spiralPlg == <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) {
     							PlgSp = currentZ + (Plg * <span class="hljs-number">0.25</span>); 
     							outStr += <span class="hljs-string">"Z"</span> + (PlgSp).toFixed(<span class="hljs-number">4</span>);
     						}
+    						
     						outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
     						<span class="hljs-keyword">this</span>.emit_gcode (outStr);
     					<span class="hljs-keyword">break</span>;
 
-    					<span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xL,yL</p></div></div><div class="code"><div class="wrapper">   		    				<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + ((startX + lenX) - (pckt_stepX * j)) +
-   		    														<span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j));
-   		    				}
+    					<span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:
+   							nextX = (pckt_startX + lenX - pckt_offsetX) - (pckt_stepX * j);
+   							nextY = (pckt_startY + lenY - pckt_offsetY) - (pckt_stepY * j);
+
+    						<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0.0</span> ) { 
+    							outStr = <span class="hljs-string">"G1X"</span> + nextX + <span class="hljs-string">"Y"</span> + nextY;
+    						}	
    							<span class="hljs-keyword">else</span> {
-   								nextX = pckt_startX + lenX - (pckt_stepX * j);
-   								nextY = pckt_startY + lenY - (pckt_stepY * j);
    								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
    										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
    							}
+
    							<span class="hljs-keyword">if</span> ( spiralPlg === <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) { 
    								PlgSp = currentZ + (Plg * <span class="hljs-number">0.5</span>);	
    								outStr += <span class="hljs-string">"Z"</span> + (PlgSp).toFixed(<span class="hljs-number">4</span>);
    							}
+
    							outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
     						<span class="hljs-keyword">this</span>.emit_gcode (outStr);
    						<span class="hljs-keyword">break</span>;
 
-   						<span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xS,yL</p></div></div><div class="code"><div class="wrapper">   							<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * j)) + 
-   																   <span class="hljs-string">"Y"</span> + ((startY + lenY) - (pckt_stepY * j)); 
-   							}
+   						<span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:
+   							nextX = (pckt_startX + pckt_offsetX) + (pckt_stepX * j);
+   							nextY = (pckt_startY + lenY - pckt_offsetY) - (pckt_stepY * j);
+
+    						<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0.0</span> ) { 
+    							outStr = <span class="hljs-string">"G1X"</span> + nextX + <span class="hljs-string">"Y"</span> + nextY;
+    						}
    							<span class="hljs-keyword">else</span> {
-   								nextX = pckt_startX + (pckt_stepX * j);
-   								nextY = pckt_startY + lenY - (pckt_stepY * j);
    								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
    										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
    							}
+
    							<span class="hljs-keyword">if</span> ( spiralPlg == <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) { 
    								PlgSp = currentZ + (Plg * <span class="hljs-number">0.75</span>);	
    								outStr += <span class="hljs-string">"Z"</span> + (PlgSp).toFixed(<span class="hljs-number">4</span>); 
    							}	
+
    							outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
     						<span class="hljs-keyword">this</span>.emit_gcode (outStr);
     					<span class="hljs-keyword">break</span>;
 
-    					<span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>xS,yS</p></div></div><div class="code"><div class="wrapper">   							<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * j)) + 
-   																	<span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * j));
-   							}
+    					<span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:
+   							nextX = (pckt_startX + pckt_offsetX) + (pckt_stepX * j);
+   							nextY = (pckt_startY + pckt_offsetY) + (pckt_stepY * j);
+
+    						<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0.0</span> ) { 
+    							outStr = <span class="hljs-string">"G1X"</span> + nextX + <span class="hljs-string">"Y"</span> + nextY;
+    						}
    							<span class="hljs-keyword">else</span> {
-   								nextX = pckt_startX + (pckt_stepX * j);
-   								nextY = pckt_startY + (pckt_stepY * j);
    								outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
    										   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
    							}
+
    							<span class="hljs-keyword">if</span> ( spiralPlg === <span class="hljs-number">1</span> &amp;&amp; pass === <span class="hljs-number">0</span> ) {
    								currentZ += Plg; 
    								outStr += <span class="hljs-string">"Z"</span> + (currentZ).toFixed(<span class="hljs-number">4</span>);
-								pass = <span class="hljs-number">1</span>; 
+								pass = <span class="hljs-number">1</span>;
+								<span class="hljs-keyword">if</span> ( i+<span class="hljs-number">1</span> &lt; reps ){
+									cnt = <span class="hljs-number">1</span>;
+								} 
    							}
-   							<span class="hljs-keyword">else</span> { cnt = <span class="hljs-number">1</span>; }
+   							<span class="hljs-keyword">else</span> { 
+   								cnt = <span class="hljs-number">1</span>;
+   							}
+
    							outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
    							<span class="hljs-keyword">this</span>.emit_gcode (outStr);
    						<span class="hljs-keyword">break</span>;
 
    						<span class="hljs-keyword">default</span>:
    							<span class="hljs-keyword">throw</span> <span class="hljs-string">"Unhandled operation: "</span> + expr.op;
-   					} <span class="hljs-comment">// switch</span>
-   				} <span class="hljs-comment">// for k</span>
+
+   					}
+   				}
 			} <span class="hljs-keyword">while</span> ( cnt &lt; <span class="hljs-number">1</span> );
   
 			<span class="hljs-keyword">if</span> ( (j + <span class="hljs-number">1</span>) &lt; steps &amp;&amp; optCR &gt; <span class="hljs-number">1</span> ) {
+				nextX = (pckt_startX + pckt_offsetX) + (pckt_stepX * (j+<span class="hljs-number">1</span>));
+   				nextY = (pckt_startY + pckt_offsetY) + (pckt_stepY * (j+<span class="hljs-number">1</span>));
 				<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) { 
-			  		outStr = <span class="hljs-string">"G1X"</span> + (startX + (pckt_stepX * (j+<span class="hljs-number">1</span>))) + 
-   							   <span class="hljs-string">"Y"</span> + (startY + (pckt_stepY * (j+<span class="hljs-number">1</span>)));
+			  		outStr = <span class="hljs-string">"G1X"</span> + nextX + 
+   							   <span class="hljs-string">"Y"</span> + nextY;
    				}
    				<span class="hljs-keyword">else</span> {
-   					nextX = pckt_startX + (pckt_stepX * (j+<span class="hljs-number">1</span>));
-   					nextY = pckt_startY + (pckt_stepY * (j+<span class="hljs-number">1</span>));
    					outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
    							   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>); 
    				}
@@ -1185,27 +1209,18 @@ this.emit_gcode( &quot;pckt_startX = &quot; + pckt_startX + &quot;  pckt_startY 
     			<span class="hljs-keyword">this</span>.emit_gcode (outStr);
    			}
 
-   		} <span class="hljs-comment">//for j</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">	    <span class="hljs-keyword">if</span> ( optCR &gt; <span class="hljs-number">1</span> ) {
+   		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If a pocket, move to the start point of the pocket</p></div></div><div class="code"><div class="wrapper">	    <span class="hljs-keyword">if</span> ( optCR &gt; <span class="hljs-number">1</span> || stCorner === <span class="hljs-number">0</span> ) {
     		<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + safeZCG );
-    		<span class="hljs-keyword">if</span> ( RotationAngle === <span class="hljs-number">0</span> ) {
-	    		outStr = <span class="hljs-string">"G1X"</span> + pckt_startX + <span class="hljs-string">"Y"</span> + pckt_startY;
-    		}
-    		<span class="hljs-keyword">else</span> {	
-				nextX = pckt_startX;
-				nextY = pckt_startY;
-				outStr = <span class="hljs-string">"G1X"</span> + ((nextX * cosRA) - (nextY * sinRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) + (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>) +
-						   <span class="hljs-string">"Y"</span> + ((nextX * sinRA) + (nextY * cosRA) + (rotPtX * (<span class="hljs-number">1</span>-cosRA)) - (rotPtY * sinRA)).toFixed(<span class="hljs-number">4</span>);
-			} 
+    		outStr = <span class="hljs-string">"G1X"</span> + startX + <span class="hljs-string">"Y"</span> + startY;
 			outStr += <span class="hljs-string">"F"</span> + sbp_settings.movexy_speed;
      		<span class="hljs-keyword">this</span>.emit_gcode( outStr );
      		<span class="hljs-keyword">if</span> ( ( i + <span class="hljs-number">1</span> ) != reps ) { 
      			<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G1Z"</span> + currentZ ); 
      		}
    		}
+    }
 
-    } <span class="hljs-comment">// for i</span>
-
-    <span class="hljs-keyword">if</span>( noPullUp === <span class="hljs-number">0</span> &amp;&amp; currentZ !== startZ ){    	<span class="hljs-comment">//If No pull-up is set to YES, pull up to the starting Z location</span>
+    <span class="hljs-keyword">if</span>( noPullUp === <span class="hljs-number">0</span> &amp;&amp; currentZ !== startZ ){    <span class="hljs-comment">//If No pull-up is set to YES, pull up to the starting Z location</span>
     	<span class="hljs-keyword">this</span>.emit_gcode( <span class="hljs-string">"G0Z"</span> + startZ);
     	<span class="hljs-keyword">this</span>.cmd_posz = startZ;
     }
@@ -1222,7 +1237,7 @@ this.emit_gcode( &quot;pckt_startX = &quot; + pckt_startX + &quot;  pckt_startY 
 
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>ZERO </p></div></div><div class="code"><div class="wrapper">SBPRuntime.prototype.ZX = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
 	<span class="hljs-keyword">this</span>.machine.driver.get(<span class="hljs-string">'mpox'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
-		<span class="hljs-keyword">this</span>.machine.driver.set(<span class="hljs-string">'g55x'</span>,(value + <span class="hljs-keyword">this</span>.machine.status.posz + zoffset), <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+		<span class="hljs-keyword">this</span>.machine.driver.set(<span class="hljs-string">'g55x'</span>,(value + <span class="hljs-keyword">this</span>.machine.status.posz <span class="hljs-comment">/*+ zoffset*/</span>), <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
 			callback();
 			<span class="hljs-keyword">this</span>.cmd_posx = <span class="hljs-keyword">this</span>.posx = <span class="hljs-number">0</span>;
 		}.bind(<span class="hljs-keyword">this</span>));
@@ -1375,22 +1390,65 @@ Keypad switches Auto-Off
 Show file Progress
 Main Display Type</p></div></div><div class="code"><div class="wrapper">};	
 
-SBPRuntime.prototype.VL = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>X - Low Limit
-X - High Limit
-Y - Low Limit
-Y - High Limit
-Z - Low Limit
-Z - High Limit
-A - Low Limit
-A - High Limit
-B - Low Limit
-B - High Limit
-C - Low Limit
-C - High Limit
-3D Threshold
-Minimum Distance to Check
-Slow Corner Speed
-Keypad Ramp Rate</p></div></div><div class="code"><div class="wrapper">};	
+SBPRuntime.prototype.VL = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
+
+	<span class="hljs-keyword">var</span> getValues = [];
+	<span class="hljs-keyword">var</span> setValues = [];</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get existing limts from Engine, to be used in case new parameters aren&#39;t sent</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.machine.driver.get ([<span class="hljs-string">'xtn'</span>,<span class="hljs-string">'xtm'</span>,
+							  <span class="hljs-string">'ytn'</span>,<span class="hljs-string">'ytm'</span>,
+							  <span class="hljs-string">'ztn'</span>,<span class="hljs-string">'ztm'</span>,
+							  <span class="hljs-string">'atn'</span>,<span class="hljs-string">'atm'</span>,
+							  <span class="hljs-string">'btn'</span>,<span class="hljs-string">'btm'</span>,
+							  <span class="hljs-string">'ctn'</span>,<span class="hljs-string">'ctm'</span> ], <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,getValues)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>X - Low Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> nLimX = getValues[<span class="hljs-number">0</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>){
+			nLimX = args[<span class="hljs-number">0</span>];
+ 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>X - High Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> mLimX = getValues[<span class="hljs-number">1</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>){
+			mLimX = args[<span class="hljs-number">1</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Y - Low Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> nLimY = getValues[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>){
+			nLimY = args[<span class="hljs-number">2</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Y - High Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> mLimY = getValues[<span class="hljs-number">3</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>){
+			mLimY = args[<span class="hljs-number">3</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Z - Low Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> nLimZ = getValues[<span class="hljs-number">4</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span>){
+			nLimZ = args[<span class="hljs-number">4</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Z - High Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> mLimZ = getValues[<span class="hljs-number">5</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">5</span>] !== <span class="hljs-literal">undefined</span>){
+			mLimZ = args[<span class="hljs-number">5</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>A - Low Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> nLimA = getValues[<span class="hljs-number">6</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span>){
+			nLimA = args[<span class="hljs-number">6</span>];
+ 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>A - High Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> mLimA = getValues[<span class="hljs-number">7</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">7</span>] !== <span class="hljs-literal">undefined</span>){
+			mLimA = args[<span class="hljs-number">7</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Soft limit checking ON-OFF</p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>B - Low Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> nLimB = getValues[<span class="hljs-number">8</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span>){
+			nLimB = args[<span class="hljs-number">9</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>B - High Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> mLimB = getValues[<span class="hljs-number">9</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">10</span>] !== <span class="hljs-literal">undefined</span>){
+			mLimB = args[<span class="hljs-number">10</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Number of axes limits to check</p></div></div><div class="code"><div class="wrapper">		</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>C - Low Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> nLimC = getValues[<span class="hljs-number">10</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">12</span>] !== <span class="hljs-literal">undefined</span>){
+			nLimC = args[<span class="hljs-number">12</span>];
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>C - High Limit</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> mLimC = getValues[<span class="hljs-number">11</span>];
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">13</span>] !== <span class="hljs-literal">undefined</span>){
+			mLimC = args[<span class="hljs-number">13</span>];
+		}
+
+		<span class="hljs-keyword">var</span> VLstr = { <span class="hljs-string">'xtn'</span>:nLimX, <span class="hljs-string">'xtm'</span>:mLimX,
+					  <span class="hljs-string">'ytn'</span>:nLimY, <span class="hljs-string">'ytm'</span>:mLimY,
+					  <span class="hljs-string">'ztn'</span>:nLimZ, <span class="hljs-string">'ztm'</span>:mLimZ,
+					  <span class="hljs-string">'atn'</span>:nLimA, <span class="hljs-string">'atm'</span>:mLimA,
+					  <span class="hljs-string">'btn'</span>:nLimB, <span class="hljs-string">'btm'</span>:mLimB,
+					  <span class="hljs-string">'ctn'</span>:nLimC, <span class="hljs-string">'ctm'</span>:mLimC };
+		
+		<span class="hljs-keyword">this</span>.machine.driver.set( VLstr, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, setValues)</span> {</span>
+							console.log(<span class="hljs-string">"set:values = "</span> + setValues );</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>    fs.writeFile(&quot;./runtime/sbp_settings.json&quot;, JSON.stringify(sbp_settings, null, 4), function(err){
+        callback();
+    });</code></pre></div></div><div class="code"><div class="wrapper">		});	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Write limits to configuration.json</p></div></div><div class="code"><div class="wrapper">	}.bind(<span class="hljs-keyword">this</span>));
+	
+};	
 
 SBPRuntime.prototype.VN = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Limits 0-OFF, 1-ON
 Input #4 Switch mode 0-Nrm Closed Stop, 1-Nrm Open Stop, 2-Not Used 
@@ -1474,19 +1532,105 @@ SBPRuntime.prototype.VS = <span class="hljs-function"><span class="hljs-keyword"
 	}
 };
 
-SBPRuntime.prototype.VU = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsX = args[<span class="hljs-number">1</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsY = args[<span class="hljs-number">2</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsZ = args[<span class="hljs-number">3</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">4</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsA = args[<span class="hljs-number">4</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">9</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsB = args[<span class="hljs-number">9</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.unitsC = args[<span class="hljs-number">6</span>]; }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if ( args[5] !== undefined ) { circRes = args[5]; }
-if ( args[8] !== undefined ) { circSml = args[8]; }</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">10</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMX = args[<span class="hljs-number">10</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">11</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMY = args[<span class="hljs-number">11</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">12</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMZ = args[<span class="hljs-number">12</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">13</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMA = args[<span class="hljs-number">13</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">14</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMB = args[<span class="hljs-number">14</span>]; }
-	<span class="hljs-keyword">if</span> ( args[<span class="hljs-number">15</span>] !== <span class="hljs-literal">undefined</span> ) { sbp_settings.resMC = args[<span class="hljs-number">15</span>]; }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if ( args[16] !== undefined ) { StepIntDiv = args[16]; }</p></div></div><div class="code"><div class="wrapper">};
+SBPRuntime.prototype.VU = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args, callback)</span> {</span>
+	<span class="hljs-keyword">var</span> axes = [<span class="hljs-string">'X'</span>,<span class="hljs-string">'Y'</span>,<span class="hljs-string">'Z'</span>,<span class="hljs-string">'A'</span>,<span class="hljs-string">'B'</span>,<span class="hljs-string">'C'</span>];
+	<span class="hljs-keyword">var</span> axesNum = [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">5</span>];
+	<span class="hljs-keyword">var</span> getValues = [];
+	<span class="hljs-keyword">var</span> setValues = [];
+	<span class="hljs-keyword">var</span> value;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>motor 1 unit value</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.machine.driver.get ([<span class="hljs-string">'1sa'</span>,<span class="hljs-string">'1mi'</span>,<span class="hljs-string">'1tr'</span>,
+							  <span class="hljs-string">'2sa'</span>,<span class="hljs-string">'2mi'</span>,<span class="hljs-string">'2tr'</span>,
+							  <span class="hljs-string">'3sa'</span>,<span class="hljs-string">'3mi'</span>,<span class="hljs-string">'3tr'</span>,
+							  <span class="hljs-string">'4sa'</span>,<span class="hljs-string">'4mi'</span>,<span class="hljs-string">'4tr'</span>,
+							  <span class="hljs-string">'5sa'</span>,<span class="hljs-string">'5mi'</span>,<span class="hljs-string">'5tr'</span>,
+							  <span class="hljs-string">'6sa'</span>,<span class="hljs-string">'6mi'</span>,<span class="hljs-string">'6tr'</span>], <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,getValues)</span> {</span>
+
+		<span class="hljs-keyword">var</span> nTr1 = getValues[<span class="hljs-number">2</span>];
+		<span class="hljs-keyword">var</span> nTr2 = getValues[<span class="hljs-number">5</span>];
+		<span class="hljs-keyword">var</span> nTr3 = getValues[<span class="hljs-number">8</span>];
+		<span class="hljs-keyword">var</span> nTr4 = getValues[<span class="hljs-number">11</span>];
+		<span class="hljs-keyword">var</span> nTr5 = getValues[<span class="hljs-number">14</span>];
+		<span class="hljs-keyword">var</span> nTr6 = getValues[<span class="hljs-number">17</span>];
+
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span>){
+			<span class="hljs-keyword">var</span> SBunitVal1 = args[<span class="hljs-number">0</span>];
+				console.log(err);
+			<span class="hljs-keyword">var</span> unitsSa1 = <span class="hljs-number">360</span>/getValues[<span class="hljs-number">0</span>];
+			<span class="hljs-keyword">var</span> unitsMi1 = getValues[<span class="hljs-number">1</span>];
+			<span class="hljs-keyword">var</span> unitsTr1 = getValues[<span class="hljs-number">2</span>];
+			nTr1 = ((unitsSa1 * unitsMi1 * sbp_settings.gearBoxRatio1) / SBunitVal1);
+			sbp_settings.units1 = SBunitVal1;
+		}
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span>){
+			<span class="hljs-keyword">var</span> SBunitVal2 = args[<span class="hljs-number">1</span>];
+				console.log(err);
+			<span class="hljs-keyword">var</span> unitsSa2 = <span class="hljs-number">360</span>/getValues[<span class="hljs-number">3</span>];
+			<span class="hljs-keyword">var</span> unitsMi2 = getValues[<span class="hljs-number">4</span>];
+			<span class="hljs-keyword">var</span> unitsTr2 = getValues[<span class="hljs-number">5</span>];
+			nTr2 = ((unitsSa2 * unitsMi2 * sbp_settings.gearBoxRatio2) / SBunitVal2);
+			sbp_settings.units2 = SBunitVal2;
+		}
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">2</span>] !== <span class="hljs-literal">undefined</span>){
+			<span class="hljs-keyword">var</span> SBunitVal3 = args[<span class="hljs-number">2</span>];
+				console.log(err);
+			<span class="hljs-keyword">var</span> unitsSa3 = <span class="hljs-number">360</span>/getValues[<span class="hljs-number">6</span>];
+			<span class="hljs-keyword">var</span> unitsMi3 = getValues[<span class="hljs-number">7</span>];
+			<span class="hljs-keyword">var</span> unitsTr3 = getValues[<span class="hljs-number">8</span>];
+			nTr3 = ((unitsSa3 * unitsMi3 * sbp_settings.gearBoxRatio3) / SBunitVal3);
+			sbp_settings.units3 = SBunitVal3;
+		}
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">3</span>] !== <span class="hljs-literal">undefined</span>){
+			<span class="hljs-keyword">var</span> SBunitVal4 = args[<span class="hljs-number">3</span>];				
+				console.log(err);
+			<span class="hljs-keyword">var</span> unitsSa4 = <span class="hljs-number">360</span>/getValues[<span class="hljs-number">9</span>];
+			<span class="hljs-keyword">var</span> unitsMi4 = getValues[<span class="hljs-number">10</span>];
+			<span class="hljs-keyword">var</span> unitsTr4 = getValues[<span class="hljs-number">11</span>];
+			nTr4 = ((unitsSa4 * unitsMi4 * sbp_settings.gearBoxRatio4) / SBunitVal4);
+			sbp_settings.units4 = SBunitVal4;
+		}
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">8</span>] !== <span class="hljs-literal">undefined</span>){
+			<span class="hljs-keyword">var</span> SBunitVal5 = args[<span class="hljs-number">8</span>];
+				console.log(err);
+			<span class="hljs-keyword">var</span> unitsSa5 = <span class="hljs-number">360</span>/getValues[<span class="hljs-number">12</span>];
+			<span class="hljs-keyword">var</span> unitsMi5 = getValues[<span class="hljs-number">13</span>];
+			<span class="hljs-keyword">var</span> unitsTr5 = getValues[<span class="hljs-number">14</span>];
+			nTr5 = ((unitsSa5 * unitsMi5 * sbp_settings.gearBoxRatio5) / SBunitVal5);
+			sbp_settings.units5 = SBunitVal5;
+		}
+		<span class="hljs-keyword">if</span> (args[<span class="hljs-number">6</span>] !== <span class="hljs-literal">undefined</span>){
+			<span class="hljs-keyword">var</span> SBunitVal6 = args[<span class="hljs-number">6</span>];
+				console.log(err);
+			<span class="hljs-keyword">var</span> unitsSa6 = <span class="hljs-number">360</span>/getValues[<span class="hljs-number">15</span>];
+			<span class="hljs-keyword">var</span> unitsMi6 = getValues[<span class="hljs-number">16</span>];
+			<span class="hljs-keyword">var</span> unitsTr6 = getValues[<span class="hljs-number">17</span>];
+			nTr6 = ((unitsSa6 * unitsMi6 * sbp_settings.gearBoxRatio6) / SBunitVal6); 	console.log(<span class="hljs-string">"6tr = "</span> + nTr6 );
+			sbp_settings.units6 = SBunitVal6;
+		}
+
+		<span class="hljs-keyword">var</span> VUstr = { <span class="hljs-string">'1tr'</span>:nTr1, <span class="hljs-string">'2tr'</span>:nTr2, <span class="hljs-string">'3tr'</span>:nTr3, <span class="hljs-string">'4tr'</span>:nTr4, <span class="hljs-string">'5tr'</span>:nTr5, <span class="hljs-string">'6tr'</span>:nTr6 };
+
+		<span class="hljs-keyword">this</span>.machine.driver.setMany( VUstr, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, values)</span> {</span>
+							console.log(<span class="hljs-string">"set:values = "</span> + values );
+			fs.writeFile(<span class="hljs-string">"./runtime/sbp_settings.json"</span>, <span class="hljs-built_in">JSON</span>.stringify(sbp_settings, <span class="hljs-literal">null</span>, <span class="hljs-number">4</span>), <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span>{</span>
+				callback();
+			});
+		});	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Write SA, MA &amp; TR to configuration.json</p></div></div><div class="code"><div class="wrapper">	}.bind(<span class="hljs-keyword">this</span>));
+	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>if ( args[5] !== undefined ) { circRes = args[5]; }
+if ( args[8] !== undefined ) { circSml = args[8]; }
+X resolution multiplier - currently not supported
+if ( args[10] !== undefined ) {
+    sbp_settings.resMX = args[10];</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">//	</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Y resolution multiplier - currently not supported
+if ( args[11] !== undefined ) {
+    sbp_settings.resMY = args[11];</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">//	</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Z resolution multiplier - currently not supported
+if ( args[12] !== undefined ) {
+    sbp_settings.resMZ = args[12];</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">//	</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>A resolution multiplier - currently not supported
+if ( args[13] !== undefined ) {
+    sbp_settings.resMA = args[13];</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">//	</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>B resolution multiplier - currently not supported
+if ( args[14] !== undefined ) {
+    sbp_settings.resMB = args[14];</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">//	</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>C resolution multiplier - currently not supported
+if ( args[15] !== undefined ) {
+    sbp_settings.resMC = args[15];</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">//	</span>
+
+};
 
 SBPRuntime.prototype.EP = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span> {</span>
 	<span class="hljs-keyword">this</span>.emit_gcode(<span class="hljs-string">"G38.2 Z"</span> + args[<span class="hljs-number">0</span>]);

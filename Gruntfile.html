@@ -2,7 +2,7 @@
 	grunt.initConfig({
 		pkg: grunt.file.readJSON(<span class="hljs-string">'package.json'</span>),
 		<span class="hljs-string">'groc'</span>: {
-			javascript: [<span class="hljs-string">"*.js"</span>, <span class="hljs-string">"README.md"</span>],
+			javascript: [<span class="hljs-string">"*.js"</span>, <span class="hljs-string">"*.md"</span>, <span class="hljs-string">"*/*.js"</span>, <span class="hljs-string">"*/*.md"</span>],
 			options: {
 				<span class="hljs-string">"out"</span>: <span class="hljs-string">"docs-dist/"</span>
 			},
@@ -17,14 +17,31 @@
             <span class="hljs-string">'file'</span> : {
                 path : <span class="hljs-string">'docs-dist/index.html'</span>
             }
+        },
+        <span class="hljs-string">'availabletasks'</span> : {
+            <span class="hljs-string">'tasks'</span> : {
+                options: {
+                    showTasks: [<span class="hljs-string">'user'</span>],
+                    filter: <span class="hljs-string">'exclude'</span>,
+                    tasks: [<span class="hljs-string">'availabletasks'</span>, <span class="hljs-string">'default'</span>]
+                }
+            }
+        },
+        <span class="hljs-string">'mochaTest'</span> : {
+            test:{
+                src: [<span class="hljs-string">"test/*.js"</span>]
+            }
         }
 	});
 	grunt.loadNpmTasks(<span class="hljs-string">'grunt-groc'</span>);
 	grunt.loadNpmTasks(<span class="hljs-string">'grunt-gh-pages'</span>);
 	grunt.loadNpmTasks(<span class="hljs-string">'grunt-open'</span>);
-	
-    grunt.registerTask(<span class="hljs-string">'doc'</span>, [<span class="hljs-string">'groc'</span>]);
-	grunt.registerTask(<span class="hljs-string">'doc-dist'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'gh-pages'</span>]);
-	grunt.registerTask(<span class="hljs-string">'doc-view'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'open'</span>]);
+    grunt.loadNpmTasks(<span class="hljs-string">'grunt-mocha-test'</span>);
+    grunt.loadNpmTasks(<span class="hljs-string">'grunt-available-tasks'</span>);
 
+    grunt.registerTask(<span class="hljs-string">'doc'</span>, <span class="hljs-string">'Generate engine documentation in HTML format.'</span>, [<span class="hljs-string">'groc'</span>]);
+	grunt.registerTask(<span class="hljs-string">'doc-dist'</span>, <span class="hljs-string">'Generate documentation and publish to github-pages.'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'gh-pages'</span>]);
+	grunt.registerTask(<span class="hljs-string">'doc-view'</span>, <span class="hljs-string">'Generate documentation and view locally in web browser.'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'open'</span>]);
+    grunt.registerTask(<span class="hljs-string">'test'</span>, <span class="hljs-string">'Run tests.'</span>, <span class="hljs-string">'mochaTest'</span>);
+    grunt.registerTask(<span class="hljs-string">'default'</span>, <span class="hljs-string">'availabletasks'</span>);
 };</div></div></div></div></body></html>
