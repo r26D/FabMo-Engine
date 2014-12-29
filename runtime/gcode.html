@@ -30,10 +30,18 @@ GCodeRuntime.prototype._onDriverStatus = <span class="hljs-function"><span class
 };
 
 GCodeRuntime.prototype._idle = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-	<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">'idle'</span>);
+	<span class="hljs-comment">//console.log(this.machine.driver.gcode_queue.getContents())</span>
 	<span class="hljs-keyword">this</span>.machine.status.current_file = <span class="hljs-literal">null</span>;
 	<span class="hljs-keyword">this</span>.machine.status.line=<span class="hljs-literal">null</span>;
 	<span class="hljs-keyword">this</span>.machine.status.nb_lines=<span class="hljs-literal">null</span>;
+	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.machine.status.job) {
+		<span class="hljs-keyword">this</span>.machine.status.job.finish(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, job)</span> {</span>
+			<span class="hljs-keyword">this</span>.machine.status.job=<span class="hljs-literal">null</span>;
+			<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">'idle'</span>);
+		}.bind(<span class="hljs-keyword">this</span>));
+	} <span class="hljs-keyword">else</span> {
+		<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">'idle'</span>);
+	}
 };
 
 GCodeRuntime.prototype._onDriverStateChange = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(states)</span> {</span>
@@ -181,7 +189,7 @@ GCodeRuntime.prototype._onDriverStateChange = <span class="hljs-function"><span 
 						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_END:
 							<span class="hljs-keyword">this</span>._idle();
 							<span class="hljs-keyword">break</span>;
-                        <span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
+						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_STOP:
 						<span class="hljs-keyword">case</span> <span class="hljs-keyword">this</span>.driver.STAT_HOLDING:
 							<span class="hljs-comment">//this._idle();</span>
 							<span class="hljs-keyword">this</span>.machine.setState(<span class="hljs-keyword">this</span>, <span class="hljs-string">"paused"</span>);
@@ -253,7 +261,7 @@ callback runs only when execution is complete.</p></div></div><div class="code">
 			}
 		}
 		string = lines.join(<span class="hljs-string">"\n"</span>);
-		<span class="hljs-keyword">this</span>.driver.runString(string);
+		<span class="hljs-keyword">this</span>.driver.runString(string,<span class="hljs-keyword">this</span>.machine.status);
 	}
 
 };

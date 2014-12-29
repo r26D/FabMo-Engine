@@ -3,17 +3,33 @@
 <span class="hljs-keyword">var</span> curl = <span class="hljs-built_in">require</span>(<span class="hljs-string">'node-curl'</span>);
 <span class="hljs-keyword">var</span> expect = <span class="hljs-built_in">require</span>(<span class="hljs-string">'chai'</span>).expect;
 <span class="hljs-keyword">var</span> base = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./test_base'</span>);
+<span class="hljs-keyword">var</span> request = <span class="hljs-built_in">require</span>(<span class="hljs-string">'request'</span>);
 
 <span class="hljs-comment">//require('../log').suppress();</span>
 
 describe(<span class="hljs-string">'Config API'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
 
 	it(<span class="hljs-string">'Get configuration from server'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
-		curl(<span class="hljs-string">'http://127.0.0.1:9876/config'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
-			<span class="hljs-keyword">var</span> json = <span class="hljs-built_in">JSON</span>.parse(<span class="hljs-keyword">this</span>.body);
+		request.get(<span class="hljs-string">'http://127.0.0.1:9876/config'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, res, body)</span> {</span>
+			<span class="hljs-keyword">var</span> json = <span class="hljs-built_in">JSON</span>.parse(body);
 			expect(json).to.have.property(<span class="hljs-string">'engine'</span>);
-			expect(json).to.have.property(<span class="hljs-string">'driver'</span>);						
+			expect(json).to.have.property(<span class="hljs-string">'driver'</span>);
 			done();
 		});
 	});
+
+	it(<span class="hljs-string">'Post a configuration update'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Log level</p></div></div><div class="code"><div class="wrapper">		data = {engine:{log_level:<span class="hljs-string">'g2'</span>}};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Do a post request to change the log level</p></div></div><div class="code"><div class="wrapper">		request.post({url: <span class="hljs-string">'http://127.0.0.1:9876/config'</span>, json: <span class="hljs-literal">true</span>, body: data}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, res, body)</span> {</span>
+			expect(body).to.exist;
+			expect(body).to.have.property(<span class="hljs-string">'log_level'</span>);
+			expect(body.log_level).to.equal(<span class="hljs-string">'g2'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Do a get request to check the new configuration</p></div></div><div class="code"><div class="wrapper">			request.get(<span class="hljs-string">'http://127.0.0.1:9876/config'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, res, body)</span> {</span>
+				<span class="hljs-keyword">var</span> json = <span class="hljs-built_in">JSON</span>.parse(body);
+				expect(json).to.have.property(<span class="hljs-string">'engine'</span>);
+				expect(json.engine.log_level).to.equal(<span class="hljs-string">'g2'</span>);
+				done();
+			});
+		});
+
+
+	});
+
 })</div></div></div></div></body></html>

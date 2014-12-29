@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="en"><head><title>routes/jobs</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="routes/jobs"><meta name="groc-project-path" content="routes/jobs.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">routes/jobs.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> db = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../db'</span>);
+<span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
+<span class="hljs-keyword">var</span> config = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../config'</span>);
+<span class="hljs-keyword">var</span> util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../util'</span>);
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'routes'</span>);
+<span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../machine'</span>).machine;
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+
+submitJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get the one and only one file you&#39;re currently allowed to upload at a time</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">var</span> file = req.files.file;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Only write &quot;allowed files&quot;</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span>(file &amp;&amp; util.allowed_file(file.name))
+	{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Keep the name of the file uploaded (but put it in the parts directory)</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> filename=file.name;
+		<span class="hljs-keyword">var</span> full_path = path.join(config.getDataDir(<span class="hljs-string">'files'</span>), filename);
+		
+		util.move(file.path, full_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+			<span class="hljs-keyword">if</span> (err) { <span class="hljs-keyword">throw</span> err; }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>delete the temporary file, so that the temporary upload dir does not get filled with unwanted files</p></div></div><div class="code"><div class="wrapper">			fs.unlink(file.path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+				<span class="hljs-comment">//if (err) {throw err;}</span>
+				<span class="hljs-keyword">var</span> file = <span class="hljs-keyword">new</span> db.File(filename, full_path)
+				file.save(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span>{</span>
+					
+					log.info(<span class="hljs-string">'Saved a file'</span>);
+					<span class="hljs-keyword">try</span> {
+						<span class="hljs-keyword">var</span> job = <span class="hljs-keyword">new</span> db.Job({
+							file_id : file._id,
+							name : req.body.name || filename,
+							description : req.body.description
+						});
+					} <span class="hljs-keyword">catch</span>(e) {
+						console.log(e);
+					}
+					log.info(<span class="hljs-string">'Created a job'</span>);
+					job.save(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, job)</span> {</span>
+						<span class="hljs-keyword">if</span>(err) {
+							log.error(err);
+							res.send(<span class="hljs-number">500</span>, err);
+						} <span class="hljs-keyword">else</span> {
+							res.send(<span class="hljs-number">200</span>, job);
+						}
+					}); <span class="hljs-comment">// job.save</span>
+
+				<span class="hljs-comment">//res.send(302,file); // file saved</span>
+			}); <span class="hljs-comment">//save in db</span>
+				
+			});
+		});
+	}
+	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (file){
+		res.send(<span class="hljs-number">415</span>); <span class="hljs-comment">// wrong format</span>
+	}
+	<span class="hljs-keyword">else</span>{
+		res.send(<span class="hljs-number">400</span>);<span class="hljs-comment">// problem reciving the file (bad request)	</span>
+	}
+};
+
+clearQueue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	db.Job.deletePending(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+		<span class="hljs-keyword">if</span>(err) {
+			res.send(<span class="hljs-number">500</span>, err);
+		} <span class="hljs-keyword">else</span> {
+			res.send(<span class="hljs-number">200</span>, {});
+		}
+	});
+}
+
+runNextJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	machine.runNextJob(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, job)</span> {</span>
+		<span class="hljs-keyword">if</span>(err) {
+			log.error(err);
+			res.send(<span class="hljs-number">500</span>, err);
+		} <span class="hljs-keyword">else</span> {
+			res.send(<span class="hljs-number">200</span>, job);
+		}
+	});
+}
+
+resubmitJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	log.debug(<span class="hljs-string">"Resubmitting job "</span> + req.params.id)
+	db.Job.getById(req.params.id, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+		log.debug(result);
+		<span class="hljs-keyword">if</span>(err) {
+			log.error(<span class="hljs-built_in">JSON</span>.stringify(err));
+		}
+		result.clone(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+			log.debug(<span class="hljs-string">"Cloned!"</span>);
+			<span class="hljs-keyword">if</span>(err) {
+				log.error(err);
+				res.send(<span class="hljs-number">404</span>, err);
+			} <span class="hljs-keyword">else</span> {
+				res.send(<span class="hljs-number">200</span>, result);
+			}
+		});
+	});
+}
+
+getQueue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	db.Job.getPending(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+		<span class="hljs-keyword">if</span>(err) {
+			log.error(err);
+			res.send(<span class="hljs-number">500</span>, err);
+		} <span class="hljs-keyword">else</span> {
+			res.send(<span class="hljs-number">200</span>, result);
+		}
+	})
+}
+
+getAllJobs = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	db.Job.getAll(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+		<span class="hljs-keyword">if</span>(err) {
+			log.error(err);
+			res.send(<span class="hljs-number">500</span>, err);
+		} <span class="hljs-keyword">else</span> {
+			res.send(<span class="hljs-number">200</span>, result);
+		}
+	})
+}
+
+getJobHistory = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	db.Job.getHistory(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+		<span class="hljs-keyword">if</span>(err) {
+			log.error(err);
+			res.send(<span class="hljs-number">500</span>, err);
+		} <span class="hljs-keyword">else</span> {
+			res.send(<span class="hljs-number">200</span>, result);
+		}
+	})
+}
+
+getJobById = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	db.Job.getById(req.params.id, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+		<span class="hljs-keyword">if</span>(err) {
+			log.error(err);
+			res.send(<span class="hljs-number">404</span>, err);
+		} <span class="hljs-keyword">else</span> {
+			res.send(<span class="hljs-number">200</span>, result);
+		}
+	})
+}
+
+cancelJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	db.Job.getById(req.params.id, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+		<span class="hljs-keyword">if</span>(err) {
+			log.error(err);
+			res.send(<span class="hljs-number">404</span>, err);
+		} <span class="hljs-keyword">else</span> {
+			result.cancel(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+				<span class="hljs-keyword">if</span>(err) {
+					log.error(err);
+					res.send(<span class="hljs-number">500</span>, err);
+				} <span class="hljs-keyword">else</span> {
+					res.send(<span class="hljs-number">200</span>, result);
+				}
+			});
+		}
+	})
+}
+
+
+module.exports = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(server)</span> {</span>
+	server.post(<span class="hljs-string">'/job'</span>, submitJob);
+	server.get(<span class="hljs-string">'/jobs'</span>, getAllJobs);
+	
+	server.get(<span class="hljs-string">'/job/:id'</span>, getJobById);
+	server.post(<span class="hljs-string">'/job/:id'</span>, resubmitJob);
+	server.get(<span class="hljs-string">'/jobs/queue'</span>, getQueue);
+	server.del(<span class="hljs-string">'/jobs/queue'</span>, clearQueue);
+	server.post(<span class="hljs-string">'/jobs/queue/run'</span>, runNextJob);
+	server.get(<span class="hljs-string">'/jobs/history'</span>, getJobHistory);
+
+}</div></div></div></div></body></html>

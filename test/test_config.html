@@ -5,8 +5,8 @@
 
 describe(<span class="hljs-string">'Config Module'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
 
-	it(<span class="hljs-string">'Update with a valid value'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
-		<span class="hljs-keyword">var</span> expected = {<span class="hljs-string">'st'</span>:<span class="hljs-number">1</span>};
+	it(<span class="hljs-string">'Update G2 config with a valid value'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+		<span class="hljs-keyword">var</span> expected = {<span class="hljs-string">'xsn'</span>:<span class="hljs-number">1</span>};
 		config.driver.update(expected, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 			<span class="hljs-keyword">if</span>(err) { done(err); }
 			assert.equal(result.st, expected.st)
@@ -14,7 +14,7 @@ describe(<span class="hljs-string">'Config Module'</span>, <span class="hljs-fun
 		});
 	});
 
-	it(<span class="hljs-string">'Update with an invalid value'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+	it(<span class="hljs-string">'Update G2 config with an invalid value'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
 		<span class="hljs-keyword">var</span> expected = {<span class="hljs-string">'st'</span>:<span class="hljs-string">'carrot'</span>};
 		config.driver.update(expected, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 			<span class="hljs-keyword">if</span>(err) { done(err); }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We expect G2 to swallow the carrot and replace it with zero</p></div></div><div class="code"><div class="wrapper">			assert.equal(result.st, <span class="hljs-number">0</span>)
@@ -22,7 +22,7 @@ describe(<span class="hljs-string">'Config Module'</span>, <span class="hljs-fun
 		});
 	});
 
-	it(<span class="hljs-string">'Update with multiple values'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+	it(<span class="hljs-string">'Update G2 config with multiple values'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
 		<span class="hljs-keyword">var</span> expected = {<span class="hljs-string">'xsn'</span>:<span class="hljs-number">1</span>, <span class="hljs-string">'ysn'</span>:<span class="hljs-number">1</span>};
 		config.driver.update(expected, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 			<span class="hljs-keyword">if</span>(err) { done(err); }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>We expect G2 to swallow the carrot and replace it with zero</p></div></div><div class="code"><div class="wrapper">			assert.equal(result.xsn, <span class="hljs-number">1</span>)
@@ -31,21 +31,24 @@ describe(<span class="hljs-string">'Config Module'</span>, <span class="hljs-fun
 		});
 	});
 
-	it(<span class="hljs-string">'Update an invalid key'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
-		<span class="hljs-keyword">var</span> expected = {<span class="hljs-string">'carrot'</span>:<span class="hljs-number">3.14</span>};
-		config.driver.update(expected, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+	it(<span class="hljs-string">'Update OpenSBP config'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+		<span class="hljs-keyword">var</span> expected = {<span class="hljs-string">'safeZPullup'</span>:<span class="hljs-number">0.5</span>};
+		config.opensbp.update(expected, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 			<span class="hljs-keyword">if</span>(err) { done(err); }
-			assert.equal(result.carrot, <span class="hljs-literal">null</span>)
+			assert.equal(result.safeZPullup, expected.safeZPullup)
 			<span class="hljs-keyword">return</span> done();
 		});
 	});
 
-	it(<span class="hljs-string">'Multi Set'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
-		<span class="hljs-keyword">var</span> expected = {<span class="hljs-string">'carrot'</span>:<span class="hljs-number">3.14</span>};
-		base.engine.machine.driver.setMany({<span class="hljs-string">'1tr'</span>:<span class="hljs-number">1</span>,<span class="hljs-string">'2tr'</span>:<span class="hljs-number">2</span>,<span class="hljs-string">'3tr'</span>:<span class="hljs-number">3</span>}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
-			<span class="hljs-keyword">if</span>(err) { done(err); }
-			<span class="hljs-keyword">return</span> done();
-		});
+	it(<span class="hljs-string">'Read OpenSBP config'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+		<span class="hljs-keyword">var</span> expected = <span class="hljs-number">0.5</span>;
+		<span class="hljs-keyword">var</span> actual = config.opensbp.get(<span class="hljs-string">'safeZPullup'</span>)
+		assert.equal(actual, expected)
+		<span class="hljs-keyword">return</span> done();
 	});
 
+	it(<span class="hljs-string">'Read OpenSBP config (multiple)'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+		<span class="hljs-keyword">var</span> actual = config.opensbp.getMany([<span class="hljs-string">'safeZPullup'</span>,<span class="hljs-string">'safeApullUp'</span>]);
+		<span class="hljs-keyword">return</span> done();
+	});
 });</div></div></div></div></body></html>

@@ -1,0 +1,12 @@
+<!DOCTYPE html><html lang="en"><head><title>routes/kill</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="routes/kill"><meta name="groc-project-path" content="routes/kill.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">routes/kill.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper">process = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>);
+log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'routes'</span>)
+
+kill = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+    log.warn(<span class="hljs-string">'Killing the engine by user request...'</span>);
+    res.json({<span class="hljs-string">'success'</span>:<span class="hljs-literal">true</span>});
+    process.exit(<span class="hljs-number">1</span>);
+};
+
+module.exports = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(server)</span> {</span>
+   server.get(<span class="hljs-string">'/restart'</span>, kill); 
+}</div></div></div></div></body></html>

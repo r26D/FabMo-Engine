@@ -41,8 +41,4 @@ module.exports = <span class="hljs-function"><span class="hljs-keyword">function
 	<span class="hljs-keyword">var</span> io = socketio.listen(server.server);
 	server.get(<span class="hljs-string">"/passthrough"</span>,passthrough_app);
 	io.of(<span class="hljs-string">'/passthrough'</span>).on(<span class="hljs-string">'connection'</span>, connect);
-	server.get(<span class="hljs-regexp">/.*/</span>, restify.serveStatic({
-		directory: <span class="hljs-string">'./static'</span>,
-		<span class="hljs-keyword">default</span>: <span class="hljs-string">'index.html'</span>
-	}));
 };</div></div></div></div></body></html>
