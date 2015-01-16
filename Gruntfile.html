@@ -31,6 +31,13 @@
             test:{
                 src: [<span class="hljs-string">"test/*.js"</span>]
             }
+        },
+        <span class="hljs-string">'apidoc'</span> : {
+            myapp: {
+                src: <span class="hljs-string">"routes/"</span>,
+                dest: <span class="hljs-string">"docs-dist/api"</span>,
+                debug: <span class="hljs-literal">true</span>
+            }
         }
 	});
 	grunt.loadNpmTasks(<span class="hljs-string">'grunt-groc'</span>);
@@ -38,10 +45,11 @@
 	grunt.loadNpmTasks(<span class="hljs-string">'grunt-open'</span>);
     grunt.loadNpmTasks(<span class="hljs-string">'grunt-mocha-test'</span>);
     grunt.loadNpmTasks(<span class="hljs-string">'grunt-available-tasks'</span>);
+    grunt.loadNpmTasks(<span class="hljs-string">'grunt-apidoc'</span>);
 
-    grunt.registerTask(<span class="hljs-string">'doc'</span>, <span class="hljs-string">'Generate engine documentation in HTML format.'</span>, [<span class="hljs-string">'groc'</span>]);
-	grunt.registerTask(<span class="hljs-string">'doc-dist'</span>, <span class="hljs-string">'Generate documentation and publish to github-pages.'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'gh-pages'</span>]);
-	grunt.registerTask(<span class="hljs-string">'doc-view'</span>, <span class="hljs-string">'Generate documentation and view locally in web browser.'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'open'</span>]);
+    grunt.registerTask(<span class="hljs-string">'doc'</span>, <span class="hljs-string">'Generate engine documentation in HTML format.'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'apidoc'</span>]);
+	grunt.registerTask(<span class="hljs-string">'doc-dist'</span>, <span class="hljs-string">'Generate documentation and publish to github-pages.'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'apidoc'</span>, <span class="hljs-string">'gh-pages'</span>]);
+	grunt.registerTask(<span class="hljs-string">'doc-view'</span>, <span class="hljs-string">'Generate documentation and view locally in web browser.'</span>, [<span class="hljs-string">'groc'</span>, <span class="hljs-string">'apidoc'</span>, <span class="hljs-string">'open'</span>]);
     grunt.registerTask(<span class="hljs-string">'test'</span>, <span class="hljs-string">'Run tests.'</span>, <span class="hljs-string">'mochaTest'</span>);
     grunt.registerTask(<span class="hljs-string">'default'</span>, <span class="hljs-string">'availabletasks'</span>);
 };</div></div></div></div></body></html>

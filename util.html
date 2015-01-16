@@ -2,6 +2,7 @@
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'util'</span>);
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 <span class="hljs-keyword">var</span> q = <span class="hljs-built_in">require</span>(<span class="hljs-string">'q'</span>);
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 <span class="hljs-keyword">var</span> escapeRE = <span class="hljs-built_in">require</span>(<span class="hljs-string">'escape-regexp-component'</span>);
@@ -203,57 +204,25 @@ assert.optionalString(opts.charSet, &#39;options.charSet&#39;);</p></div></div><
     }
 
     <span class="hljs-keyword">return</span> (serve);
-}
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>TODO better error handling here</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">walkDir</span><span class="hljs-params">(filename)</span> {</span>
+    <span class="hljs-keyword">var</span> stats = fs.lstatSync(filename),
+        info = {
+            path: filename,
+            text: path.basename(filename),
+            name: path.basename(filename)
+        };
 
-<span class="hljs-keyword">var</span> walk = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(dir, obj, done)</span> {</span>
-  <span class="hljs-keyword">var</span> results = {};
-  fs.readdir(dir, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, list)</span> {</span>
-
-    <span class="hljs-keyword">if</span> (err) <span class="hljs-keyword">return</span> done(err);
-
-    <span class="hljs-keyword">var</span> pending = list.length;
-    <span class="hljs-keyword">if</span> (!pending) <span class="hljs-keyword">return</span> done(<span class="hljs-literal">null</span>, obj);
-
-    list.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span> {</span>
-      path = dir + <span class="hljs-string">'/'</span> + file;
-      fs.stat(path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, stat)</span> {</span>
-        <span class="hljs-keyword">if</span> (stat &amp;&amp; stat.isDirectory()) {
-          dirobject =  {    name: file, 
-                            path: path,
-                            type: <span class="hljs-string">'dir'</span>,
-                            created : stat.ctime, 
-                            modified : stat.mtime, 
-                            children:[]
-                        };
-          obj.children.push(dirobject);
-          walk(file, dirobject, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, res)</span> {</span>
-            <span class="hljs-keyword">if</span> (!--pending) done(<span class="hljs-literal">null</span>, obj);
-          });
-        } <span class="hljs-keyword">else</span> {
-          fileobject =  {   name: file,
-                            path: path,
-                            type: <span class="hljs-string">'file'</span>,
-                            created : stat.ctime, 
-                            modified : stat.mtime, 
-                            children:<span class="hljs-literal">null</span>
-                        };
-          obj.children.push(fileobject);
-          <span class="hljs-comment">//results.push(file);</span>
-          <span class="hljs-keyword">if</span> (!--pending) done(<span class="hljs-literal">null</span>, obj);
-        }
-      });
-    });
-  });
-};
-
-<span class="hljs-keyword">var</span> walkDir = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(dir, callback)</span> {</span>
-    obj = {
-        children : [],
-        name : <span class="hljs-string">'/'</span>,
-        path : <span class="hljs-string">'/'</span>,
-        type : <span class="hljs-string">'dir'</span>
+    <span class="hljs-keyword">if</span> (stats.isDirectory()) {
+        info.type = <span class="hljs-string">"dir"</span>;
+        info.children = fs.readdirSync(filename).map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(child)</span> {</span>
+            <span class="hljs-keyword">return</span> walkDir(filename + <span class="hljs-string">'/'</span> + child);
+        });
+    } <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Assuming it&#39;s a file. In real life it could be a symlink or
+something else!</p></div></div><div class="code"><div class="wrapper">        info.type = <span class="hljs-string">"file"</span>;
+        info.children = <span class="hljs-literal">null</span>;
     }
-    <span class="hljs-keyword">return</span> walk(dir, obj, callback);
+
+    <span class="hljs-keyword">return</span> info;
 }
 
 exports.serveStatic = serveStatic;

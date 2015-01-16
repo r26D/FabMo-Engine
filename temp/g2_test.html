@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="en"><head><title>temp/g2_test</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="temp/g2_test"><meta name="groc-project-path" content="temp/g2_test.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">temp/g2_test.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> settings = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../settings'</span>);
+<span class="hljs-keyword">var</span> log_g2 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'g2'</span>); <span class="hljs-comment">//needed to run</span>
+<span class="hljs-keyword">var</span> g2 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../g2'</span>);
+<span class="hljs-keyword">var</span> chai = <span class="hljs-built_in">require</span>(<span class="hljs-string">'chai'</span>);
+<span class="hljs-keyword">var</span> sinon = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sinon'</span>);
+<span class="hljs-keyword">var</span> serial_path = <span class="hljs-string">'COM1'</span>;
+
+
+<span class="hljs-keyword">var</span> expect = chai.expect;
+<span class="hljs-keyword">var</span> sandbox = sinon.sandbox.create();
+
+
+describe(<span class="hljs-string">'G2'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+	<span class="hljs-keyword">var</span> driver = <span class="hljs-keyword">new</span> g2.G2();
+
+	beforeEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+		sandbox.stub(log_g2, <span class="hljs-string">"debug"</span>);
+		sandbox.stub(log_g2, <span class="hljs-string">"info"</span>);
+		sandbox.stub(log_g2, <span class="hljs-string">"warning"</span>);
+		sandbox.stub(log_g2, <span class="hljs-string">"error"</span>);
+	});
+
+	afterEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+		sandbox.restore();
+	});
+
+	describe(<span class="hljs-string">'#connect()'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+	  	it(<span class="hljs-string">'should return no error and the driver'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+	  		driver.connect(serial_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
+	  			expect(err).to.be.false;
+	  			expect(data).to.be.an.instanceof(g2.G2);
+	  			done();
+	  		});
+	  	});
+  	});
+
+
+	describe(<span class="hljs-string">'#toString()'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+		it(<span class="hljs-string">'should return a string'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(done)</span>{</span>
+			<span class="hljs-keyword">var</span> driver_string = driver.toString();
+			expect(driver_string).to.equal(<span class="hljs-string">"[G2 Driver on '"</span> + serial_path + <span class="hljs-string">"']"</span>);
+			done();
+		});
+	});
+
+	describe(<span class="hljs-string">'#onSerialError()'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+		it(<span class="hljs-string">'should print the arg to the console'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			driver.onSerialError(<span class="hljs-string">"error message"</span>);
+			sinon.assert.calledOnce(log_g2.error);
+      		sinon.assert.calledWithMatch(log_g2.error, <span class="hljs-regexp">/error message/</span> );
+		});
+	}); </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>describe(&#39;#write()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.write(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#writeAndDrain()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.writeAndDrain(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#jog()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.jog(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#jog_keepalive()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.jog_keepalive(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#stopJog()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.stopJog(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#requestStatusReport()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.requestStatusReport(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#requestQueueReport()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.requestQueueReport(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#onData()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.onData(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#handleQueueReport()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.handleQueueReport(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#handleFooter()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.handleFooter(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#handleStatusReport()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.handleStatusReport(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#onMessage()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.onMessage(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#feedHold()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.feedHold(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#resume()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.resume(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#quit()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.quit(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#get()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.get(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#set()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.set(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#command()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.command(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#runString()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.runString(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#runSegment()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.runSegment(args);
+        expect(null).to.be.null;
+    });
+});
+
+describe(&#39;#expectStateChange()&#39;,function(){
+    it(&#39;&#39;,function(){
+        driver.expectStateChange(args);
+        expect(null).to.be.null;
+    });
+});</code></pre></div></div><div class="code"><div class="wrapper">});</div></div></div></div></body></html>

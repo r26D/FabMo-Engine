@@ -352,16 +352,21 @@ G2.prototype.handleFooter = <span class="hljs-function"><span class="hljs-keywor
 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Hack allows for a flush when quitting (must wait for the hold state to reach 4)</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.quit_pending) {
 			<span class="hljs-keyword">if</span>((<span class="hljs-keyword">this</span>.status.hold === <span class="hljs-number">4</span>) || (<span class="hljs-keyword">this</span>.status.hold === <span class="hljs-number">5</span>) || (<span class="hljs-keyword">this</span>.status.stat === <span class="hljs-number">3</span>)) {
 				setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-					<span class="hljs-keyword">this</span>.queueClear();
-					<span class="hljs-keyword">this</span>.command({<span class="hljs-string">"gc"</span>:<span class="hljs-string">'M30'</span>});
-					<span class="hljs-comment">//this.command('M30');</span>
-					<span class="hljs-keyword">this</span>.quit_pending = <span class="hljs-literal">false</span>;
-					<span class="hljs-keyword">this</span>.pause_flag = <span class="hljs-literal">false</span>;
-					<span class="hljs-keyword">this</span>.jog_direction = <span class="hljs-literal">null</span>;
-					<span class="hljs-keyword">this</span>.jog_command = <span class="hljs-literal">null</span>;
-					<span class="hljs-keyword">this</span>.jog_stop_pending = <span class="hljs-literal">false</span>;
-					<span class="hljs-keyword">this</span>.requestQueueReport();
-				}.bind(<span class="hljs-keyword">this</span>), <span class="hljs-number">50</span>);
+					<span class="hljs-keyword">this</span>.queueClear(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    				    log.debug(<span class="hljs-string">"Queue cleared."</span>);
+                        <span class="hljs-comment">//this.command({"gc":'M30'});</span>
+                        <span class="hljs-comment">//this.command('M30');</span>
+					    <span class="hljs-keyword">this</span>.control_port.write(<span class="hljs-string">"~"</span>);
+					    <span class="hljs-keyword">this</span>.quit_pending = <span class="hljs-literal">false</span>;
+					    <span class="hljs-keyword">this</span>.pause_flag = <span class="hljs-literal">false</span>;
+					    <span class="hljs-keyword">this</span>.jog_direction = <span class="hljs-literal">null</span>;
+					    <span class="hljs-keyword">this</span>.jog_command = <span class="hljs-literal">null</span>;
+					    <span class="hljs-keyword">this</span>.jog_stop_pending = <span class="hljs-literal">false</span>;
+                        <span class="hljs-keyword">this</span>.requestStatusReport();
+					    <span class="hljs-keyword">this</span>.requestQueueReport();
+                    }.bind(<span class="hljs-keyword">this</span>));
+				
+                }.bind(<span class="hljs-keyword">this</span>), <span class="hljs-number">50</span>);
 			}
 		}
 
@@ -392,11 +397,22 @@ G2.prototype.feedHold = <span class="hljs-function"><span class="hljs-keyword">f
 	<span class="hljs-keyword">this</span>.pause_flag = <span class="hljs-literal">true</span>;
 	<span class="hljs-keyword">this</span>.flooded = <span class="hljs-literal">false</span>;
 	<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">'function'</span> &amp;&amp; <span class="hljs-keyword">this</span>.once(<span class="hljs-string">'state'</span>, callback);
-	<span class="hljs-keyword">this</span>.controlWrite(<span class="hljs-string">'!\n'</span>);
+	<span class="hljs-keyword">this</span>.controlWrite(<span class="hljs-string">'!'</span>);
 }
 
 G2.prototype.queueClear = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
-	<span class="hljs-keyword">this</span>.controlWrite(<span class="hljs-string">'\%'</span>);	
+	<span class="hljs-comment">//this.controlWrite('\%');</span>
+    log.debug(<span class="hljs-string">"Clearing the queue by hack (closing and reopening the port)"</span>);
+    log.debug(<span class="hljs-string">"closing"</span>);
+    <span class="hljs-keyword">this</span>.gcode_port.close(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+        <span class="hljs-comment">//this.control_port.write("%");</span>
+        <span class="hljs-comment">//log.debug("flushing");</span>
+        <span class="hljs-comment">//this.gcode_port.flush(function() {</span>
+            log.debug(<span class="hljs-string">"opening again"</span>);
+            <span class="hljs-keyword">this</span>.gcode_port.on(<span class="hljs-string">'error'</span>, <span class="hljs-keyword">this</span>.onSerialError.bind(<span class="hljs-keyword">this</span>));
+            <span class="hljs-keyword">this</span>.gcode_port.open(callback);
+        <span class="hljs-comment">//}.bind(this));</span>
+    }.bind(<span class="hljs-keyword">this</span>));
 }
 
 G2.prototype.resume = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
@@ -411,10 +427,12 @@ G2.prototype.quit = <span class="hljs-function"><span class="hljs-keyword">funct
 		<span class="hljs-keyword">this</span>.quit_pending = <span class="hljs-literal">true</span>;
 		<span class="hljs-keyword">this</span>.feedHold();
 	} <span class="hljs-keyword">else</span> {
-		<span class="hljs-keyword">this</span>.queueClear();
-		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'gc'</span>:<span class="hljs-string">'M30'</span>});
-		<span class="hljs-keyword">this</span>.command({<span class="hljs-string">'qv'</span>:<span class="hljs-number">2</span>});
-		<span class="hljs-keyword">this</span>.requestQueueReport();
+		<span class="hljs-keyword">this</span>.queueClear(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+		    <span class="hljs-keyword">this</span>.command({<span class="hljs-string">'gc'</span>:<span class="hljs-string">'M30'</span>});
+		    <span class="hljs-keyword">this</span>.command({<span class="hljs-string">'qv'</span>:<span class="hljs-number">2</span>});
+		    <span class="hljs-keyword">this</span>.requestQueueReport();
+            <span class="hljs-keyword">this</span>.requestStatusReport();
+        }.bind(<span class="hljs-keyword">this</span>));
 	}
 };
 

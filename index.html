@@ -5,14 +5,21 @@
 <li>Monitoring of G2 motion state and cycle progress</li>
 <li>Storage and management of files (that currently cannot be stored on G2)</li>
 <li>Interpretation of the OpenSBP (ShopBot) language</li>
-<li>Exposure of an API that allows clients to connect to the motion system through the web</li>
+<li>Hosting of the &quot;FabMo Dashboard&quot; a web frontend to the FabMo Engine that provides an app hosting environment</li>
 </ul>
-<p>The source code documentation is available here: <a href="http://shopbottools.github.io/FabMo-Engine/">http://shopbottools.github.io/FabMo-Engine/</a> </p>
-<h2 id="dependencies">Dependencies</h2>
-<p>The engine runs best on linux, but can run with limited functionality on windows.  To run the engine, you need to install the dependencies, which can be done automatically with npm:</p>
-<pre><code>npm install</code></pre>
+<h2 id="documentation">Documentation</h2>
+<p><a href="http://shopbottools.github.io/FabMo-Engine/">Source Code Documentation</a> </p>
+<p><a href="http://shopbottools.github.io/FabMo-Engine/api">API Documentation</a></p>
+<h2 id="quick-start">Quick Start</h2>
+<ol>
+<li>Check out the source code <a href="https://github.com/ShopBotTools/FabMo-Engine.git">https://github.com/ShopBotTools/FabMo-Engine.git</a></li>
+<li>From inside the source directory, install all of the engine dependencies with <code>npm install</code></li>
+<li>Create the engine data directory at <code>/opt/fabmo</code> or <code>C:\opt\fabmo</code> if you&#39;re on windows.  Make sure the user running the engine has write access to this directory.</li>
+<li>Start the engine with <code>npm start</code></li>
+</ol>
+<p>When the engine starts, it will connect to G2 and setup an http server to accept connections on port 9876.  Once the engine is running you can visit <a href="http://localhost:9876/">http://localhost:9876/</a> or <a href="http://0.0.0.0:9876/">http://0.0.0.0:9876/</a> to use the engine dashboard.</p>
 <h2 id="installing-the-engine">Installing the Engine</h2>
-<p>The engine is run from source, and only needs to be checked out and stored in a local directory.   There are a few directories that you need to have created for the engine to work properly.  Under linux, these are <code>/opt/fabmo/parts</code> and <code>/opt/fabmo/tmp</code>.  On windows, use <code>c:\opt\fabmo\parts</code> and <code>c:\opt\fabmo\tmp</code> The process that is running the engine server needs read/write access to both of these directories.</p>
+<p>The engine is run from source, and only needs to be checked out and stored in a local directory.   The engine needs access to the directory <code>/opt/fabmo</code> to store its internal settings, apps, etc.</p>
 <h2 id="running-the-engine">Running the Engine</h2>
 <p>For debugging the engine, you can run it directly from the command prompt with <code>npm start</code> or <code>node server.js</code></p>
 <h2 id="development">Development</h2>

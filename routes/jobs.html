@@ -48,9 +48,7 @@ submitJob = <span class="hljs-function"><span class="hljs-keyword">function</spa
 	<span class="hljs-keyword">else</span>{
 		res.send(<span class="hljs-number">400</span>);<span class="hljs-comment">// problem reciving the file (bad request)	</span>
 	}
-};
-
-clearQueue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {delete} /jobs/queue Clear job queue and apiGroup Jobs</span></p></div></div><div class="code"><div class="wrapper">clearQueue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	db.Job.deletePending(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
 		<span class="hljs-keyword">if</span>(err) {
 			res.send(<span class="hljs-number">500</span>, err);
@@ -58,9 +56,7 @@ clearQueue = <span class="hljs-function"><span class="hljs-keyword">function</sp
 			res.send(<span class="hljs-number">200</span>, {});
 		}
 	});
-}
-
-runNextJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Jobs, api {post} /jobs/queue/run Run next job in queue, and apiDescription Runs the next job in the queue if able.</span></p></div></div><div class="code"><div class="wrapper">runNextJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	machine.runNextJob(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, job)</span> {</span>
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(err);
@@ -69,9 +65,7 @@ runNextJob = <span class="hljs-function"><span class="hljs-keyword">function</sp
 			res.send(<span class="hljs-number">200</span>, job);
 		}
 	});
-}
-
-resubmitJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Jobs, api {post} /jobs/:id Resubmit job, apiDescription Submit a new job identical to the one specified.  Used to re-run completed jobs without modification., and apiParam {String} id ID of job to resubmit</span></p></div></div><div class="code"><div class="wrapper">resubmitJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	log.debug(<span class="hljs-string">"Resubmitting job "</span> + req.params.id)
 	db.Job.getById(req.params.id, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 		log.debug(result);
@@ -88,9 +82,7 @@ resubmitJob = <span class="hljs-function"><span class="hljs-keyword">function</s
 			}
 		});
 	});
-}
-
-getQueue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Jobs, api {get} /jobs/queue Job queue, and apiDescription Get all the pending jobs currently in the queue</span></p></div></div><div class="code"><div class="wrapper">getQueue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	db.Job.getPending(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(err);
@@ -99,9 +91,7 @@ getQueue = <span class="hljs-function"><span class="hljs-keyword">function</span
 			res.send(<span class="hljs-number">200</span>, result);
 		}
 	})
-}
-
-getAllJobs = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Jobs, api {get} /jobs List all jobs, apiDescription Get a list of all jobs, including those that are pending, currently running, and finished., apiSuccess {Object[]} jobs List of all jobs, apiSuccess {Number} jobs._id Unique job ID, apiSuccess {String} jobs.state <code>pending</code> | <code>running</code> | <code>finished</code> | <code>cancelled</code>, apiSuccess {String} jobs.name Human readable job name, apiSuccess {String} jobs.description Job description, apiSuccess {Number} jobs.created_at Time job was added to the queue (UNIX timestamp), apiSuccess {Number} jobs.started_at Time job was started (UNIX timestamp), and apiSuccess {Number} jobs.finished_at Time job was finished (UNIX timestamp)</span></p></div></div><div class="code"><div class="wrapper">getAllJobs = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	db.Job.getAll(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(err);
@@ -121,9 +111,7 @@ getJobHistory = <span class="hljs-function"><span class="hljs-keyword">function<
 			res.send(<span class="hljs-number">200</span>, result);
 		}
 	})
-}
-
-getJobById = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Jobs, api {get} /jobs/:id Job info, apiDescription Get information about a specific job, apiParam {String} id ID of requested job, apiSuccess {Number} _id Unique job ID, apiSuccess {String} state <code>pending</code> | <code>running</code> | <code>finished</code> | <code>cancelled</code>, apiSuccess {String} name Human readable job name, apiSuccess {String} description Job description, apiSuccess {Number} created_at Time job was added to the queue (UNIX timestamp), apiSuccess {Number} started_at Time job was started (UNIX timestamp), and apiSuccess {Number} finished_at Time job was finished (UNIX timestamp)</span></p></div></div><div class="code"><div class="wrapper">getJobById = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	db.Job.getById(req.params.id, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(err);
@@ -132,9 +120,7 @@ getJobById = <span class="hljs-function"><span class="hljs-keyword">function</sp
 			res.send(<span class="hljs-number">200</span>, result);
 		}
 	})
-}
-
-cancelJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Jobs, api {delete} /jobs/:id Cancel job, apiDescription Cancel a pending job, and apiParam {String} id ID of job to cancel</span></p></div></div><div class="code"><div class="wrapper">cancelJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	db.Job.getById(req.params.id, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(err);
