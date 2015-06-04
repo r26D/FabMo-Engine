@@ -92,7 +92,7 @@ define({ "api": [
   {
     "type": "delete",
     "url": "/apps/:id",
-    "title": "App",
+    "title": "Delete App",
     "description": "<p>Delete the specified app</p> ",
     "group": "Dashboard",
     "version": "0.0.0",
@@ -103,7 +103,7 @@ define({ "api": [
   {
     "type": "get",
     "url": "/apps",
-    "title": "List of apps",
+    "title": "List Apps",
     "group": "Dashboard",
     "description": "<p>Get detailed information about all installed apps</p> ",
     "success": {
@@ -276,7 +276,7 @@ define({ "api": [
   {
     "type": "get",
     "url": "/apps/:id/files",
-    "title": "Get app file listing",
+    "title": "List App Files",
     "group": "Dashboard",
     "parameter": {
       "fields": {
@@ -313,7 +313,7 @@ define({ "api": [
     "group": "Dashboard",
     "type": "post",
     "url": "/app",
-    "title": "Submit an app to be installed",
+    "title": "Install App",
     "description": "<p>Install an app to the user&#39;s app installation directory.  App will be decompressed and installed immediately.</p> ",
     "version": "0.0.0",
     "filename": "routes/dashboard.js",
