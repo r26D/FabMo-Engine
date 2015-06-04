@@ -1,0 +1,134 @@
+<!DOCTYPE html><html lang="en"><head><title>network</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="network"><meta name="groc-project-path" content="network.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">network.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">try</span>{<span class="hljs-keyword">var</span> wifiscanner = <span class="hljs-built_in">require</span>(<span class="hljs-string">'node-simplerwifiscanner'</span>);}<span class="hljs-keyword">catch</span>(e){}
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'network'</span>);
+<span class="hljs-keyword">var</span> async = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+
+<span class="hljs-keyword">var</span> PROFILES_FOLDER = <span class="hljs-string">"/etc/netctl/"</span>;
+<span class="hljs-keyword">var</span> WIFI_INTERFACE = <span class="hljs-string">"wlan0"</span>;
+
+exports.getAvailableWifiNetworks = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+    wifiscanner.scan(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,data)</span>{</span>
+        <span class="hljs-keyword">if</span> (err) {
+            callback(err)
+        } <span class="hljs-keyword">else</span> {
+            callback(<span class="hljs-literal">null</span>, data)
+        }
+    });
+}
+
+exports.getAvailableWifiNetwork = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ssid, callback)</span> {</span>
+    exports.getAvailableWifiNetworks(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, networks)</span> {</span>
+        <span class="hljs-keyword">if</span>(err) {
+            callback(err)
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">var</span> result = <span class="hljs-literal">null</span>;
+            networks.some(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(network)</span> {</span>
+                <span class="hljs-keyword">if</span>(network.ssid == ssid) {
+                    result = network;
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+                }
+            });
+            <span class="hljs-keyword">if</span>(result) {
+                callback(<span class="hljs-literal">null</span>, result);
+            } <span class="hljs-keyword">else</span> {
+                callback(<span class="hljs-string">'No such network.'</span>);
+            }
+        }
+    })
+}
+
+exports.createProfileForAvailableWirelessNetwork = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ssid, key, callback)</span> {</span>
+    exports.getAvailableWifiNetwork(ssid, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, network)</span> {</span>
+        <span class="hljs-keyword">if</span>(err) {
+            callback(err);
+        } <span class="hljs-keyword">else</span> {
+            wifi_info = {}
+            wifi_info.ssid = ssid
+            wifi_info.security = network.security
+            wifi_info.itr = WIFI_INTERFACE
+            wifi_info.key = key
+            exports.addWifiProfile(wifi_info, callback);
+        }
+    })
+}
+
+<span class="hljs-keyword">var</span> loadNetworkProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(filename, callback)</span> {</span>
+    fs.readFile(PROFILES_FOLDER+filename, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, data)</span> {</span>
+        <span class="hljs-keyword">if</span>(err){
+            callback(err);
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">var</span> profile = parseNetworkProfile(data)
+            callback(<span class="hljs-literal">null</span>, profile);
+        }
+    });
+}
+
+<span class="hljs-keyword">var</span> parseNetworkProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(profile_txt)</span>{</span>
+    <span class="hljs-keyword">var</span> profile = {};
+    <span class="hljs-keyword">var</span> lines = profile_txt.toString().split(<span class="hljs-string">'\n'</span>);
+    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> index <span class="hljs-keyword">in</span> lines){
+        <span class="hljs-keyword">var</span> arg = lines[index].trim().split(<span class="hljs-string">'='</span>);
+        <span class="hljs-keyword">if</span>(arg[<span class="hljs-number">0</span>])
+            profile[arg[<span class="hljs-number">0</span>]]=arg[<span class="hljs-number">1</span>];
+    }
+    <span class="hljs-keyword">return</span> profile;
+}
+
+exports.getWifiProfiles = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+    fs.readdir(PROFILES_FOLDER,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,files)</span>{</span>
+        <span class="hljs-keyword">if</span>(err){
+            callback(err);
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">var</span> wifi_profiles = files.filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(filename)</span> {</span>
+                <span class="hljs-keyword">var</span> is_profile = filename.indexOf(WIFI_INTERFACE+<span class="hljs-string">"-"</span>)===<span class="hljs-number">0</span>
+                <span class="hljs-keyword">return</span> is_profile
+            });
+            async.map(wifi_profiles, loadNetworkProfile, callback);
+        }
+    });
+}
+
+exports.getWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ssid, callback)</span> {</span>
+    loadNetworkProfile(WIFI_INTERFACE+<span class="hljs-string">'-'</span>+ssid, callback);
+}
+
+exports.formatWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(wifi_info)</span>{</span>
+    <span class="hljs-keyword">if</span>(!wifi_info)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+    <span class="hljs-keyword">if</span>(wifi_info.security !== <span class="hljs-string">"none"</span> &amp;&amp; wifi_info.security &amp;&amp; <span class="hljs-string">"wep"</span> &amp;&amp; wifi_info.security !== <span class="hljs-string">"wpa"</span> )
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+    <span class="hljs-keyword">if</span>(!wifi_info.ssid)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+
+    <span class="hljs-keyword">var</span> profile_string=<span class="hljs-string">""</span>;
+    profile_string+=    <span class="hljs-string">"Description='FabMo Wireless Manager Profile "</span> + wifi_info.ssid + <span class="hljs-string">"'\n"</span>;
+    profile_string+=    <span class="hljs-string">"Interface="</span>+WIFI_INTERFACE+<span class="hljs-string">'\n'</span>;
+    profile_string+=    <span class="hljs-string">"Connection=wireless\n"</span>;
+    profile_string+=    <span class="hljs-string">"Security="</span>+wifi_info.security+<span class="hljs-string">'\n'</span>;
+    profile_string+=    <span class="hljs-string">"ESSID="</span>+wifi_info.ssid+<span class="hljs-string">'\n'</span>;
+    profile_string+=    <span class="hljs-string">"IP=dhcp\n"</span>;
+    <span class="hljs-keyword">if</span>(wifi_info.security!==<span class="hljs-string">"none"</span> &amp;&amp; wifi_info.key === <span class="hljs-literal">undefined</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
+    <span class="hljs-keyword">else</span>
+        profile_string+=<span class="hljs-string">"Key="</span>+wifi_info.key+<span class="hljs-string">'\n'</span>;
+
+    <span class="hljs-keyword">return</span> profile_string;
+}
+
+exports.addWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(wifi_info, callback)</span> {</span>
+    <span class="hljs-keyword">var</span> txt = exports.formatWifiProfile(wifi_info);
+    <span class="hljs-keyword">if</span>(txt) {
+        fs.writeFile(PROFILES_FOLDER + WIFI_INTERFACE + <span class="hljs-string">'-'</span> + wifi_info.ssid, txt, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+            callback(err);
+        });
+    } <span class="hljs-keyword">else</span> {
+        err = <span class="hljs-string">"Could not convert "</span> + <span class="hljs-built_in">JSON</span>.stringify(wifi_info) + <span class="hljs-string">" into a valid wifi profile"</span>;
+        callback(err);
+    }
+}
+
+exports.removeWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ssid, callback)</span> {</span>
+    fs.unlink(PROFILES_FOLDER+WIFI_INTERFACE+<span class="hljs-string">'-'</span>+ssid, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
+        callback(err);
+    });
+}</div></div></div></div></body></html>

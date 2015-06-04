@@ -5,15 +5,15 @@ prm = fs.readFileSync(<span class="hljs-string">'../data/shopbotw.prm'</span>,<s
 cmd = fs.readFileSync(<span class="hljs-string">'../data/shopbotw.cmd'</span>,<span class="hljs-string">'utf8'</span>);
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">scrubName</span><span class="hljs-params">(name)</span> {</span>
-	name = name.replace(<span class="hljs-regexp">/\[\&amp;([A-Za-z0-9#])\]/</span>, <span class="hljs-string">'$1'</span>) <span class="hljs-comment">// Normalize [&amp;H]otkeys</span>
+	name = name.replace(<span class="hljs-regexp">/\[\&amp;([A-Za-z0-9#])\]/</span>, <span class="hljs-string">'$1'</span>); <span class="hljs-comment">// Normalize [&amp;H]otkeys</span>
 	name = name.replace(<span class="hljs-regexp">/\s*\*\s*/</span>, <span class="hljs-string">''</span>);              <span class="hljs-comment">// Remove astrixes</span>
-	<span class="hljs-keyword">return</span> name
+	<span class="hljs-keyword">return</span> name;
 }
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseDefault</span><span class="hljs-params">(dflt)</span> {</span>
 	parts = dflt.split(<span class="hljs-regexp">/[-=](?![0-9])/</span>);
-	<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>(parts[<span class="hljs-number">0</span>].trim(), parts[<span class="hljs-number">1</span>].trim())
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Deal with commands </p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> commands = {}
+	<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>(parts[<span class="hljs-number">0</span>].trim(), parts[<span class="hljs-number">1</span>].trim());
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Deal with commands </p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> commands = {};
 
 <span class="hljs-keyword">var</span> cmd_done = <span class="hljs-literal">false</span>;
 row_count = <span class="hljs-number">0</span>;
@@ -24,19 +24,19 @@ csv().from.string(cmd).on(<span class="hljs-string">'record'</span>, <span class
 	}
 	row_count += <span class="hljs-number">1</span>;
 
-	cmd = record[<span class="hljs-number">0</span>]
-	fullname = record[<span class="hljs-number">1</span>]
-	order = record[<span class="hljs-number">2</span>]
-	nparam = record[<span class="hljs-number">3</span>]
-	line = record[<span class="hljs-number">4</span>]
-	type = record[<span class="hljs-number">5</span>]
-	disptype = record[<span class="hljs-number">6</span>]
-	dispset = record[<span class="hljs-number">7</span>]
-	lastcur = record[<span class="hljs-number">8</span>]
+	cmd = record[<span class="hljs-number">0</span>];
+	fullname = record[<span class="hljs-number">1</span>];
+	order = record[<span class="hljs-number">2</span>];
+	nparam = record[<span class="hljs-number">3</span>];
+	line = record[<span class="hljs-number">4</span>];
+	type = record[<span class="hljs-number">5</span>];
+	disptype = record[<span class="hljs-number">6</span>];
+	dispset = record[<span class="hljs-number">7</span>];
+	lastcur = record[<span class="hljs-number">8</span>];
 
-	command = {}
-	command.cmd = cmd
-	command.name = scrubName(fullname)
+	command = {};
+	command.cmd = cmd;
+	command.name = scrubName(fullname);
 
 	<span class="hljs-keyword">if</span>(command.name != <span class="hljs-string">"&lt;seperator&gt;"</span> &amp;&amp; cmd != <span class="hljs-string">'H5'</span>) {
 		commands[cmd] = command;
@@ -47,7 +47,7 @@ csv().from.string(cmd).on(<span class="hljs-string">'record'</span>, <span class
 	<span class="hljs-keyword">var</span> prm_done = <span class="hljs-literal">false</span>;
 	<span class="hljs-keyword">var</span> params = {};
 	<span class="hljs-keyword">var</span> current_cmd = <span class="hljs-literal">null</span>;
-	<span class="hljs-keyword">var</span> current_param = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>();
+	<span class="hljs-keyword">var</span> current_param = {};
 
 	csv().from.string(prm).on(<span class="hljs-string">'record'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(record, idx)</span> {</span>
 		<span class="hljs-keyword">if</span>(row_count &lt; <span class="hljs-number">2</span>) {
@@ -56,26 +56,26 @@ csv().from.string(cmd).on(<span class="hljs-string">'record'</span>, <span class
 		}
 		row_count += <span class="hljs-number">1</span>;
 
-		<span class="hljs-keyword">if</span>(record[<span class="hljs-number">0</span>] != <span class="hljs-string">''</span>) {
-			<span class="hljs-keyword">if</span>(current_cmd != <span class="hljs-literal">null</span>) {
+		<span class="hljs-keyword">if</span>(record[<span class="hljs-number">0</span>] !== <span class="hljs-string">''</span>){
+			<span class="hljs-keyword">if</span>(current_cmd !== <span class="hljs-literal">null</span>) {
 				console.log(current_cmd);
 				console.log(param_list);
 				commands[current_cmd].params = param_list;
 			}
 			current_cmd = record[<span class="hljs-number">1</span>];
 			nparams = <span class="hljs-built_in">parseInt</span>(record[<span class="hljs-number">0</span>]);
-			param_list = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>();
+			param_list = [];
 		}
 		current_param.type = record[<span class="hljs-number">7</span>];
 		<span class="hljs-keyword">switch</span>(current_param.type) {
 			<span class="hljs-keyword">case</span> <span class="hljs-string">'ops'</span>:
 			<span class="hljs-keyword">case</span> <span class="hljs-string">'opt'</span>:
 			<span class="hljs-keyword">case</span> <span class="hljs-string">'ck'</span>:
-				<span class="hljs-keyword">if</span>(record[<span class="hljs-number">6</span>] == <span class="hljs-string">''</span>) {
+				<span class="hljs-keyword">if</span>(record[<span class="hljs-number">6</span>] === <span class="hljs-string">''</span>) {
 					df = parseDefault(record[<span class="hljs-number">10</span>]);
-					opt = {}
-					opt.value = df[<span class="hljs-number">0</span>]
-					opt.desc = df[<span class="hljs-number">1</span>]
+					opt = {};
+					opt.value = df[<span class="hljs-number">0</span>];
+					opt.desc = df[<span class="hljs-number">1</span>];
 					current_param.opts.push({<span class="hljs-string">'value'</span>:df[<span class="hljs-number">0</span>], <span class="hljs-string">'desc'</span>:df[<span class="hljs-number">1</span>]});
 				} <span class="hljs-keyword">else</span> {
 					current_param = {};

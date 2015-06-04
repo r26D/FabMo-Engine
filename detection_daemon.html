@@ -11,7 +11,7 @@
 The detection daemon is what we as a FabMo device run so that we can be discovered by the FabMo linker/dashboard</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> start = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(port)</span> {</span>
 	<span class="hljs-keyword">var</span> socket = dgram.createSocket(<span class="hljs-string">'udp4'</span>);
 	<span class="hljs-keyword">var</span> that = <span class="hljs-keyword">this</span>;
-	<span class="hljs-keyword">var</span> port = port || default_port;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Listen on the specified port</p></div></div><div class="code"><div class="wrapper">	socket.bind(port);
+	port = port || default_port;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Listen on the specified port</p></div></div><div class="code"><div class="wrapper">	socket.bind(port);
 
 	socket.on(<span class="hljs-string">"message"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">( data, rinfo )</span> {</span>
 		<span class="hljs-keyword">if</span>(data.toString() == REQ) <span class="hljs-comment">// Respond properly to queries asking if we are a FabMo device</span>
@@ -37,20 +37,20 @@ The detection daemon is what we as a FabMo device run so that we can be discover
 					}
 				});
 			},os.networkInterfaces());
-			console.log(<span class="hljs-built_in">JSON</span>.stringify(result))
+			log.info(<span class="hljs-built_in">JSON</span>.stringify(result));
 			socket.send(<span class="hljs-keyword">new</span> Buffer(<span class="hljs-built_in">JSON</span>.stringify(result)), <span class="hljs-number">0</span>, <span class="hljs-built_in">JSON</span>.stringify(result).length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
 				<span class="hljs-keyword">if</span> (err) log.error(err);
 						<span class="hljs-comment">//console.log("ask info");</span>
 				});
-			that.emit(<span class="hljs-string">'client_scan'</span>,rinfo.address);
+			<span class="hljs-comment">//that.emit('client_scan',rinfo.address);</span>
 		}
 		<span class="hljs-keyword">else</span>
 		{
-			log.info(<span class="hljs-string">"[detection_tool.js] received from "</span>+rinfo.address+<span class="hljs-string">" : unknown message : '"</span>+ data.toString() +<span class="hljs-string">"'"</span>);
+			log.info(<span class="hljs-string">"received from "</span>+rinfo.address+<span class="hljs-string">" : unknown message : '"</span>+ data.toString() +<span class="hljs-string">"'"</span>);
 		}
 	});
 
-	<span class="hljs-keyword">this</span>.on(<span class="hljs-string">'newListener'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(listener)</span> {</span>});
+	<span class="hljs-comment">//this.on('newListener', function(listener) {});</span>
 };
 
-util.inherits(start , EventEmitter);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>detection_daemon.start kicks off the listening process</p></div></div><div class="code"><div class="wrapper">module.exports = start;</div></div></div></div></body></html>
+<span class="hljs-comment">//util.inherits(start , EventEmitter);</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>detection_daemon.start kicks off the listening process</p></div></div><div class="code"><div class="wrapper">module.exports = start;</div></div></div></div></body></html>

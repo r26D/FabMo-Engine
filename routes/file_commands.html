@@ -2,21 +2,37 @@
 <span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../machine'</span>).machine;
 <span class="hljs-keyword">var</span> db = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../db'</span>);
 <span class="hljs-keyword">var</span> File=db.File;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>These are the only file extensions that are allowed for upload.
-File extension filtering is not case sensitive</p></div></div><div class="code"><div class="wrapper">ALLOWED_EXTENSIONS = [<span class="hljs-string">'.nc'</span>,<span class="hljs-string">'.g'</span>,<span class="hljs-string">'.sbp'</span>,<span class="hljs-string">'.gc'</span>,<span class="hljs-string">'.gcode'</span>];</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for &#39;quit&#39; which stops the machine&#39;s motion and aborts the file</p></div></div><div class="code"><div class="wrapper">quit = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
-    machine.quit();
-    res.json(<span class="hljs-number">200</span>,{<span class="hljs-string">'success'</span>:<span class="hljs-literal">true</span>});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for &#39;pause&#39; which stops the machine&#39;s motion, but can generally be resumed</p></div></div><div class="code"><div class="wrapper">pause = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
-    machine.pause();
-    res.json(<span class="hljs-number">200</span>,{<span class="hljs-string">'success'</span>:<span class="hljs-literal">true</span>});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Resume from pause</p></div></div><div class="code"><div class="wrapper">resume = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
-    machine.resume();
-    res.json(<span class="hljs-number">200</span>,{<span class="hljs-string">'success'</span>:<span class="hljs-literal">true</span>});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for running a file (given by file id)</p></div></div><div class="code"><div class="wrapper">run = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+File extension filtering is not case sensitive</p></div></div><div class="code"><div class="wrapper">ALLOWED_EXTENSIONS = [<span class="hljs-string">'.nc'</span>,<span class="hljs-string">'.g'</span>,<span class="hljs-string">'.sbp'</span>,<span class="hljs-string">'.gc'</span>,<span class="hljs-string">'.gcode'</span>];</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {get} /file_commands/quit  stops the machine&#39;s motion and aborts the file, apiGroup Files Commands, and apiSuccess Object} {status:&quot;success&quot;,data : null</span></p></div></div><div class="code"><div class="wrapper">quit = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+  machine.quit();
+  <span class="hljs-keyword">var</span> answer = {
+		status:<span class="hljs-string">"success"</span>,
+		data : <span class="hljs-literal">null</span>
+	};
+	res.json(answer);
+};</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {get} /file_commands/pause   stops the machine&#39;s motion, but can generally be resumed, apiGroup Files Commands, and apiSuccess Object} {status:&quot;success&quot;,data : null</span></p></div></div><div class="code"><div class="wrapper">pause = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+  machine.pause();
+  <span class="hljs-keyword">var</span> answer = {
+		status:<span class="hljs-string">"success"</span>,
+		data : <span class="hljs-literal">null</span>
+	};
+	res.json(answer);
+};</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {get} /file_commands/resume   Resume from pause, apiGroup Files Commands, and apiSuccess Object} {status:&quot;success&quot;,data : null</span></p></div></div><div class="code"><div class="wrapper">resume = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+  machine.resume();
+  <span class="hljs-keyword">var</span> answer = {
+		status:<span class="hljs-string">"success"</span>,
+		data : <span class="hljs-literal">null</span>
+	};
+	res.json(answer);
+};</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {get} /file_commands/run/:id  run a file (by its file id), apiGroup Files Commands, and apiSuccess Object} {status:&quot;success&quot;,data : null</span></p></div></div><div class="code"><div class="wrapper">run = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	File.get_by_id(req.params.id,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span>{</span>
 		<span class="hljs-keyword">if</span>(!file){res.send(<span class="hljs-number">404</span>);<span class="hljs-keyword">return</span>;}
 		file.saverun();<span class="hljs-comment">//update last run and run count information</span>
 		machine.runFile(file.path);
-		res.send(<span class="hljs-number">302</span>);
+    <span class="hljs-keyword">var</span> answer = {
+			status:<span class="hljs-string">"success"</span>,
+			data : <span class="hljs-literal">null</span>
+		};
+		res.json(answer);
 	});
 };
 
@@ -25,4 +41,4 @@ module.exports = <span class="hljs-function"><span class="hljs-keyword">function
 	server.get(<span class="hljs-string">'/quit'</span>,quit); <span class="hljs-comment">//OK</span>
 	server.get(<span class="hljs-string">'/pause'</span>,pause); <span class="hljs-comment">//OK </span>
 	server.get(<span class="hljs-string">'/resume'</span>,resume); <span class="hljs-comment">//OK </span>
-}</div></div></div></div></body></html>
+};</div></div></div></div></body></html>

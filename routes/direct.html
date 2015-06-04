@@ -1,79 +1,96 @@
 <!DOCTYPE html><html lang="en"><head><title>routes/direct</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="routes/direct"><meta name="groc-project-path" content="routes/direct.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">routes/direct.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../machine'</span>).machine;
-<span class="hljs-keyword">var</span> default_feed_rate = <span class="hljs-number">300</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for move in a specified direction (keypad mode)</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">move_direction</span><span class="hljs-params">(direction)</span> {</span>
-	machine.jog(direction);
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for jog in a specified direction (keypad mode)</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">jog_direction</span><span class="hljs-params">(direction)</span> {</span>
-	machine.jog(direction);
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for immediate stop of a keypad move or jog</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">stop</span><span class="hljs-params">()</span> {</span>
-	machine.stopJog();
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for executing g-code</p></div></div><div class="code"><div class="wrapper">send_gcode = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+<span class="hljs-keyword">var</span> default_feed_rate = <span class="hljs-number">300</span>;</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {post} /direct/gcode Execute G-code string, apiGroup Direct, apiParam {String} cmd A single G-code block to execute, apiSuccess {String} status success, apiSuccess {Object} data null, apiError {String} status error, and apiError {Object} message Error message</span></p></div></div><div class="code"><div class="wrapper">sendGCode = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+	<span class="hljs-keyword">var</span> answer;
 	<span class="hljs-keyword">if</span> (machine.status.state === <span class="hljs-string">'idle'</span>)
 	{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If cmd is specified in the request parameters, execute it as g-code</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span> (req.params.cmd !== <span class="hljs-literal">undefined</span> )
 		{
 			machine.gcode(req.params.cmd);
-			res.json({<span class="hljs-string">'success'</span>: req.params.cmd})
+			answer = {
+				status:<span class="hljs-string">"success"</span>,
+				data : <span class="hljs-literal">null</span>
+			};
+			res.json(answer);
 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If not, check the request body.  If it is non-empty, execute it as g-code.</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (req.body) {
 			machine.gcode(req.body);
-			res.json({<span class="hljs-string">'success'</span>: req.params.cmd})
-
+			answer = {
+				status:<span class="hljs-string">"success"</span>,
+				data : <span class="hljs-literal">null</span>
+			};
+			res.json(answer);
 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Finally, if no cmd argument and an empty request body, return an error.</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">else</span> {
-			res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'No cmd argument'</span>});
+			answer = {
+				status:<span class="hljs-string">"fail"</span>,
+				data : {body : <span class="hljs-string">"no Gcode sent"</span>}
+			};
+			res.json(answer);
 		}
 	}
 	<span class="hljs-keyword">else</span> {
-		res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'A file is running'</span>});
+		answer = {
+			status:<span class="hljs-string">"fail"</span>,
+			data : {status : <span class="hljs-string">"the machine is not in idle state"</span>}
+		};
+		res.json(answer);
 	}
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handler for executing OpenSBP code </p></div></div><div class="code"><div class="wrapper">send_sbp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {post} /direct/sbp Execute OpenSBP code string, apiGroup Direct, apiParam {String} cmd A single line of OpenSBP code to execute, apiSuccess {String} status success, apiSuccess {Object} data null, apiError {String} status error, and apiError {Object} message Error message</span></p></div></div><div class="code"><div class="wrapper"> sendSBP = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	<span class="hljs-keyword">if</span> (machine.status.state === <span class="hljs-string">'idle'</span>)
 	{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If cmd is specified in the request parameters, execute it as OpenSBP.</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span> (req.params.cmd !== <span class="hljs-literal">undefined</span> )
 		{
 			machine.sbp(req.params.cmd);
-			res.json({<span class="hljs-string">'success'</span>: req.params.cmd})
+			answer = {
+				status:<span class="hljs-string">"success"</span>,
+				data : <span class="hljs-literal">null</span>
+			};
+			res.json(answer);
 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If not, check the request body.  If it is non-empty, execute it as OpenSBP.</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (req.body) {
 			machine.sbp(req.body);
-			res.json({<span class="hljs-string">'success'</span>: req.params.cmd})
+			answer = {
+				status:<span class="hljs-string">"success"</span>,
+				data : <span class="hljs-literal">null</span>
+			};
+			res.json(answer);
 
 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Finally, if no cmd argument and an empty request body, return an error.</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">else</span> {
-			res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'No cmd argument'</span>});
+			answer = {
+				status:<span class="hljs-string">"fail"</span>,
+				data : {body : <span class="hljs-string">"no SBP sent"</span>}
+			};
+			res.json(answer);
 		}
 	}
 	<span class="hljs-keyword">else</span> {
-		res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'A file is running'</span>});
+		answer = {
+			status:<span class="hljs-string">"fail"</span>,
+			data : {status : <span class="hljs-string">"the machine is not in idle state"</span>}
+		};
+		res.json(answer);
 	}
-};
-
-
-move = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {post} /direct/fixed_move Move a fixed distance, apiGroup Direct, apiParam {String} move One of the following direction strings (&quot;x&quot;, &quot;-x&quot; , &quot;y&quot; , &quot;-y&quot; , &quot;z&quot; , &quot;-z&quot; , etc.) or &quot;stop&quot; to stop moving. , apiParam {Number} step Increment to move in the specified direction, apiSuccess {String} status success, apiSuccess {Object} data null, apiError {String} status error, and apiError {Object} message Error message</span></p></div></div><div class="code"><div class="wrapper">fixed_move = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
 	<span class="hljs-keyword">if</span>(req.params.move ===<span class="hljs-string">"stop"</span>){
-		stop();
-		res.json({<span class="hljs-string">'success'</span>:<span class="hljs-string">'stop'</span>});
+		machine.stopJog();
+		answer = {
+			status:<span class="hljs-string">"success"</span>,
+			data : <span class="hljs-literal">null</span>
+		};
+		res.json(answer);
 	}
-	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (req.params.move !== <span class="hljs-literal">undefined</span> )
-	{
-		move_direction(req.params.move);
-		res.json({<span class="hljs-string">'success'</span>: <span class="hljs-string">'moving in '</span>+req.params.move+<span class="hljs-string">' direction'</span>});
+	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (req.params.move !== <span class="hljs-literal">undefined</span> &amp;&amp; req.params.step !== <span class="hljs-literal">undefined</span>) {
+		machine.fixed_move(req.params.move, req.params.step, req.params.speed);
+		answer = {
+			status:<span class="hljs-string">"success"</span>,
+			data : <span class="hljs-literal">null</span>
+		};
+		res.json(answer);
 	}
 	<span class="hljs-keyword">else</span> {
-		stop();
-		res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'Need at least one argument'</span>});
+		machine.stopJog();
+		answer = {
+			status:<span class="hljs-string">"fail"</span>,
+			data : {move : <span class="hljs-string">"require an argument"</span>}
+		};
+		res.json(answer);
 	}
-};
-
-jog = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
-	<span class="hljs-keyword">if</span>(req.params.move ===<span class="hljs-string">"stop"</span>){
-		stop();
-		res.json({<span class="hljs-string">'success'</span>:<span class="hljs-string">'stop'</span>});
-	}
-	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (req.params.move !== <span class="hljs-literal">undefined</span> ) {
-		jog_direction(req.params.move);
-		res.json({<span class="hljs-string">'success'</span>: <span class="hljs-string">'Moving in '</span>+req.params.move+<span class="hljs-string">' direction'</span>});
-	}
-	<span class="hljs-keyword">else</span> {
-		stop();
-		res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'Need at least one argument'</span>});
-	}
-};
-
-goto = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> api {post} /direct/goto Move to a fixed position, apiGroup Direct, apiParam {number} x X position, apiParam {number} y Y position, apiParam {number} z Z position, apiParam {number} a A position, apiParam {number} b B position, apiParam {number} c C position, apiParam {number} f Feedrate (in current system units), apiSuccess {String} status success, apiSuccess {Object} data null, apiError {String} status error, and apiError {Object} message Error message</span></p></div></div><div class="code"><div class="wrapper">goto = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
    	<span class="hljs-keyword">if</span> (machine.status.state === <span class="hljs-string">'idle'</span>)
 	{
 		<span class="hljs-keyword">if</span> (req.params.x !== <span class="hljs-literal">undefined</span> || req.params.y !== <span class="hljs-literal">undefined</span> || req.params.z !== <span class="hljs-literal">undefined</span> || req.params.a !== <span class="hljs-literal">undefined</span> || req.params.b !== <span class="hljs-literal">undefined</span> || req.params.c !== <span class="hljs-literal">undefined</span>)
@@ -97,24 +114,37 @@ goto = <span class="hljs-function"><span class="hljs-keyword">function</span><sp
 				gcode_string +=<span class="hljs-string">' F'</span>+default_feed_rate;
 
 			machine.driver.gcode(gcode_string);
-    			res.json({<span class="hljs-string">'success'</span>: gcode_string})
+    	answer = {
+				status:<span class="hljs-string">"success"</span>,
+				data : <span class="hljs-literal">null</span>
+			};
+			res.json(answer);
 		}
 		<span class="hljs-keyword">else</span>
 		{
-			res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'Need at least one argument'</span>});
-		}
+			answer = {
+				status:<span class="hljs-string">"fail"</span>,
+				data : {posx : <span class="hljs-string">"require an argument"</span>}
+			};
+			res.json(answer);
+			}
 	}
 	<span class="hljs-keyword">else</span>
 	{
-		res.json({<span class="hljs-string">'error'</span>:<span class="hljs-string">'A file is running'</span>});
+		answer = {
+			status:<span class="hljs-string">"fail"</span>,
+			data : {status : <span class="hljs-string">"the machine is not in idle state"</span>}
+		};
+		res.json(answer);
 	}
 };
 
 
 module.exports = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(server)</span> {</span>
-	server.post(<span class="hljs-string">'/direct/sbp'</span>,send_sbp); <span class="hljs-comment">//OK</span>
-	server.post(<span class="hljs-string">'/direct/gcode'</span>,send_gcode); <span class="hljs-comment">//OK</span>
-	server.post(<span class="hljs-string">'/direct/move'</span>,move); <span class="hljs-comment">//TODO :improve it</span>
-	server.post(<span class="hljs-string">'/direct/jog'</span>,jog); <span class="hljs-comment">//TODO  :improve it</span>
+	server.post(<span class="hljs-string">'/direct/sbp'</span>,sendSBP); <span class="hljs-comment">//OK</span>
+	server.post(<span class="hljs-string">'/direct/gcode'</span>,sendGCode); <span class="hljs-comment">//OK</span>
+	server.post(<span class="hljs-string">'/direct/move'</span>,move); <span class="hljs-comment">//OK</span>
+	server.post(<span class="hljs-string">'/direct/jog'</span>,jog); <span class="hljs-comment">//OK</span>
+	server.post(<span class="hljs-string">'/direct/fixed_move'</span>,fixed_move);
 	server.post(<span class="hljs-string">'/direct/goto'</span>,goto); <span class="hljs-comment">//OK</span>
-}</div></div></div></div></body></html>
+};</div></div></div></div></body></html>

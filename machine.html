@@ -14,6 +14,7 @@
 <span class="hljs-keyword">var</span> ManualRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./runtime/manual'</span>).ManualRuntime;
 <span class="hljs-keyword">var</span> PassthroughRuntime = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./runtime/passthrough'</span>).PassthroughRuntime;
 
+
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">connect</span><span class="hljs-params">(callback)</span> {</span>
 
 	<span class="hljs-keyword">switch</span>(PLATFORM) {
@@ -44,7 +45,6 @@
 		callback(<span class="hljs-literal">null</span>, exports.machine);
 	} <span class="hljs-keyword">else</span> {
 		<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">"function"</span> &amp;&amp; callback(<span class="hljs-string">'No supported serial path for platform "'</span> + PLATFORM + <span class="hljs-string">'"'</span>);
-		<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
 	}
 }
 
@@ -53,7 +53,16 @@
 		posx : <span class="hljs-number">0.0</span>,
 		posy : <span class="hljs-number">0.0</span>,
 		posz : <span class="hljs-number">0.0</span>, 
-		job : <span class="hljs-literal">null</span>
+		in1 : <span class="hljs-number">1</span>,
+		in2 : <span class="hljs-number">1</span>,
+		in3 : <span class="hljs-number">1</span>,
+		in4 : <span class="hljs-number">1</span>,
+		in5 : <span class="hljs-number">1</span>,
+		in6 : <span class="hljs-number">1</span>,
+		in7 : <span class="hljs-number">1</span>,
+		in8 : <span class="hljs-number">1</span>,
+		job : <span class="hljs-literal">null</span>,
+		info : <span class="hljs-literal">null</span>
 	};
 
 	<span class="hljs-keyword">this</span>.driver = <span class="hljs-keyword">new</span> g2.G2();
@@ -62,7 +71,7 @@
 	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Configure logging for errors with serial driver</p></div></div><div class="code"><div class="wrapper">	    <span class="hljs-keyword">this</span>.driver.on(<span class="hljs-string">"error"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>
 		    log.error(data);
 	    });</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set the initial state based on whether or not we got a valid connection to G2</p></div></div><div class="code"><div class="wrapper">		    <span class="hljs-keyword">if</span>(err){
-		    	log.debug(<span class="hljs-string">"Setting the disconnected state"</span>)
+		    	log.debug(<span class="hljs-string">"Setting the disconnected state"</span>);
 			    <span class="hljs-comment">//this.status.state = "disconnected";</span>
 		    } <span class="hljs-keyword">else</span> {
 			    <span class="hljs-keyword">this</span>.status.state = <span class="hljs-string">"idle"</span>;
@@ -85,11 +94,11 @@ util.inherits(Machine, events.EventEmitter);
 
 Machine.prototype.isConnected = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.status.state !== <span class="hljs-string">'disconnected'</span>;
-}
+};
 
 Machine.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
 	<span class="hljs-keyword">this</span>.driver.disconnect(callback);
-}
+};
 
 Machine.prototype.toString = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 	<span class="hljs-keyword">return</span> <span class="hljs-string">"[Machine Model on '"</span> + <span class="hljs-keyword">this</span>.driver.path + <span class="hljs-string">"']"</span>;
@@ -102,22 +111,28 @@ Machine.prototype.gcode = <span class="hljs-function"><span class="hljs-keyword"
 
 Machine.prototype.sbp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(string)</span> {</span>
 	<span class="hljs-keyword">this</span>.setRuntime(<span class="hljs-keyword">this</span>.sbp_runtime);
-	<span class="hljs-keyword">this</span>.current_runtime.runString(string);
+	<span class="hljs-keyword">this</span>.status.job = <span class="hljs-keyword">new</span> Job({
+		name : <span class="hljs-string">'OpenSBP String'</span>,
+		description : <span class="hljs-string">'Direct OpenSBP String Command'</span>
+	});
+	<span class="hljs-keyword">this</span>.status.job.start(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+		<span class="hljs-keyword">this</span>.current_runtime.runString(string);
+	}.bind(<span class="hljs-keyword">this</span>));
 };
 
 Machine.prototype.runJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(job)</span> {</span>
 	<span class="hljs-keyword">this</span>.status.job = job;
-	db.File.get_by_id(job.file_id,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span>{</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>TODO deal with no file found</p></div></div><div class="code"><div class="wrapper">		log.info(<span class="hljs-string">"Running file "</span> + file.path);
+	db.File.getByID(job.file_id,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span>{</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>TODO deal with no file found</p></div></div><div class="code"><div class="wrapper">		log.info(<span class="hljs-string">"Running file "</span> + file.path);
 		<span class="hljs-keyword">this</span>.runFile(file.path);
 	}.bind(<span class="hljs-keyword">this</span>));	
-}
+};
 
 Machine.prototype.runNextJob = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.isConnected()) {
 
 	log.info(<span class="hljs-string">"Running next job"</span>);
 		db.Job.dequeue(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
-			log.info(result)
+			log.info(result);
 			<span class="hljs-keyword">if</span>(err) {
 				log.error(err);
 				callback(err, <span class="hljs-literal">null</span>);
@@ -129,9 +144,9 @@ Machine.prototype.runNextJob = <span class="hljs-function"><span class="hljs-key
 		}.bind(<span class="hljs-keyword">this</span>));
 	}
 	<span class="hljs-keyword">else</span> {
-		callback(<span class="hljs-string">"Cannot run next job: Driver is disconnected."</span>)
+		callback(<span class="hljs-string">"Cannot run next job: Driver is disconnected."</span>);
 	}
-}
+};
 
 Machine.prototype.runFile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(filename)</span> {</span>
 	fs.readFile(filename, <span class="hljs-string">'utf8'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err,data)</span> {</span>
@@ -144,7 +159,7 @@ Machine.prototype.runFile = <span class="hljs-function"><span class="hljs-keywor
 			ext = path.extname(filename).toLowerCase();
 			log.debug(filename);
 			log.debug(parts);
-			<span class="hljs-keyword">this</span>.status.current_file = parts[parts.length-<span class="hljs-number">1</span>];
+			<span class="hljs-comment">//this.status.current_file = parts[parts.length-1];</span>
 
 			<span class="hljs-keyword">if</span>(ext == <span class="hljs-string">'.sbp'</span>) {
 				<span class="hljs-keyword">this</span>.setRuntime(<span class="hljs-keyword">this</span>.sbp_runtime);
@@ -168,6 +183,17 @@ Machine.prototype.jog = <span class="hljs-function"><span class="hljs-keyword">f
 
 };
 
+Machine.prototype.fixed_move = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(direction,step,speed,callback)</span> {</span>
+	<span class="hljs-keyword">if</span>((<span class="hljs-keyword">this</span>.status.state === <span class="hljs-string">"idle"</span>) || (<span class="hljs-keyword">this</span>.status.state === <span class="hljs-string">"manual"</span>)) {
+		<span class="hljs-keyword">this</span>.setRuntime(<span class="hljs-keyword">this</span>.manual_runtime);
+		<span class="hljs-keyword">this</span>.current_runtime.fixed_move(direction,step,speed);
+
+	} <span class="hljs-keyword">else</span> {
+		<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">"function"</span> &amp;&amp; callback(<span class="hljs-literal">true</span>, <span class="hljs-string">"Cannot move by step when in '"</span> + <span class="hljs-keyword">this</span>.status.state + <span class="hljs-string">"' state."</span>);
+	}
+
+};
+
 Machine.prototype.setRuntime = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(runtime)</span> {</span>
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.current_runtime != runtime) {
 		<span class="hljs-keyword">try</span> {
@@ -183,15 +209,21 @@ Machine.prototype.setRuntime = <span class="hljs-function"><span class="hljs-key
 	}
 };
 
-Machine.prototype.setState = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(source, newstate)</span> {</span>
+Machine.prototype.setState = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(source, newstate, stateinfo)</span> {</span>
 	<span class="hljs-keyword">if</span> ((source === <span class="hljs-keyword">this</span>) || (source === <span class="hljs-keyword">this</span>.current_runtime)) {
 		<span class="hljs-keyword">this</span>.status.state = newstate;
-		log.info(<span class="hljs-string">"Got a machine state change: "</span> + newstate)		
+		<span class="hljs-keyword">if</span>(stateinfo) {
+			<span class="hljs-keyword">this</span>.status.info = stateinfo
+		} <span class="hljs-keyword">else</span> {
+			<span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>.status.info
+		}
+		log.info(<span class="hljs-string">"Got a machine state change: "</span> + <span class="hljs-keyword">this</span>.status.state)	
+		console.log(<span class="hljs-built_in">JSON</span>.stringify(<span class="hljs-keyword">this</span>.status))	
 	} <span class="hljs-keyword">else</span> {		
 		log.warn(<span class="hljs-string">"Got a state change from a runtime that's not the current one. ("</span> + source + <span class="hljs-string">")"</span>)
 	}
+	<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'status'</span>,<span class="hljs-keyword">this</span>.status);
 };
-
 
 Machine.prototype.stopJog = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 	<span class="hljs-keyword">this</span>.current_runtime.stopJog();
@@ -199,13 +231,15 @@ Machine.prototype.stopJog = <span class="hljs-function"><span class="hljs-keywor
 
 Machine.prototype.pause = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.status.state === <span class="hljs-string">"running"</span>) {
-		<span class="hljs-keyword">this</span>.driver.feedHold();
-		<span class="hljs-keyword">this</span>.setState(<span class="hljs-keyword">this</span>.current_runtime, <span class="hljs-string">"paused"</span>);
+		<span class="hljs-keyword">this</span>.current_runtime.pause();
 	}
 };
 
 Machine.prototype.quit = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-	<span class="hljs-keyword">this</span>.driver.quit();
+	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.status.job) {
+		<span class="hljs-keyword">this</span>.status.job.pending_cancel = <span class="hljs-literal">true</span>;
+	}
+	<span class="hljs-keyword">this</span>.current_runtime.quit();
 };
 
 Machine.prototype.resume = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
@@ -222,13 +256,11 @@ Machine.prototype.enable_passthrough = <span class="hljs-function"><span class="
 	<span class="hljs-keyword">else</span>{
 		<span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">"function"</span> &amp;&amp; callback(<span class="hljs-literal">true</span>, <span class="hljs-string">"Cannot jog when in '"</span> + <span class="hljs-keyword">this</span>.status.state + <span class="hljs-string">"' state."</span>);
 	}
-
 };
 
 Machine.prototype.disable_passthrough = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(string)</span> {</span>
 	log.info(<span class="hljs-string">"disable passthrough"</span>);
 	<span class="hljs-keyword">this</span>.setRuntime(<span class="hljs-keyword">this</span>.gcode_runtime);
 };
-
 
 exports.connect = connect;</div></div></div></div></body></html>

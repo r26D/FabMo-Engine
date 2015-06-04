@@ -2,139 +2,211 @@
 <span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
 <span class="hljs-keyword">var</span> os = <span class="hljs-built_in">require</span>(<span class="hljs-string">'os'</span>);
 <span class="hljs-keyword">var</span> ncp = <span class="hljs-built_in">require</span>(<span class="hljs-string">'ncp'</span>).ncp;
-<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs-extra'</span>);
 <span class="hljs-keyword">var</span> async = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
 <span class="hljs-keyword">var</span> uuid = <span class="hljs-built_in">require</span>(<span class="hljs-string">'node-uuid'</span>);
-<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'app_manager'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Maximum depth of a deep copy operation</p></div></div><div class="code"><div class="wrapper">ncp.limit = <span class="hljs-number">16</span>;
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'app_manager'</span>);
+<span class="hljs-keyword">var</span> util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../util'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Maximum depth of a deep copy operation</p></div></div><div class="code"><div class="wrapper">ncp.limit = <span class="hljs-number">16</span>;
 
 <span class="hljs-keyword">var</span> AppManager = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(options)</span> {</span>
 	<span class="hljs-keyword">this</span>.app_directory = options.app_directory;
-	<span class="hljs-keyword">this</span>.temp_directory = options.temp_directory;
+	<span class="hljs-keyword">this</span>.approot_directory = options.approot_directory;
 	<span class="hljs-keyword">this</span>.system_app_directory = path.join(__dirname, <span class="hljs-string">'apps'</span>);
 	<span class="hljs-keyword">this</span>.apps_index = {};
-	<span class="hljs-keyword">this</span>.apps_list = {};
-}
+	<span class="hljs-keyword">this</span>.apps_list = [];
+};
+
+AppManager.prototype.readAppPackageInfo = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(app_info, callback)</span> {</span>
+	<span class="hljs-keyword">var</span> pkg_info_path = path.join(app_info.app_path, <span class="hljs-string">'package.json'</span>);
+	<span class="hljs-keyword">var</span> pathname = path.basename(app_info.app_archive_path);
+	fs.readFile(pkg_info_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
+		<span class="hljs-keyword">try</span> {
+			<span class="hljs-keyword">var</span> package_info = <span class="hljs-built_in">JSON</span>.parse(data);
+			app_info.name = package_info.name;
+			app_info.icon_path = app_info.app_path + package_info.icon;
+			app_info.icon_background_color = package_info.icon_color || <span class="hljs-string">'blue'</span>;
+			app_info.icon_display = package_info.icon_display;
+			app_info.app_url = path.join(<span class="hljs-string">'approot'</span>, pathname, package_info.main);
+			app_info.icon_url = path.join(<span class="hljs-string">'approot'</span>, pathname, package_info.icon);
+			app_info.id = package_info.id || uuid.v1();
+			app_info.description = package_info.description || <span class="hljs-string">"No description"</span>;
+			callback(<span class="hljs-literal">null</span>, app_info);
+		} <span class="hljs-keyword">catch</span>(e) {
+			callback(e);
+		}
+	}.bind(<span class="hljs-keyword">this</span>));
+};
 
 AppManager.prototype.getAppRoot = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(id)</span> {</span>
 	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.apps_index[id].app_path;
-}
+};
 
 AppManager.prototype.getAppIndex = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.apps_index;
-}
+};
 
 AppManager.prototype.getAppList = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
 	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.apps_list;
-}
+};
 
 AppManager.prototype._setApps = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(list_of_apps)</span> {</span>
-	apps_index = {}
+	<span class="hljs-keyword">var</span> apps_index = {};
 	<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> list_of_apps) {
 		apps_index[list_of_apps[i].id] = list_of_apps[i];
 	}
 	<span class="hljs-keyword">this</span>.apps_index = apps_index;
 	<span class="hljs-keyword">this</span>.apps_list = list_of_apps;
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Load an app and issue a callback when loaded.
-In the case of a compressed app, this decompresses the app into the temporary directory.
-In the case of a raw app, this copies the app to the temporary directory.</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.loadApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(path, callback)</span>{</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Check to see if the path exists</p></div></div><div class="code"><div class="wrapper">	fs.stat(path,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,stat)</span>{</span>
-		<span class="hljs-keyword">if</span>(err) {
-			<span class="hljs-keyword">return</span> callback(err);
+};
+
+AppManager.prototype._addApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(app)</span> {</span>
+	<span class="hljs-keyword">this</span>.apps_list.push(app);
+	<span class="hljs-keyword">this</span>.apps_index[app.id] = app;
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Load an app and issue a callback when loaded.
+In the case of a compressed app, this decompresses the app into the approot directory.
+In the case of a raw app, this copies the app to the approot directory.</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.loadApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(pathname, callback)</span>{</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Check to see if the path exists</p></div></div><div class="code"><div class="wrapper">	fs.stat(pathname,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,stat)</span>{</span>
+		<span class="hljs-keyword">if</span>(err) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Error if we couldn&#39;t stat</p></div></div><div class="code"><div class="wrapper">			<span class="hljs-keyword">return</span> callback(err);
 		}
-		<span class="hljs-keyword">if</span>(stat.isDirectory()) {
-			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.copyApp(path, <span class="hljs-keyword">this</span>.temp_directory, callback);
+		<span class="hljs-keyword">if</span>(stat.isDirectory()) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Copy if it&#39;s a directory</p></div></div><div class="code"><div class="wrapper">			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.copyApp(pathname, <span class="hljs-keyword">this</span>.approot_directory, {}, callback);
 		} <span class="hljs-keyword">else</span> {
-			<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.decompressApp(path, <span class="hljs-keyword">this</span>.temp_directory, callback);
+			<span class="hljs-keyword">var</span> ext = path.extname(pathname).toLowerCase();
+			<span class="hljs-keyword">if</span>(ext === <span class="hljs-string">'.fma'</span> || ext === <span class="hljs-string">'.zip'</span>) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Decompress if it&#39;s a compressed app file</p></div></div><div class="code"><div class="wrapper">				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.decompressApp(pathname, <span class="hljs-keyword">this</span>.approot_directory, {}, callback);
+			} <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Error if it&#39;s a file, but the wrong kind</p></div></div><div class="code"><div class="wrapper">				<span class="hljs-keyword">return</span> callback(pathname + <span class="hljs-string">' is not an app.'</span>);
+			}
 		}
 	}.bind(<span class="hljs-keyword">this</span>));
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Copies an app from the src directory to the dest temp directory.
-Callback with app info.</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.copyApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(src, dest, callback)</span> {</span>
+};
+
+AppManager.prototype.deleteApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(id, callback)</span> {</span>
+	app = <span class="hljs-keyword">this</span>.apps_index[id];
+	<span class="hljs-keyword">var</span> app_id = id;
+	<span class="hljs-keyword">if</span>(app) {
+		<span class="hljs-keyword">var</span> app_path = app.app_path;
+		<span class="hljs-keyword">var</span> archive_path = app.app_archive_path;
+		fs.remove(app_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+			<span class="hljs-keyword">if</span>(err) {
+				callback(err);
+			} <span class="hljs-keyword">else</span> {
+				fs.remove(archive_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+					<span class="hljs-keyword">if</span>(err) {
+						callback(err);
+					} <span class="hljs-keyword">else</span> {
+						app_info = <span class="hljs-keyword">this</span>.apps_index[app_id];
+						<span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>.apps_index[app_id];
+						<span class="hljs-keyword">var</span> index = <span class="hljs-keyword">this</span>.apps_list.indexOf(app_info);
+						<span class="hljs-keyword">if</span> (index &gt; -<span class="hljs-number">1</span>) {
+							<span class="hljs-keyword">this</span>.apps_list.splice(index, <span class="hljs-number">1</span>);
+						} <span class="hljs-keyword">else</span> {
+							log.warn(<span class="hljs-string">"Inconsistency in the app index observed when removing app "</span> + app_id);
+						}
+						callback(<span class="hljs-literal">null</span>, app_info);
+					}
+				}.bind(<span class="hljs-keyword">this</span>)); <span class="hljs-comment">// remove app archive</span>
+			}
+		}.bind(<span class="hljs-keyword">this</span>)); <span class="hljs-comment">// remove installed app folder</span>
+	}
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Copies an app from the src directory to the dest approot directory.
+Callback with app info.</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.copyApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(src, dest, options, callback)</span> {</span>
 	<span class="hljs-keyword">try</span> {
 		<span class="hljs-keyword">var</span> name = path.basename(src);
-		<span class="hljs-keyword">var</span> tmp_app_path = dest+ <span class="hljs-string">"/"</span> + name +<span class="hljs-string">"/"</span>;
-		<span class="hljs-keyword">var</span> pkg_info_path = tmp_app_path + <span class="hljs-string">'package.json'</span>;
-
-		<span class="hljs-keyword">var</span> readPackageInfo = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-			<span class="hljs-keyword">try</span> {
-					s = fs.readFileSync(pkg_info_path);
-					<span class="hljs-keyword">var</span> package_info = <span class="hljs-built_in">JSON</span>.parse(s);
-					<span class="hljs-keyword">var</span> app_info = {<span class="hljs-string">'name'</span>:package_info.name,
-									<span class="hljs-string">'icon_path'</span>:tmp_app_path+package_info.icon,
-									<span class="hljs-string">'icon_background_color'</span>:package_info.icon_color,
-									<span class="hljs-string">'icon_display'</span>:package_info.icon_display,
-									<span class="hljs-string">'app_path'</span>:tmp_app_path,
-									<span class="hljs-string">'app_url'</span>: path.join(<span class="hljs-string">'approot'</span>, name,package_info.main),
-									<span class="hljs-string">'icon_url'</span>: path.join(<span class="hljs-string">'approot'</span>, name,package_info.icon),
-									<span class="hljs-string">'id'</span>:package_info.id || uuid.v1()};
-					callback(<span class="hljs-literal">null</span>, app_info);
-				} <span class="hljs-keyword">catch</span>(e) {
-					log.warn(<span class="hljs-string">'There was a problem copying the app "'</span> + name + <span class="hljs-string">'" ('</span> + e + <span class="hljs-string">')'</span>);
-					<span class="hljs-keyword">return</span> callback(e);
-				}			
-		}
-
-		<span class="hljs-keyword">var</span> exists = fs.existsSync(tmp_app_path);
+		<span class="hljs-keyword">var</span> app_info = {
+			app_path : dest + <span class="hljs-string">"/"</span> + name + <span class="hljs-string">"/"</span>,
+			app_archive_path : src
+		};
+		<span class="hljs-keyword">var</span> exists = fs.existsSync(app_info.app_path);
 		
-		<span class="hljs-keyword">if</span>(exists) {
+		<span class="hljs-keyword">if</span>(exists &amp;&amp; !options.force) {
 			log.debug(<span class="hljs-string">'Not copying app "'</span> + src + <span class="hljs-string">'" because it already exists.'</span>);
-			<span class="hljs-keyword">return</span> readPackageInfo();
+			<span class="hljs-keyword">this</span>.readAppPackageInfo(app_info, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, info)</span> {</span>
+				<span class="hljs-keyword">if</span>(err) { 
+					<span class="hljs-keyword">return</span> callback(err); 
+				} <span class="hljs-keyword">else</span> {
+					<span class="hljs-keyword">this</span>._addApp(info);
+					callback(<span class="hljs-literal">null</span>, info);
+				}
+			}.bind(<span class="hljs-keyword">this</span>));
+			<span class="hljs-keyword">return</span>;
 		}
 
-		log.debug(<span class="hljs-string">'Copying app "'</span> + src + <span class="hljs-string">'"'</span>)
-		ncp(src, tmp_app_path, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
+		log.debug(<span class="hljs-string">'Copying app "'</span> + src + <span class="hljs-string">'"'</span>);
+		ncp(app_info.app_archive_path, app_info.app_path, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
 			<span class="hljs-keyword">if</span> (err) {
-				log.warn(<span class="hljs-string">'There was a problem copying the app "'</span> + name + <span class="hljs-string">'" ('</span> + e + <span class="hljs-string">')'</span>);
+				log.warn(<span class="hljs-string">'There was a problem copying the app "'</span> + name + <span class="hljs-string">'" ('</span> + err + <span class="hljs-string">')'</span>);
 				<span class="hljs-keyword">return</span> callback(err);
 			} <span class="hljs-keyword">else</span> {
-				<span class="hljs-keyword">return</span> readPackageInfo();
+				<span class="hljs-keyword">this</span>.readAppPackageInfo(app_info, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, info)</span> {</span>
+					<span class="hljs-keyword">if</span>(err) {
+						callback(err);
+					} <span class="hljs-keyword">else</span> {
+						<span class="hljs-keyword">this</span>._addApp(info);
+						callback(<span class="hljs-literal">null</span>, info);
+					}
+				}.bind(<span class="hljs-keyword">this</span>));
 			}
-		});
+		}.bind(<span class="hljs-keyword">this</span>));
 	} <span class="hljs-keyword">catch</span>(e) {
 		<span class="hljs-keyword">return</span> callback(e);
 	}
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Decompress the app and return app info (via callback)</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.decompressApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(src, dest,callback)</span> {</span>
-	<span class="hljs-keyword">try</span>{ 
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Decompress the app and return app info (via callback)</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.decompressApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(src, dest, options, callback)</span> {</span>
+	<span class="hljs-keyword">try</span> { 
 		<span class="hljs-keyword">var</span> name = path.basename(src);
-		<span class="hljs-keyword">var</span> tmp_app_path=dest+<span class="hljs-string">"/"</span> + name +<span class="hljs-string">"/"</span>;
-		<span class="hljs-keyword">var</span> pkg_info_path = tmp_app_path + <span class="hljs-string">'package.json'</span>;
-		log.debug(<span class="hljs-string">'Decompressing app "'</span> + tmp_app_path + <span class="hljs-string">'"'</span>)
-		
+		<span class="hljs-keyword">var</span> app_info = {
+			app_path : dest + <span class="hljs-string">"/"</span> + name + <span class="hljs-string">"/"</span>,
+			app_archive_path : src
+		};
+		<span class="hljs-keyword">var</span> exists = fs.existsSync(app_info.app_path);
+		<span class="hljs-keyword">if</span>(exists &amp;&amp; !options.force) {
+			log.debug(<span class="hljs-string">'Not decompressing app "'</span> + src + <span class="hljs-string">'" because it already exists.'</span>);
+			<span class="hljs-keyword">this</span>.readAppPackageInfo(app_info, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, info)</span> {</span>
+				<span class="hljs-keyword">if</span>(err) {
+					callback(err);
+				} <span class="hljs-keyword">else</span> {
+					<span class="hljs-keyword">this</span>._addApp(info);
+					callback(<span class="hljs-literal">null</span>, info);
+				}
+			}.bind(<span class="hljs-keyword">this</span>));
+			<span class="hljs-keyword">return</span>;
+		}
+
+		log.debug(<span class="hljs-string">'Decompressing app "'</span> + app_info.app_path + <span class="hljs-string">'"'</span>);
+
 		<span class="hljs-keyword">try</span> {
 			<span class="hljs-keyword">var</span> app = <span class="hljs-keyword">new</span> zip(src);
-			app.extractAllTo(tmp_app_path, <span class="hljs-literal">true</span>);
+			app.extractAllTo(app_info.app_path, <span class="hljs-literal">true</span>);
 		} <span class="hljs-keyword">catch</span>(e) {
 			log.warn(<span class="hljs-string">'There was a problem decompressing the app "'</span> + name + <span class="hljs-string">'" ('</span> + e + <span class="hljs-string">')'</span>);
 			<span class="hljs-keyword">return</span> callback(e);
 		}
-		<span class="hljs-keyword">var</span> package_info = <span class="hljs-built_in">JSON</span>.parse(fs.readFileSync(pkg_info_path));
-		<span class="hljs-keyword">var</span> app_info = {<span class="hljs-string">'name'</span>:package_info.name,
-						<span class="hljs-string">'icon_path'</span>:tmp_app_path+package_info.icon,
-						<span class="hljs-string">'icon_background_color'</span>:package_info.icon_color,
-						<span class="hljs-string">'icon_display'</span>:package_info.icon_display,
-						<span class="hljs-string">'app_path'</span>:tmp_app_path,
-						<span class="hljs-string">'app_url'</span>: path.join(<span class="hljs-string">'approot'</span>,name,package_info.main),
-						<span class="hljs-string">'icon_url'</span>: path.join(<span class="hljs-string">'approot'</span>,name,package_info.icon),
-						<span class="hljs-string">'id'</span>:package_info.id || uuid.v1()};
-		callback(<span class="hljs-literal">null</span>, app_info);
+
+		<span class="hljs-keyword">this</span>.readAppPackageInfo(app_info, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, info)</span> {</span>
+			<span class="hljs-keyword">if</span>(err) {
+				callback(err);
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">this</span>._addApp(info);
+				callback(<span class="hljs-literal">null</span>, info);
+			}
+		}.bind(<span class="hljs-keyword">this</span>));
 	}
 	<span class="hljs-keyword">catch</span>(e){
+		log.error(e);
 		callback(e);
 	}
-}
+};
 
 AppManager.prototype.getAppPaths = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
 	fs.readdir(<span class="hljs-keyword">this</span>.app_directory, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, files)</span> {</span>
-		user_files = files.map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span> {</span> <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.app_directory + <span class="hljs-string">'/'</span> + file;}.bind(<span class="hljs-keyword">this</span>));
+		user_files = files.map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span> {</span> <span class="hljs-keyword">return</span> path.join(<span class="hljs-keyword">this</span>.app_directory,file);}.bind(<span class="hljs-keyword">this</span>));
 		fs.readdir(<span class="hljs-keyword">this</span>.system_app_directory, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, files)</span> {</span>
-			system_files = files.map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span> {</span> <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.system_app_directory + <span class="hljs-string">'/'</span> + file;}.bind(<span class="hljs-keyword">this</span>));
+			system_files = files.map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file)</span> {</span> <span class="hljs-keyword">return</span> path.join(<span class="hljs-keyword">this</span>.system_app_directory,file);}.bind(<span class="hljs-keyword">this</span>));
 			callback(<span class="hljs-literal">null</span>, system_files.concat(user_files));
 		}.bind(<span class="hljs-keyword">this</span>));
 	}.bind(<span class="hljs-keyword">this</span>));
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Load all of the apps in the provided apps directory</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.loadApps =  <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Load all of the apps in the provided apps directory</p></div></div><div class="code"><div class="wrapper">AppManager.prototype.loadApps =  <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
 	<span class="hljs-keyword">this</span>.getAppPaths(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,files)</span>{</span>
 		async.mapSeries(files, 
 			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(file, callback)</span> {</span>
-				<span class="hljs-keyword">this</span>.loadApp(file, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Rather than allowing errors to halt the async.map operation that is loading the apps
-we swallow them and simply stick a &#39;null&#39; in the output array (that we cull out at the end)</p></div></div><div class="code"><div class="wrapper">					<span class="hljs-keyword">if</span>(err) {
+				<span class="hljs-keyword">this</span>.loadApp(file, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+					<span class="hljs-keyword">if</span>(err) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Rather than allowing errors to halt the async.map operation that is loading the apps
+we swallow them and simply stick a &#39;null&#39; in the output array (that we cull out at the end)</p></div></div><div class="code"><div class="wrapper">						log.warn(err);
 						<span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);
 					} <span class="hljs-keyword">else</span> {
 						<span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, result);
@@ -142,11 +214,9 @@ we swallow them and simply stick a &#39;null&#39; in the output array (that we c
 				}.bind(<span class="hljs-keyword">this</span>));
 			}.bind(<span class="hljs-keyword">this</span>), 
 			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, results)</span> {</span>
-				results = results.filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(result)</span> {</span> <span class="hljs-keyword">return</span> result !== <span class="hljs-literal">null</span>;});
-				<span class="hljs-keyword">this</span>._setApps(results);
 				callback(err, results);
 			}.bind(<span class="hljs-keyword">this</span>));
 	}.bind(<span class="hljs-keyword">this</span>));
-}
+};
 
 module.exports.AppManager = AppManager;</div></div></div></div></body></html>
