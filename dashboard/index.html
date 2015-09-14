@@ -3,7 +3,7 @@ config = <span class="hljs-built_in">require</span>(<span class="hljs-string">'.
 util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../util'</span>);
 path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
 
-exports.configure = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+exports.configure = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	manager = <span class="hljs-keyword">new</span> app_manager.AppManager({
 		app_directory : config.getDataDir(<span class="hljs-string">'apps'</span>),
 		approot_directory : config.getDataDir(path.join(<span class="hljs-string">'approot'</span>, <span class="hljs-string">'approot'</span>))
@@ -12,27 +12,31 @@ exports.configure = <span class="hljs-function"><span class="hljs-keyword">funct
 	setImmediate(callback, <span class="hljs-literal">null</span>);
 };
 
-exports.loadApps = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+exports.loadApps = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	exports.appManager.loadApps(callback);
 };
 
-exports.getAppIndex = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+exports.getAppIndex = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
 	<span class="hljs-keyword">return</span> exports.appManager.getAppIndex() || [];
 };
 
-exports.getAppList = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+exports.getAppList = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
 	<span class="hljs-keyword">return</span> exports.appManager.getAppList() || [];
 };
 
-exports.getAppFiles = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(id)</span> {</span>
+exports.getAppFiles = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id</span>) </span>{
 	app_root = exports.appManager.getAppRoot(id);
 	<span class="hljs-keyword">return</span> util.walkDir(app_root);
 };
 
-exports.loadApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(pathname, callback)</span> {</span>
-	<span class="hljs-keyword">return</span> exports.appManager.loadApp(pathname, callback);
+exports.loadApp = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">pathname, options, callback</span>) </span>{
+	<span class="hljs-keyword">return</span> exports.appManager.loadApp(pathname, options, callback);
 };
 
-exports.deleteApp = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(id, callback)</span> {</span>
+exports.deleteApp = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, callback</span>) </span>{
 	<span class="hljs-keyword">return</span> exports.appManager.deleteApp(id, callback);
-};</div></div></div></div></body></html>
+};
+
+exports.reloadApp = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, callback</span>) </span>{
+	<span class="hljs-keyword">return</span> exports.appManager.reloadApp(id, callback);
+}</div></div></div></div></body></html>

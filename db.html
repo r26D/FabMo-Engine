@@ -13,7 +13,7 @@ job_queue = <span class="hljs-keyword">new</span> util.Queue();
 <span class="hljs-keyword">var</span> files;
 <span class="hljs-keyword">var</span> jobs;
 
-Job = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(options)</span> {</span>
+Job = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) </span>{
     <span class="hljs-keyword">this</span>.file_id = options.file_id || <span class="hljs-literal">null</span>;
     <span class="hljs-keyword">this</span>.name = options.name || <span class="hljs-string">"Untitled Job"</span>;
     <span class="hljs-keyword">this</span>.description = options.description || <span class="hljs-string">""</span>;
@@ -23,7 +23,7 @@ Job = <span class="hljs-function"><span class="hljs-keyword">function</span><spa
     <span class="hljs-keyword">this</span>.state = <span class="hljs-string">"pending"</span>;
 };
 
-Job.prototype.clone = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.prototype.clone = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	<span class="hljs-keyword">var</span> job = <span class="hljs-keyword">new</span> Job({
 		file_id : <span class="hljs-keyword">this</span>.file_id,
 		name : <span class="hljs-keyword">this</span>.name,
@@ -32,28 +32,28 @@ Job.prototype.clone = <span class="hljs-function"><span class="hljs-keyword">fun
 	job.save(callback);
 };
 
-Job.prototype.start = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.prototype.start = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	log.debug(<span class="hljs-string">"Starting job id "</span> + <span class="hljs-keyword">this</span>._id ? <span class="hljs-keyword">this</span>._id : <span class="hljs-string">'&lt;volatile job&gt;'</span>);
 	<span class="hljs-keyword">this</span>.state = <span class="hljs-string">'running'</span>;
 	<span class="hljs-keyword">this</span>.started_at = <span class="hljs-built_in">Date</span>.now();
 	<span class="hljs-keyword">this</span>.save(callback);
 };
 
-Job.prototype.finish = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.prototype.finish = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	log.debug(<span class="hljs-string">"Finishing job id "</span> + <span class="hljs-keyword">this</span>._id ? <span class="hljs-keyword">this</span>._id : <span class="hljs-string">'&lt;volatile job&gt;'</span>);
 	<span class="hljs-keyword">this</span>.state = <span class="hljs-string">'finished'</span>;
 	<span class="hljs-keyword">this</span>.finished_at = <span class="hljs-built_in">Date</span>.now();
 	<span class="hljs-keyword">this</span>.save(callback);
 };
 
-Job.prototype.fail = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.prototype.fail = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	log.warn(<span class="hljs-string">"Failing job id "</span> + <span class="hljs-keyword">this</span>._id ? <span class="hljs-keyword">this</span>._id : <span class="hljs-string">'&lt;volatile job&gt;'</span>);
 	<span class="hljs-keyword">this</span>.state = <span class="hljs-string">'failed'</span>;
 	<span class="hljs-keyword">this</span>.finished_at = <span class="hljs-built_in">Date</span>.now();
 	<span class="hljs-keyword">this</span>.save(callback);
 };
 
-Job.prototype.cancel = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.prototype.cancel = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.state === <span class="hljs-string">'pending'</span> || <span class="hljs-keyword">this</span>.state === <span class="hljs-string">'running'</span>) {
 		log.debug(<span class="hljs-string">"Cancelling pending job id "</span> + <span class="hljs-keyword">this</span>._id);
 		<span class="hljs-keyword">this</span>.state = <span class="hljs-string">'cancelled'</span>;
@@ -64,20 +64,20 @@ Job.prototype.cancel = <span class="hljs-function"><span class="hljs-keyword">fu
 	}
 };
 
-Job.prototype.save = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.prototype.save = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	<span class="hljs-keyword">if</span>(!<span class="hljs-keyword">this</span>.file_id) {
 		log.warn(<span class="hljs-string">'Not saving this job because no file_id'</span>)
 		setImmediate(callback, <span class="hljs-literal">null</span>, <span class="hljs-keyword">this</span>);
 		<span class="hljs-keyword">return</span>;
 	}
 
-	jobs.findOne({_id: <span class="hljs-keyword">this</span>._id}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,document)</span>{</span>
+	jobs.findOne({_id: <span class="hljs-keyword">this</span>._id}, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,document</span>)</span>{
 		<span class="hljs-keyword">if</span>(err) {
 			callback(err);
 		}
-		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(document){
-			<span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>.pending_cancel</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>update the current entry in the database instead of creating a new one.</p></div></div><div class="code"><div class="wrapper">			log.info(<span class="hljs-string">'Updating job id '</span> + document._id);
-			jobs.update({<span class="hljs-string">'_id'</span> : document._id},<span class="hljs-keyword">this</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span>{</span>
+		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(<span class="hljs-built_in">document</span>){
+			<span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>.pending_cancel</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>update the current entry in the database instead of creating a new one.</p></div></div><div class="code"><div class="wrapper">			log.info(<span class="hljs-string">'Updating job id '</span> + <span class="hljs-built_in">document</span>._id);
+			jobs.update({<span class="hljs-string">'_id'</span> : <span class="hljs-built_in">document</span>._id},<span class="hljs-keyword">this</span>,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
 				<span class="hljs-keyword">if</span>(err) {
 					callback(err);
 				} <span class="hljs-keyword">else</span> {
@@ -87,7 +87,7 @@ Job.prototype.save = <span class="hljs-function"><span class="hljs-keyword">func
 		}
 		<span class="hljs-keyword">else</span>{
 			<span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>.pending_cancel</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create a new entry in the database</p></div></div><div class="code"><div class="wrapper">			log.info(<span class="hljs-string">'Creating a new job.'</span>);
-			jobs.insert(<span class="hljs-keyword">this</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,records)</span>{</span>
+			jobs.insert(<span class="hljs-keyword">this</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,records</span>)</span>{
 				<span class="hljs-keyword">if</span>(err) {
 					callback(err, <span class="hljs-literal">null</span>);
 				}
@@ -98,37 +98,61 @@ Job.prototype.save = <span class="hljs-function"><span class="hljs-keyword">func
 	}.bind(<span class="hljs-keyword">this</span>));
 };
 
-Job.prototype.delete = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span>{</span>
-	jobs.remove({_id : <span class="hljs-keyword">this</span>._id},<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span>{</span><span class="hljs-keyword">if</span>(!err)callback();<span class="hljs-keyword">else</span> callback(err);});
+Job.prototype.delete = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
+	jobs.remove({_id : <span class="hljs-keyword">this</span>._id},<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{<span class="hljs-keyword">if</span>(!err)callback();<span class="hljs-keyword">else</span> callback(err);});
 };
 
-Job.getPending = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.getPending = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	jobs.find({state:<span class="hljs-string">'pending'</span>}).toArray(callback);
 };
 
-Job.getHistory = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.getHistory = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	jobs.find({state: {$<span class="hljs-keyword">in</span> : [<span class="hljs-string">'finished'</span>, <span class="hljs-string">'cancelled'</span>, <span class="hljs-string">'failed'</span>]}}).sort({<span class="hljs-string">'created_at'</span> : -<span class="hljs-number">1</span> }).toArray(callback);
 };
 
-Job.getAll = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
-	jobs.find().toArray(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(array)</span> {</span>
+Job.getAll = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+	jobs.find().toArray(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">array</span>) </span>{
 		callback(array);
 	});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Return a file object for the provided id</p></div></div><div class="code"><div class="wrapper">Job.getById = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(id,callback)</span>
-{</span>
-	jobs.findOne({_id: id},<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,document)</span>{</span>
-		<span class="hljs-keyword">if</span> (!document){
-			callback(<span class="hljs-literal">null</span>, <span class="hljs-literal">undefined</span>);
+};
+
+Job.getFileForJobId = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, callback</span>) </span>{
+	Job.getById(id, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, document</span>) </span>{
+		<span class="hljs-keyword">if</span>(err) {
+			callback(err);
+		} <span class="hljs-keyword">else</span> {
+			<span class="hljs-keyword">if</span>(<span class="hljs-built_in">document</span> &amp;&amp; <span class="hljs-built_in">document</span>.file_id) {
+				File.getByID(<span class="hljs-built_in">document</span>.file_id, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, file</span>) </span>{
+					<span class="hljs-keyword">if</span>(err) {
+						callback(err);
+					} <span class="hljs-keyword">else</span> {
+						<span class="hljs-keyword">if</span>(file) {
+							callback(<span class="hljs-literal">null</span>, file);
+						} <span class="hljs-keyword">else</span> {
+							callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Could not find file in database."</span>));
+						}
+					}
+				});
+			} <span class="hljs-keyword">else</span> {
+				callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Could not find job in database."</span>))
+			}
+		}
+	});
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Return a file object for the provided id</p></div></div><div class="code"><div class="wrapper">Job.getById = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id,callback</span>)
+</span>{
+	jobs.findOne({_id: id},<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,document</span>)</span>{
+		<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">document</span>){
+			callback(<span class="hljs-string">"No such job ID: "</span> + id, <span class="hljs-literal">undefined</span>);
 			<span class="hljs-keyword">return</span>;
 		}
-		<span class="hljs-keyword">var</span> job = document;
+		<span class="hljs-keyword">var</span> job = <span class="hljs-built_in">document</span>;
 		job.__proto__ = Job.prototype;
 		callback(<span class="hljs-literal">null</span>, job);
 	});
 };
 
-Job.getNext = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
-	jobs.find({state:<span class="hljs-string">'pending'</span>}).toArray(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+Job.getNext = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+	jobs.find({state:<span class="hljs-string">'pending'</span>}).toArray(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			callback(err, <span class="hljs-literal">null</span>);
 		} <span class="hljs-keyword">else</span> {
@@ -142,8 +166,8 @@ Job.getNext = <span class="hljs-function"><span class="hljs-keyword">function</s
 	});
 };
 
-Job.dequeue = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
-	Job.getNext(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, job)</span> {</span>
+Job.dequeue = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+	Job.getNext(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, job</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			callback(err);
 		} <span class="hljs-keyword">else</span> {
@@ -152,44 +176,44 @@ Job.dequeue = <span class="hljs-function"><span class="hljs-keyword">function</s
 	});
 };
 
-Job.deletePending = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+Job.deletePending = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	jobs.remove({state:<span class="hljs-string">'pending'</span>},callback);
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The File class represents a fabrication file on disk
 In addition to the filename and path, file statistics such as 
-The run count, last time run, etc. are stored in the database.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">File</span><span class="hljs-params">(filename,path)</span>{</span>
+The run count, last time run, etc. are stored in the database.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">File</span>(<span class="hljs-params">filename,path</span>)</span>{
 	<span class="hljs-keyword">var</span> that=<span class="hljs-keyword">this</span>;
 	<span class="hljs-keyword">this</span>.filename = filename;
 	<span class="hljs-keyword">this</span>.path = path;
 	<span class="hljs-keyword">this</span>.created = <span class="hljs-built_in">Date</span>.now();
 	<span class="hljs-keyword">this</span>.last_run = <span class="hljs-literal">null</span>;
 	<span class="hljs-keyword">this</span>.run_count = <span class="hljs-number">0</span>;
-	fs.stat(path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, stat)</span> {</span>
+	fs.stat(path, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, stat</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			<span class="hljs-keyword">throw</span> err;
 		}
 		that.size = stat.size;
 	});
-	fs.readFile(<span class="hljs-keyword">this</span>.path, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, data)</span> {</span>
+	fs.readFile(<span class="hljs-keyword">this</span>.path, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, data</span>) </span>{
 		<span class="hljs-keyword">this</span>.checksum = File.checksum(data);
 	}.bind(<span class="hljs-keyword">this</span>));
 }
 
-File.checksum = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>
+File.checksum = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{
 	<span class="hljs-keyword">return</span> crypto.createHash(<span class="hljs-string">'md5'</span>).update(data, <span class="hljs-string">'utf8'</span>).digest(<span class="hljs-string">'hex'</span>);
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Save information about this file to back to the database</p></div></div><div class="code"><div class="wrapper">File.prototype.save = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span>{</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Save information about this file to back to the database</p></div></div><div class="code"><div class="wrapper">File.prototype.save = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
 	<span class="hljs-keyword">var</span> that = <span class="hljs-keyword">this</span>;
-	files.findOne({path: that.path},<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,document)</span>{</span>
+	files.findOne({path: that.path},<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,document</span>)</span>{
 	<span class="hljs-keyword">if</span> (err){
 		callback(err);
 	}
-	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(document){</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>update the current entry in the database instead of creating a new one.</p></div></div><div class="code"><div class="wrapper">		log.info(<span class="hljs-string">'Updating document id '</span> + document._id);
-		files.update({_id : document._id},that,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(<span class="hljs-built_in">document</span>){</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>update the current entry in the database instead of creating a new one.</p></div></div><div class="code"><div class="wrapper">		log.info(<span class="hljs-string">'Updating document id '</span> + <span class="hljs-built_in">document</span>._id);
+		files.update({_id : <span class="hljs-built_in">document</span>._id},that,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
 			callback(that);
 		});
 	}
 	<span class="hljs-keyword">else</span>{
 		log.info(<span class="hljs-string">'Creating a new document.'</span>);
-		files.insert(that, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,records)</span>{</span>
+		files.insert(that, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,records</span>)</span>{
 			<span class="hljs-keyword">if</span>(!err)
 				callback(<span class="hljs-literal">null</span>, records[<span class="hljs-number">0</span>]);
 			<span class="hljs-keyword">else</span>
@@ -197,22 +221,22 @@ File.checksum = <span class="hljs-function"><span class="hljs-keyword">function<
 		});
 	}
 	});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Delete this file from the database</p></div></div><div class="code"><div class="wrapper">File.prototype.delete = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span>{</span>
-	files.remove({_id : <span class="hljs-keyword">this</span>._id},<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span>{</span><span class="hljs-keyword">if</span>(!err)callback();<span class="hljs-keyword">else</span> callback(err);});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Update the &quot;last run&quot; time (use the current time)</p></div></div><div class="code"><div class="wrapper">File.prototype.saverun = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Delete this file from the database</p></div></div><div class="code"><div class="wrapper">File.prototype.delete = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
+	files.remove({_id : <span class="hljs-keyword">this</span>._id},<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{<span class="hljs-keyword">if</span>(!err)callback();<span class="hljs-keyword">else</span> callback(err);});
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Update the &quot;last run&quot; time (use the current time)</p></div></div><div class="code"><div class="wrapper">File.prototype.saverun = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
 	files.update({_id : <span class="hljs-keyword">this</span>._id}, {$set : {last_run : <span class="hljs-built_in">Date</span>.now()}, $inc : {run_count:<span class="hljs-number">1</span>}});
 };
 
-File.add = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(friendly_filename, pathname, callback)</span> {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create a unique name for actual storage</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">var</span> filename = util.createUniqueFilename(friendly_filename);
-	<span class="hljs-keyword">var</span> full_path = path.join(config.getDataDir(<span class="hljs-string">'files'</span>), filename);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move the file</p></div></div><div class="code"><div class="wrapper">	util.move(pathname, full_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+File.add = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">friendly_filename, pathname, callback</span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create a unique name for actual storage</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">var</span> filename = util.createUniqueFilename(friendly_filename);
+	<span class="hljs-keyword">var</span> full_path = path.join(config.getDataDir(<span class="hljs-string">'files'</span>), filename);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Move the file</p></div></div><div class="code"><div class="wrapper">	util.move(pathname, full_path, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			callback(err);
-		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>delete the temporary file, so that the temporary upload dir does not get filled with unwanted files</p></div></div><div class="code"><div class="wrapper">		fs.unlink(pathname, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>delete the temporary file, so that the temporary upload dir does not get filled with unwanted files</p></div></div><div class="code"><div class="wrapper">		fs.unlink(pathname, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
 			<span class="hljs-keyword">if</span> (err) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Failure to delete the temporary file is bad, but non-fatal</p></div></div><div class="code"><div class="wrapper">				log.warn(<span class="hljs-string">"failed to remove the job from temporary folder: "</span> + err);
 			}
 
 			<span class="hljs-keyword">var</span> file = <span class="hljs-keyword">new</span> File(friendly_filename, full_path);
-			file.save(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, file)</span>{</span>
+			file.save(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, file</span>)</span>{
 				<span class="hljs-keyword">if</span>(err) {
 					<span class="hljs-keyword">return</span> callback(err);
 				}
@@ -221,28 +245,28 @@ File.add = <span class="hljs-function"><span class="hljs-keyword">function</span
 			}.bind(<span class="hljs-keyword">this</span>)); <span class="hljs-comment">// save</span>
 		}.bind(<span class="hljs-keyword">this</span>)); <span class="hljs-comment">// unlink</span>
 	}); <span class="hljs-comment">// move</span>
-} <span class="hljs-comment">// add</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Return a list of all the files in the database</p></div></div><div class="code"><div class="wrapper">File.list_all = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span>{</span>
-	files.find().toArray(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,result)</span>{</span>
+} <span class="hljs-comment">// add</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Return a list of all the files in the database</p></div></div><div class="code"><div class="wrapper">File.list_all = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
+	files.find().toArray(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,result</span>)</span>{
 		<span class="hljs-keyword">if</span> (err){
 			<span class="hljs-keyword">throw</span> err;
 		}
 		callback(result);
 	});
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Return a file object for the provided id</p></div></div><div class="code"><div class="wrapper">File.getByID = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(id,callback)</span>
-{</span>
-	files.findOne({_id: id},<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err,document)</span>{</span>
-		<span class="hljs-keyword">if</span> (!document) {
-			callback(<span class="hljs-literal">undefined</span>);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Return a file object for the provided id</p></div></div><div class="code"><div class="wrapper">File.getByID = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id,callback</span>)
+</span>{
+	files.findOne({_id: id},<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,document</span>)</span>{
+		<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">document</span>) {
+			callback(<span class="hljs-literal">true</span>, <span class="hljs-literal">undefined</span>);
 			<span class="hljs-keyword">return</span>;
 		}
-		<span class="hljs-keyword">var</span> file = document;
+		<span class="hljs-keyword">var</span> file = <span class="hljs-built_in">document</span>;
 		file.__proto__ = File.prototype;
-		callback(file);
+		callback(<span class="hljs-literal">null</span>, file);
 	});
 };
 
-checkCollection = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(collection, callback)</span> {</span>
-	collection.find().toArray(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
+checkCollection = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">collection, callback</span>) </span>{
+	collection.find().toArray(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(<span class="hljs-string">"Error reading "</span> + collection.collectionName + <span class="hljs-string">" from the database: "</span> + err);
 			callback(err);
@@ -252,40 +276,40 @@ checkCollection = <span class="hljs-function"><span class="hljs-keyword">functio
 	});
 }
 
-backupDB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+backupDB = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	src = config.getDataDir(<span class="hljs-string">'db'</span>);
 	dest = config.getDataDir(<span class="hljs-string">'backup'</span>) + <span class="hljs-string">'/db'</span>
-	ncp(src, dest, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+	ncp(src, dest, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
 		log.info(<span class="hljs-string">'Backed up database to '</span>+dest)
 		callback(err);
 	});
 }
 
-exports.configureDB = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+exports.configureDB = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	db = <span class="hljs-keyword">new</span> Engine.Db(config.getDataDir(<span class="hljs-string">'db'</span>), {});
 	files = db.collection(<span class="hljs-string">"files"</span>);
 	jobs = db.collection(<span class="hljs-string">"jobs"</span>);
 
-	async.parallel([
-			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cb)</span> {</span>
+	<span class="hljs-keyword">async</span>.parallel([
+			<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">cb</span>) </span>{
 				checkCollection(files, cb);
 			},
-			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cb)</span> {</span>
+			<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">cb</span>) </span>{
 				checkCollection(jobs, cb);
 			}
 		], 
-		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, results)</span> {</span>
+		<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, results</span>) </span>{
 			<span class="hljs-keyword">if</span>(err) {
 				log.error(<span class="hljs-string">'There was a database corruption issue!'</span>)
 				<span class="hljs-keyword">var</span> src = config.getDataDir(<span class="hljs-string">'db'</span>)
 				<span class="hljs-keyword">var</span> dest = config.getDataDir(<span class="hljs-string">'debug'</span>) + <span class="hljs-string">'/bad-db-'</span> + (<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime())
-				ncp(src, dest, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
+				ncp(src, dest, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
 					<span class="hljs-keyword">if</span>(err) {
 						log.error(<span class="hljs-string">'The database could not be successfully backed up: '</span> + err);
 						callback(<span class="hljs-literal">null</span>);
 					} <span class="hljs-keyword">else</span> {
 						log.debug(<span class="hljs-string">'The database has been successfully copied to the debug directory for inspection.'</span>);
-						fs.remove(src, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> {</span>
+						fs.remove(src, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
 							<span class="hljs-keyword">if</span>(err) {
 								log.error(<span class="hljs-string">'Could not delete the corrupted database:'</span> + err);
 								callback(<span class="hljs-literal">null</span>);
@@ -303,8 +327,8 @@ exports.configureDB = <span class="hljs-function"><span class="hljs-keyword">fun
 		});
 };
 
-exports.cleanup = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
-	jobs.update({state: <span class="hljs-string">'running'</span>}, {$set : {state:<span class="hljs-string">'failed'</span>, finished_at : <span class="hljs-built_in">Date</span>.now()}}, {multi:<span class="hljs-literal">true</span>}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+exports.cleanup = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+	jobs.update({state: <span class="hljs-string">'running'</span>}, {$set : {state:<span class="hljs-string">'failed'</span>, finished_at : <span class="hljs-built_in">Date</span>.now()}}, {multi:<span class="hljs-literal">true</span>}, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(<span class="hljs-string">'There was a problem cleaning the db: '</span> + err)
 		} <span class="hljs-keyword">else</span> {

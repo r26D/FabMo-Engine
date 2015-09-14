@@ -1,14 +1,1 @@
-define({
-  "name": "FabMo Engine",
-  "version": "0.0.0",
-  "description": "FabMo-Engine",
-  "title": "FabMo-Engine API Documentation",
-  "sampleUrl": false,
-  "apidoc": "0.2.0",
-  "generator": {
-    "name": "apidoc",
-    "time": "2015-06-04T18:25:28.862Z",
-    "url": "http://apidocjs.com",
-    "version": "0.12.1"
-  }
-});
+define({  "name": "FabMo Engine",  "version": "0.0.0",  "description": "FabMo-Engine",  "title": "FabMo-Engine API Documentation",  "sampleUrl": false,  "apidoc": "0.2.0",  "generator": {    "name": "apidoc",    "time": "2015-09-14T16:52:56.213Z",    "url": "http://apidocjs.com",    "version": "0.13.1"  }});

@@ -4,7 +4,7 @@
 
 <span class="hljs-keyword">var</span> macros = {}
 
-<span class="hljs-keyword">var</span> _createGCodeHeader = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(options)</span> {</span>
+<span class="hljs-keyword">var</span> _createGCodeHeader = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) </span>{
 	name = options.name || <span class="hljs-string">"Untitled Macro"</span>
 	description = options.description || <span class="hljs-string">""</span>
 	enabled = options.enabled || <span class="hljs-literal">true</span>
@@ -13,7 +13,7 @@
 	       <span class="hljs-string">"("</span> + MARKER + <span class="hljs-string">"enabled:"</span> + enabled + <span class="hljs-string">")\n"</span>
 }
 
-<span class="hljs-keyword">var</span> _createOpenSBPHeader = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(options)</span> {</span>
+<span class="hljs-keyword">var</span> _createOpenSBPHeader = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) </span>{
 	name = options.name || <span class="hljs-string">"Untitled Macro"</span>
 	description = options.description || <span class="hljs-string">""</span>
 	enabled = options.enabled || <span class="hljs-literal">true</span>
@@ -23,22 +23,55 @@
 
 }
 
-<span class="hljs-keyword">var</span> _deleteMacroFile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(index, callback)</span> {</span>
+<span class="hljs-keyword">var</span> _deleteMacroFile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">index, callback</span>) </span>{
 	<span class="hljs-keyword">var</span> macro_path = config.getDataDir(<span class="hljs-string">'macros'</span>);
 	<span class="hljs-keyword">var</span> opensbp = path.join(macro_path, <span class="hljs-string">'macro_'</span> + index + <span class="hljs-string">'.sbp'</span>)
 	<span class="hljs-keyword">var</span> gcode = path.join(macro_path, <span class="hljs-string">'macro_'</span> + index + <span class="hljs-string">'.nc'</span>)
-	fs.unlink(opensbp, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
-		fs.unlink(gcode, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+	fs.unlink(opensbp, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+		fs.unlink(gcode, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
 			callback(<span class="hljs-literal">null</span>);
 		});
 	});
 }
 
-<span class="hljs-keyword">var</span> _parseMacroFile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(filename, callback)</span> {</span>
-	<span class="hljs-keyword">var</span> re = <span class="hljs-regexp">/[\(']!FABMO!(\w+):(.*)/</span>
+<span class="hljs-keyword">var</span> _createMacroFilename = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, type</span>) </span>{
+	<span class="hljs-keyword">var</span> macro_path = config.getDataDir(<span class="hljs-string">'macros'</span>);
+	<span class="hljs-keyword">switch</span>(type) {
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'nc'</span>:
+			<span class="hljs-keyword">return</span> path.join(macro_path, <span class="hljs-string">'macro_'</span> + id + <span class="hljs-string">'.nc'</span>);
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'sbp'</span>:
+			<span class="hljs-keyword">return</span> path.join(macro_path, <span class="hljs-string">'macro_'</span> + id + <span class="hljs-string">'.sbp'</span>);
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">default</span>:
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Invalid macro type: '</span> + type)
+			<span class="hljs-keyword">break</span>;
+	}
+}
+
+<span class="hljs-keyword">var</span> _createMacroDefaultContent = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">macro</span>) </span>{
+	<span class="hljs-keyword">switch</span>(macro.type) {
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'nc'</span>:
+			<span class="hljs-keyword">return</span> 	<span class="hljs-string">'( '</span> + macro.name + <span class="hljs-string">' )\n( '</span> + macro.description + <span class="hljs-string">' )\n\n'</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'sbp'</span>:
+			<span class="hljs-keyword">return</span> 	<span class="hljs-string">"' "</span> + macro.name + <span class="hljs-string">"\n' "</span> + macro.description + <span class="hljs-string">"\n\n"</span>;
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">default</span>:
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Invalid macro type: '</span> + type)
+			<span class="hljs-keyword">break</span>;
+	}
+}
+
+<span class="hljs-keyword">var</span> _parseMacroFile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">filename, callback</span>) </span>{
+	<span class="hljs-keyword">var</span> re = <span class="hljs-regexp">/[\(']!FABMO!(\w+):([^\)]*)\)?/</span>
 	<span class="hljs-keyword">var</span> obj = {}
 	<span class="hljs-keyword">var</span> ok = <span class="hljs-literal">false</span>;
-	fs.readFile(filename, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
+	fs.readFile(filename, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			log.error(err)
 		} <span class="hljs-keyword">else</span> {
@@ -59,6 +92,7 @@
 			}
 			<span class="hljs-keyword">if</span>(ok) {
 				obj.filename = filename;
+				obj.content = lines.slice(i,lines.length).join(<span class="hljs-string">'\n'</span>);
 				callback(<span class="hljs-literal">null</span>, obj);
 			} <span class="hljs-keyword">else</span> {
 				callback(<span class="hljs-literal">null</span>, <span class="hljs-literal">undefined</span>)
@@ -67,80 +101,127 @@
 	});
 }
 
-<span class="hljs-keyword">var</span> create = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(path, options, callback)</span> {</span>
-	<span class="hljs-keyword">var</span> macro_path = config.getDataDir(<span class="hljs-string">'macros'</span>);
-	<span class="hljs-keyword">if</span>(util.allowedFile(path)) {
-		fs.readFile(path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
-			<span class="hljs-keyword">if</span>(err) {
-				callback(err);
-			} <span class="hljs-keyword">else</span> {
-				_deleteMacroFile(options.index, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
-					<span class="hljs-keyword">if</span>(util.isGCodeFile(path)) {
-						file = path.join(macro_path, <span class="hljs-string">'macro_'</span> + index + <span class="hljs-string">'.nc'</span>);
-						header = _createGCodeHeader(options)
-					} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(util.isOpenSBPFile(path)) {
-						file = path.join(macro_path, <span class="hljs-string">'macro_'</span> + index + <span class="hljs-string">'.sbp'</span>);
-						header = _createOpenSBPHeader(options)
-					} <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Bad</p></div></div><div class="code"><div class="wrapper">					}
-					fs.writeFile(header + data, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
-						<span class="hljs-keyword">if</span>(err) {
-							callback(err);
-						} <span class="hljs-keyword">else</span> {
-							macros[options.index] = options
-							callback(<span class="hljs-literal">null</span>);
-						}
-					});
-				});
-			}
-		});
+<span class="hljs-keyword">var</span> update = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, macro, callback</span>) </span>{
+	old_macro = get(id);
+	<span class="hljs-keyword">if</span>(old_macro) {
+
+		<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">savemacro</span>(<span class="hljs-params">id, callback</span>) </span>{
+			old_macro.name = macro.name || old_macro.name;
+			old_macro.description = macro.description || old_macro.description;
+			old_macro.content = macro.content || old_macro.content;
+			old_macro.index = macro.index || old_macro.index;
+			old_macro.type = macro.type || old_macro.type;
+			save(old_macro.index, callback);
+		}
+
+		<span class="hljs-keyword">if</span>(macro.index &amp;&amp; (macro.index != old_macro.index)) {
+			macros[macro.index] = macro;
+			<span class="hljs-keyword">delete</span> macros[old_macro.index];
+			_deleteMacroFile(old_macro.index, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+				savemacro(macro.index, callback);
+			});
+		} <span class="hljs-keyword">else</span> {
+			savemacro(id, callback);
+		}
 	} <span class="hljs-keyword">else</span> {
-		callback(<span class="hljs-string">"File is not allowed."</span>);
+		new_macro = {
+			name : macro.name || <span class="hljs-string">'Untitled Macro'</span>,
+			description : macro.description || <span class="hljs-string">'Macro Description'</span>,
+			type : macro.type || <span class="hljs-string">'sbp'</span>,
+			enabled : macro.enabled || <span class="hljs-literal">true</span>, <span class="hljs-comment">// TODO fix this</span>
+			index : id
+		}
+		new_macro.filename = _createMacroFilename(id, new_macro.type);
+		new_macro.content = macro.content || _createMacroDefaultContent(new_macro);
+		macros[id] = new_macro;
+		save(id, callback);
 	}
 }
 
-<span class="hljs-keyword">var</span> load = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+<span class="hljs-keyword">var</span> save = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, callback</span>) </span>{
+	macro = get(id);
+	<span class="hljs-keyword">if</span>(macro) {
+		<span class="hljs-keyword">var</span> macro_path = config.getDataDir(<span class="hljs-string">'macros'</span>);
+		<span class="hljs-keyword">var</span> file_path = path.join(macro_path, <span class="hljs-string">'macro_'</span> + macro.index + <span class="hljs-string">'.'</span> + macro.type);
+		<span class="hljs-keyword">switch</span>(macro.type) {
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'nc'</span>:
+				<span class="hljs-keyword">var</span> header = _createGCodeHeader(macro);
+				<span class="hljs-keyword">break</span>;			
+			<span class="hljs-keyword">case</span> <span class="hljs-string">'sbp'</span>:
+				<span class="hljs-keyword">var</span> header = _createOpenSBPHeader(macro);
+				<span class="hljs-keyword">break</span>;
+			<span class="hljs-keyword">default</span>:
+				setImmediate(callback, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Invalid macro type: '</span> + macro.type));
+				<span class="hljs-keyword">break</span>;
+		}
+		fs.writeFile(file_path, header + macro.content, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+			<span class="hljs-keyword">if</span>(err) {
+				callback(err);
+			} <span class="hljs-keyword">else</span> {
+				callback(<span class="hljs-literal">null</span>, macro);
+			}
+		});
+	} <span class="hljs-keyword">else</span> {
+		callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"No such macro "</span> + id));
+	}
+}
+
+<span class="hljs-keyword">var</span> load = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	<span class="hljs-keyword">var</span> macro_path = config.getDataDir(<span class="hljs-string">'macros'</span>);
-	<span class="hljs-keyword">var</span> re = <span class="hljs-regexp">/macro_([0-9]+)\.(?:nc|sbp)/</span>
+	<span class="hljs-keyword">var</span> re = <span class="hljs-regexp">/macro_([0-9]+)\.(nc|sbp)/</span>
 	macros = {};
-	fs.readdir(macro_path, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, files)</span> {</span>
+	fs.readdir(macro_path, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, files</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			callback(err);
 		} <span class="hljs-keyword">else</span> {
 			<span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>; i&lt;files.length; i++) {
 				files[i] = path.join(macro_path, files[i]);
 			}
-			async.map(files, _parseMacroFile, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, results)</span> {</span>
-				results.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(info)</span> {</span>
+			<span class="hljs-keyword">async</span>.map(files, _parseMacroFile, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, results</span>) </span>{
+				results.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">info</span>) </span>{
 					<span class="hljs-keyword">if</span>(info) {
 						groups = info.filename.match(re);
 						idx = <span class="hljs-built_in">parseInt</span>(groups[<span class="hljs-number">1</span>]);
+						ext = groups[<span class="hljs-number">2</span>];
 						info.index = idx;
+						info.type = ext;
 						macros[idx] = info;
 					}
 				});
+				callback(<span class="hljs-literal">null</span>);
 			});
 		}
 	})
 }
 
-<span class="hljs-keyword">var</span> list = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+<span class="hljs-keyword">var</span> list = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
 	retval = [];
 	<span class="hljs-keyword">for</span>(key <span class="hljs-keyword">in</span> macros) {
-		retval.push(macros[key]);
+		retval.push(getInfo(key));
 	}
 	<span class="hljs-keyword">return</span> retval;
 }
 
-<span class="hljs-keyword">var</span> get = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(idx)</span> {</span>
-	info = macros[idx];
-	<span class="hljs-keyword">if</span>(info) {
-		<span class="hljs-keyword">return</span> info.filename;
+<span class="hljs-keyword">var</span> getInfo = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">idx</span>) </span>{
+	<span class="hljs-keyword">var</span> macro = get(idx);
+	<span class="hljs-keyword">if</span>(macro) {
+		<span class="hljs-keyword">return</span> 	{
+			<span class="hljs-string">'name'</span> : macro.name,
+			<span class="hljs-string">'description'</span> : macro.description,
+			<span class="hljs-string">'enabled'</span> : macro.enabled,
+			<span class="hljs-string">'type'</span> : macro.type,
+			<span class="hljs-string">'index'</span> : macro.index
+		}
 	} <span class="hljs-keyword">else</span> {
-		<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>; 
 	}
 }
 
-<span class="hljs-keyword">var</span> run = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(idx)</span> {</span>
+<span class="hljs-keyword">var</span> get = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">idx</span>) </span>{
+	<span class="hljs-keyword">return</span> macros[idx] || <span class="hljs-literal">null</span>;
+}
+
+<span class="hljs-keyword">var</span> run = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">idx</span>) </span>{
 	<span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine'</span>).machine;
 
 	info = macros[idx];
@@ -151,8 +232,25 @@
 	}
 }
 
+<span class="hljs-keyword">var</span> del = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">idx, callback</span>) </span>{
+	info = macros[idx];
+	<span class="hljs-keyword">if</span>(info) {
+		_deleteMacroFile(idx, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+			<span class="hljs-keyword">if</span>(err) {
+				callback(err);
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">delete</span> macros[idx];
+				callback(<span class="hljs-literal">null</span>);
+			}
+		});
+	}	
+}
+
 exports.load = load;
 exports.list = list;
 exports.get = get;
-exports.create = create;
-exports.run = run;</div></div></div></div></body></html>
+exports.del = del;
+exports.run = run;
+exports.getInfo = getInfo;
+exports.update = update;
+exports.save = save;</div></div></div></div></body></html>

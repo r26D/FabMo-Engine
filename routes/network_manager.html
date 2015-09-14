@@ -2,8 +2,8 @@
 <span class="hljs-keyword">var</span> config =  <span class="hljs-built_in">require</span>(<span class="hljs-string">'../config'</span>);
 <span class="hljs-keyword">var</span> network = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../network'</span>);
 
-scan = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
-    network.getAvailableWifiNetworks(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
+scan = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+    network.getAvailableWifiNetworks(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
         <span class="hljs-keyword">if</span> (err) {
             log.error(err);
             res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span>:err});
@@ -13,15 +13,55 @@ scan = <span class="hljs-function"><span class="hljs-keyword">function</span><sp
     });
 };
 
-connect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+connectWifi = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
     ssid = req.params.ssid
     key = req.params.key
     <span class="hljs-keyword">if</span>(ssid) {
-        network.createProfileForAvailableWirelessNetwork(ssid, key, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
+        <span class="hljs-comment">/*network.createProfileForAvailableWirelessNetwork(ssid, key, function(err, data) {
+            if(err) {
+                res.json({'status':'error', 'message' : err});
+            } else {
+                res.json({'status':'success'})
+            }
+        });*/</span>
+        network.connectToAWifiNetwork(ssid,key,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>)</span>{
             <span class="hljs-keyword">if</span>(err) {
                 res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});
             } <span class="hljs-keyword">else</span> {
                 res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>})
+            }
+
+        });
+    } <span class="hljs-keyword">else</span> {
+        res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span>:<span class="hljs-string">'No SSID provided'</span>});
+    }
+}
+
+disconnectWifi = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+    state=req.params.disconnect;
+    <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">true</span>){
+        network.disconnectFromAWifiNetwork(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>)</span>{
+            <span class="hljs-comment">/*if(err) {
+                res.json({'status':'error', 'message' : err}); //the error is not well reported;this is a bug in node.js v0.12.7;
+            } else {
+                res.json({'status':'success'})
+            }*/</span>
+             res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>});
+        });
+    }<span class="hljs-keyword">else</span>{
+       res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : <span class="hljs-string">'wrong POST command sent !'</span>}); 
+    }
+   
+}
+
+forgetWifi  = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req,res,next</span>)</span>{
+    ssid = req.params.ssid
+    <span class="hljs-keyword">if</span>(ssid) {
+        network.forgetAWifiNetwork(ssid,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,data</span>)</span>{
+            <span class="hljs-keyword">if</span>(err) {
+                res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});
+            } <span class="hljs-keyword">else</span> {
+                res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>});
             }
         });
     } <span class="hljs-keyword">else</span> {
@@ -29,8 +69,60 @@ connect = <span class="hljs-function"><span class="hljs-keyword">function</span>
     }
 }
 
-listProfiles = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
-    network.getWifiProfiles(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, profiles)</span> {</span>
+wifiState = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req,res,next</span>)</span>{
+    state = req.params.enabled;
+    <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">true</span>){
+        network.turnWifiOn(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
+            <span class="hljs-keyword">if</span>(err) {
+                res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});
+            } <span class="hljs-keyword">else</span> {
+                res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>});
+            }
+        });
+    }<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">false</span>){
+        network.turnWifiOff(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
+        <span class="hljs-keyword">if</span>(err) {
+            res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});
+        } <span class="hljs-keyword">else</span> {
+            res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>});
+        }
+    }); 
+    }<span class="hljs-keyword">else</span>{
+       res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : <span class="hljs-string">'wrong POST command sent !'</span>}); 
+    }
+}
+
+
+hotspotState = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req,res,next</span>)</span>{
+    state = req.params.enabled;
+    <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">true</span>){
+        network.turnWifiHotspotOn(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
+            <span class="hljs-keyword">if</span>(err) {
+                res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});
+            } <span class="hljs-keyword">else</span> {
+                res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>});
+            }
+        });
+    }<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">false</span>){
+        network.turnWifiHotspotOff(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
+        <span class="hljs-keyword">if</span>(err) {
+            res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});
+        } <span class="hljs-keyword">else</span> {
+            res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>});
+        }
+    }); 
+    }<span class="hljs-keyword">else</span>{
+       res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : <span class="hljs-string">'wrong POST command sent !'</span>}); 
+    }
+}
+
+<span class="hljs-comment">/*******************************************************************************************/</span>
+<span class="hljs-comment">/*************************************  OLD MANAGER  ***************************************/</span>
+<span class="hljs-comment">/*******************************************************************************************/</span>
+
+
+listProfiles = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+    network.getWifiProfiles(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, profiles</span>) </span>{
         <span class="hljs-keyword">if</span>(err) {
             res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span>:err});
         } <span class="hljs-keyword">else</span> {
@@ -39,10 +131,10 @@ listProfiles = <span class="hljs-function"><span class="hljs-keyword">function</
     });
 };
 
-deleteProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+deleteProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
     <span class="hljs-keyword">if</span>(req.params.ssid)
     {
-        network.removeWifiProfile(ssid, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+        network.removeWifiProfile(ssid, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
             <span class="hljs-keyword">if</span>(err) {
                 res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span>:err});
             } <span class="hljs-keyword">else</span> {
@@ -55,10 +147,10 @@ deleteProfile = <span class="hljs-function"><span class="hljs-keyword">function<
     }
 };
 
-getProfile = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(req, res, next)</span> {</span>
+getProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
     <span class="hljs-keyword">if</span>(req.params.ssid)
     {
-        network.getWifiProfile(req.params.ssid, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, profile)</span> {</span>
+        network.getWifiProfile(req.params.ssid, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, profile</span>) </span>{
             <span class="hljs-keyword">if</span>(err) {
                 res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span>:err});
             } <span class="hljs-keyword">else</span> {
@@ -72,12 +164,23 @@ getProfile = <span class="hljs-function"><span class="hljs-keyword">function</sp
 }
 
 
-module.exports = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(server)</span> {</span>
+<span class="hljs-comment">/*******************************************************************************************/</span>
+<span class="hljs-comment">/********************************* END OF OLD MANAGER  *************************************/</span>
+<span class="hljs-comment">/*******************************************************************************************/</span>
+
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">server</span>) </span>{
     <span class="hljs-keyword">if</span>(config.engine.get(<span class="hljs-string">'wifi_manager'</span>)){
+  
+        server.post(<span class="hljs-string">'/network/wifi/state'</span>,wifiState); <span class="hljs-comment">//OK</span>
+        server.post(<span class="hljs-string">'/network/hotspot/state'</span>,hotspotState); <span class="hljs-comment">//OK</span>
+
         server.get(<span class="hljs-string">'/network/wifi/scan'</span>,scan); <span class="hljs-comment">//OK</span>
-        server.post(<span class="hljs-string">'/network/wifi/connect'</span>, connect) <span class="hljs-comment">// OK</span>
+        server.post(<span class="hljs-string">'/network/wifi/connect'</span>, connectWifi) <span class="hljs-comment">// OK</span>
+        server.post(<span class="hljs-string">'/network/wifi/disconnect'</span>,disconnectWifi); <span class="hljs-comment">//OK</span>
+        server.post(<span class="hljs-string">'/network/wifi/forget'</span>,forgetWifi); <span class="hljs-comment">//OK</span>
         server.get(<span class="hljs-string">'/network/wifi/profiles'</span>,listProfiles); <span class="hljs-comment">//OK</span>
-        <span class="hljs-comment">//server.post('/network/wifi/profile',add_profile); //TODO: ADD THIS BACK IN</span>
+        <span class="hljs-comment">//server.post('/network/wifi/profile',add_profile); //<span class="hljs-doctag">TODO:</span> ADD THIS BACK IN</span>
         server.del(<span class="hljs-string">'/network/wifi/profile/:ssid'</span>,deleteProfile); <span class="hljs-comment">//OK</span>
         server.get(<span class="hljs-string">'/network/wifi/profile/:ssid'</span>,getProfile); <span class="hljs-comment">//OK</span>
     }

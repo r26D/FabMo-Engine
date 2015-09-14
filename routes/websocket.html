@@ -6,37 +6,36 @@
 <span class="hljs-keyword">var</span> nb_clients=<span class="hljs-number">0</span>;
 
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">broadcast_status_report</span><span class="hljs-params">(clients_sockets)</span>{</span>
-	machine.on(<span class="hljs-string">'status'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(status)</span>{</span>
-		log.debug(<span class="hljs-string">'Broadcasting status report'</span>);
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">broadcast_status_report</span>(<span class="hljs-params">clients_sockets</span>)</span>{
+	machine.on(<span class="hljs-string">'status'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">status</span>)</span>{
 		clients_sockets.emit(<span class="hljs-string">'status'</span>,status);
 	});
 }
 
 
-connect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(socket)</span> {</span>
+connect = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">socket</span>) </span>{
 	nb_clients++;
 	<span class="hljs-keyword">if</span> (nb_clients&lt;=clients_limit){ <span class="hljs-comment">// avoid too many connection on the app.</span>
 		socket_main(socket);
 		socket.emit(<span class="hljs-string">'status'</span>, machine.status)
 	}
-	socket.on(<span class="hljs-string">'disconnect'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+	socket.on(<span class="hljs-string">'disconnect'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
 		socket_close(socket);
 		nb_clients--;
 	});
 };
 
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">socket_main</span><span class="hljs-params">(socket)</span>{</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">socket_main</span>(<span class="hljs-params">socket</span>)</span>{
 	log.debug(<span class="hljs-string">"client connected"</span>);
 }
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">socket_close</span><span class="hljs-params">(socket)</span>{</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">socket_close</span>(<span class="hljs-params">socket</span>)</span>{
 	log.debug(<span class="hljs-string">"client disconnected"</span>);
 }
 
 
-module.exports = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(server)</span> {</span>
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">server</span>) </span>{
 	server.io.on(<span class="hljs-string">'connection'</span>, connect);
 	broadcast_status_report(server.io.sockets);
 };</div></div></div></div></body></html>

@@ -15,11 +15,24 @@
 <li>Check out the source code <a href="https://github.com/ShopBotTools/FabMo-Engine.git">https://github.com/ShopBotTools/FabMo-Engine.git</a></li>
 <li>From inside the source directory, install all of the engine dependencies with <code>npm install</code></li>
 <li>Create the engine data directory at <code>/opt/fabmo</code> or <code>C:\opt\fabmo</code> if you&#39;re on windows.  Make sure the user running the engine has write access to this directory.</li>
-<li>Start the engine with <code>npm start</code></li>
+<li>Start the engine with <code>npm run debug</code> for development mode or <code>npm start</code> for production mode.</li>
+<li>On Windows or OSX it is unlikely that the default COM port settings are satisfactory.  After running the engine once, edit <code>C:\fabmo\config\engine.json</code> or <code>/opt/fabmo/config/engine.json</code> and set the two COM ports for your platform with the appropriate values for your system.</li>
 </ol>
-<p>When the engine starts, it will connect to G2 and setup an http server to accept connections on port 9876.  Once the engine is running you can visit <a href="http://localhost:9876/">http://localhost:9876/</a> or <a href="http://0.0.0.0:9876/">http://0.0.0.0:9876/</a> to use the engine dashboard.</p>
+<p>When the engine starts, it will connect to G2 and setup an http server to accept connections on port 9876.  Once the engine is running you can visit <a href="http://localhost:9876/"><a href="http://localhost:9876/">http://localhost:9876/</a></a> to use the engine dashboard.</p>
 <h2 id="installing-the-engine">Installing the Engine</h2>
-<p>The engine is run from source, and only needs to be checked out and stored in a local directory.   The engine needs access to the directory <code>/opt/fabmo</code> to store its internal settings, apps, etc.</p>
+<p>The engine is run from source, and only needs to be checked out and stored in a local directory.  Run <code>npm install</code> from the source directory to install the needed dependencies.</p>
+<h3 id="on-the-intel-edison">On the Intel Edison</h3>
+<p>To install the engine in the &quot;standard&quot; location on the Intel Edison, perform the following steps.</p>
+<ol>
+<li>Checkout the source into <code>/fabmo</code> with <code>git checkout https://github.com/FabMo/FabMo-Engine /fabmo</code></li>
+<li>Install dependencies using npm: <code>cd /fabmo; npm install</code></li>
+<li>Install the systemd service file <code>cp /fabmo/conf/fabmo.service /etc/systemd/system</code></li>
+<li>Set the appropriate permissions on the service file <code>chmod 0775 /etc/systemd/system/fabmo.service</code></li>
+<li>Inform systemd of the unit file change <code>systemctl daemon-reload</code></li>
+<li>Enable the new service <code>systemctl enable fabmo</code></li>
+<li>Start the new service immediately <code>systemctl start fabmo</code></li>
+<li>After the engine has had time to start, check its status: <code>systemctl status fabmo</code></li>
+</ol>
 <h2 id="running-the-engine">Running the Engine</h2>
 <p>For debugging the engine, you can run it directly from the command prompt with <code>npm start</code> or <code>node server.js</code></p>
 <h2 id="development">Development</h2>
