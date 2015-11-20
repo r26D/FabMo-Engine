@@ -12,12 +12,14 @@
 <p><a href="http://shopbottools.github.io/FabMo-Engine/api">API Documentation</a></p>
 <h2 id="quick-start">Quick Start</h2>
 <ol>
+<li>Install nodejs - The officially supported version is v0.12.7  - Newer versions <em>do not work at this time</em></li>
 <li>Check out the source code <a href="https://github.com/ShopBotTools/FabMo-Engine.git">https://github.com/ShopBotTools/FabMo-Engine.git</a></li>
 <li>From inside the source directory, install all of the engine dependencies with <code>npm install</code></li>
-<li>Create the engine data directory at <code>/opt/fabmo</code> or <code>C:\opt\fabmo</code> if you&#39;re on windows.  Make sure the user running the engine has write access to this directory.</li>
+<li>Create the engine data directory at <code>/opt/fabmo</code> or <code>C:\opt\fabmo</code> if you&#39;re on windows.  Set the permissions on this directory so that the user running the engine can read/write to it.</li>
 <li>Start the engine with <code>npm run debug</code> for development mode or <code>npm start</code> for production mode.</li>
 <li>On Windows or OSX it is unlikely that the default COM port settings are satisfactory.  After running the engine once, edit <code>C:\fabmo\config\engine.json</code> or <code>/opt/fabmo/config/engine.json</code> and set the two COM ports for your platform with the appropriate values for your system.</li>
 </ol>
+<p><strong> Note that you should not need to run the engine as a priveleged user.  If you have to run your engine using <code>sudo</code> check your node installation and the permissions settings for the /opt/fabmo directory </strong></p>
 <p>When the engine starts, it will connect to G2 and setup an http server to accept connections on port 9876.  Once the engine is running you can visit <a href="http://localhost:9876/"><a href="http://localhost:9876/">http://localhost:9876/</a></a> to use the engine dashboard.</p>
 <h2 id="installing-the-engine">Installing the Engine</h2>
 <p>The engine is run from source, and only needs to be checked out and stored in a local directory.  Run <code>npm install</code> from the source directory to install the needed dependencies.</p>

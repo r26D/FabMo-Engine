@@ -20,6 +20,14 @@ exports.getAppIndex = <span class="hljs-function"><span class="hljs-keyword">fun
 	<span class="hljs-keyword">return</span> exports.appManager.getAppIndex() || [];
 };
 
+exports.getAppConfig = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id</span>) </span>{
+	<span class="hljs-keyword">return</span> exports.appManager.getAppConfig(id);
+};
+
+exports.setAppConfig = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, cfg, callback</span>) </span>{
+	<span class="hljs-keyword">return</span> exports.appManager.setAppConfig(id, cfg, callback);
+};
+
 exports.getAppList = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
 	<span class="hljs-keyword">return</span> exports.appManager.getAppList() || [];
 };

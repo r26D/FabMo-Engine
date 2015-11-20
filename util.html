@@ -315,8 +315,43 @@ something else!</p></div></div><div class="code"><div class="wrapper">        in
     <span class="hljs-keyword">return</span> retval;
 }
 
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Watchdog</span>(<span class="hljs-params">timeout,exit_code</span>)</span>{
+    <span class="hljs-keyword">var</span> watchdog_flag;
+    <span class="hljs-keyword">var</span> watchdog_timeout=timeout||<span class="hljs-number">1000</span>;
+    <span class="hljs-keyword">var</span> watchdog_exit_code=exit_code||<span class="hljs-number">20</span>;
+    
+    watchdog_exit = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"G2 is not responding"</span>);
+        <span class="hljs-comment">//process.exit(this.watchdog_exit_code);</span>
+    };
+
+    <span class="hljs-keyword">this</span>.start = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.watchdog_flag===<span class="hljs-literal">undefined</span>){
+            <span class="hljs-keyword">this</span>.watchdog_flag=setTimeout(watchdog_exit,watchdog_timeout);
+        }
+        <span class="hljs-keyword">else</span>{
+            <span class="hljs-keyword">this</span>.reset();
+        }
+    };
+
+    <span class="hljs-keyword">this</span>.stop= <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.watchdog_flag){
+            clearTimeout(<span class="hljs-keyword">this</span>.watchdog_flag);
+            <span class="hljs-keyword">this</span>.watchdog_flag=<span class="hljs-literal">undefined</span>;
+        }
+    };
+
+    <span class="hljs-keyword">this</span>.reset = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.watchdog_flag){
+            clearTimeout(<span class="hljs-keyword">this</span>.watchdog_flag);
+            <span class="hljs-keyword">this</span>.watchdog_flag=setTimeout(watchdog_exit,watchdog_timeout);
+        }   
+    };
+}
+
 exports.serveStatic = serveStatic;
 exports.Queue = Queue;
+exports.Watchdog = Watchdog;
 exports.allowed_file = allowed_file;
 exports.allowedAppFile = allowedAppFile;
 exports.move = move;

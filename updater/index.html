@@ -2,6 +2,7 @@
 <span class="hljs-keyword">var</span> config = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../config'</span>);
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'updater'</span>);
 <span class="hljs-keyword">var</span> glob = <span class="hljs-built_in">require</span>(<span class="hljs-string">'glob'</span>)
+<span class="hljs-keyword">var</span> process = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>);
 
 <span class="hljs-keyword">var</span> getFabmoVersionString = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	util.doshell(<span class="hljs-string">'git rev-parse --verify HEAD'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{
@@ -15,15 +16,14 @@
 	log.debug(<span class="hljs-string">'Stopping the engine...'</span>);
 	<span class="hljs-keyword">var</span> engine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../engine'</span>);
 	engine.stop(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Platform specific script for updating</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">var</span> pattern = <span class="hljs-string">'./updater/scripts/'</span> + config.platform + <span class="hljs-string">'.*'</span>;
-
 		glob(pattern, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, files</span>) </span>{
 			<span class="hljs-keyword">if</span>(files.length &gt; <span class="hljs-number">0</span>) {
 				script = files[<span class="hljs-number">0</span>];
-				<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Updater script found: '</span> + script);
+				log.debug(<span class="hljs-string">'Updater script found: '</span> + script);
 				util.doshell(script, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">stdout</span>) </span>{
-					log.debug(<span class="hljs-string">'Update complete'</span>);
 					<span class="hljs-built_in">console</span>.log(stdout);
-					callback(<span class="hljs-literal">null</span>);
+					log.debug(<span class="hljs-string">'Update complete'</span>);
+					process.exit(<span class="hljs-number">0</span>);
 				});
 			} <span class="hljs-keyword">else</span> {
 				callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"There is no auto-update capability for the '"</span> + config.platform + <span class="hljs-string">"' platform."</span>));

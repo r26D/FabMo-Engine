@@ -5,6 +5,8 @@
 <span class="hljs-keyword">var</span> OpenSBPConfig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./opensbp_config'</span>).OpenSBPConfig;
 <span class="hljs-keyword">var</span> MachineConfig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine_config'</span>).MachineConfig;
 <span class="hljs-keyword">var</span> DashboardCofnig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./dashboard_config'</span>).DashboardConfig;
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
 
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'config'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Provide the exported functions for managing application configuration</p></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Configure the engine by loading the configuration from disk, and performing 
 configuration of the application based on the values loaded.</p>
@@ -49,6 +51,36 @@ it with the configuration of the actual physical driver.</p>
 	exports.dashboard.init(callback);
 }
 
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">canWriteTo</span>(<span class="hljs-params">dirname</span>) </span>{
+	<span class="hljs-keyword">try</span> {
+		test_path = path.join(dirname,<span class="hljs-string">'/.fabmoenginetest'</span>)
+		fs.writeFileSync(test_path, <span class="hljs-string">''</span>);
+		fs.unlink(test_path);
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+	} <span class="hljs-keyword">catch</span>(e) {
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+	}
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getLockFile</span>(<span class="hljs-params"></span>) </span>{
+	<span class="hljs-keyword">var</span> lockfile_name = <span class="hljs-string">'fabmo-engine.lock'</span>;
+	<span class="hljs-keyword">switch</span>(process.platform) {
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'win32'</span>:
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'win64'</span>:
+			<span class="hljs-keyword">return</span> path.join(Config.getDataDir(), lockfile_name);
+			<span class="hljs-keyword">break</span>;
+		<span class="hljs-keyword">default</span>:
+			lockfile_dir =  <span class="hljs-string">'/var/run'</span>;
+			<span class="hljs-keyword">if</span>(canWriteTo(lockfile_dir)) {
+				<span class="hljs-keyword">return</span> path.join(lockfile_dir, lockfile_name);
+			} <span class="hljs-keyword">else</span> {
+				log.warn(<span class="hljs-string">'Lockfile not in /var/run on POSIX platform'</span>)
+				<span class="hljs-keyword">return</span> path.join(Config.getDataDir(), lockfile_name);
+			}
+			<span class="hljs-keyword">break</span>;
+	}
+}
+
 exports.configureEngine = configureEngine;
 exports.configureDriver = configureDriver;
 exports.configureOpenSBP = configureOpenSBP;
@@ -56,4 +88,6 @@ exports.configureMachine = configureMachine;
 
 exports.createDataDirectories = Config.createDataDirectories;
 exports.getDataDir = Config.getDataDir;
+exports.getLockFile = getLockFile;
+
 exports.platform = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>).platform;</div></div></div></div></body></html>

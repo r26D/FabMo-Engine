@@ -5,14 +5,14 @@
 <span class="hljs-keyword">var</span> input_file = process.argv[<span class="hljs-number">2</span>]
 <span class="hljs-keyword">var</span> output_file = process.argv[<span class="hljs-number">3</span>]
 
-config.configureOpenSBP(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-	config.configureDriver(<span class="hljs-literal">null</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+config.configureOpenSBP(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+	config.configureDriver(<span class="hljs-literal">null</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
 	    runtime = <span class="hljs-keyword">new</span> SBPRuntime();
-	    runtime.loadCommands(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+	    runtime.loadCommands(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
 	        <span class="hljs-keyword">if</span>(!err) {
-	        	fs.readFile(input_file, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, data)</span> {</span>
+	        	fs.readFile(input_file, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
 	        		<span class="hljs-keyword">if</span>(!err) {
-	        			runtime.on(<span class="hljs-string">'end'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>
+	        			runtime.on(<span class="hljs-string">'end'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{
 	        				fs.writeFile(output_file, data.join(<span class="hljs-string">'\n'</span>));
 	        			});
 						runtime.runString(<span class="hljs-built_in">String</span>(data));

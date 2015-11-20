@@ -27,7 +27,7 @@ File extension filtering is not case sensitive</p></div></div><div class="code">
 
 <span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">server</span>) </span>{
 	<span class="hljs-comment">//server.get('/run/:id',run); //OK</span>
-	server.get(<span class="hljs-string">'/quit'</span>,quit); <span class="hljs-comment">//OK</span>
-	server.get(<span class="hljs-string">'/pause'</span>,pause); <span class="hljs-comment">//OK </span>
-	server.get(<span class="hljs-string">'/resume'</span>,resume); <span class="hljs-comment">//OK </span>
+	server.post(<span class="hljs-string">'/quit'</span>,quit); <span class="hljs-comment">//OK</span>
+	server.post(<span class="hljs-string">'/pause'</span>,pause); <span class="hljs-comment">//OK </span>
+	server.post(<span class="hljs-string">'/resume'</span>,resume); <span class="hljs-comment">//OK </span>
 };</div></div></div></div></body></html>

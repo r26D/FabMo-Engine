@@ -4,6 +4,7 @@
 <span class="hljs-keyword">var</span> <span class="hljs-keyword">async</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
 <span class="hljs-keyword">var</span> util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'util'</span>);
 <span class="hljs-keyword">var</span> Queue = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./util'</span>).Queue;
+<span class="hljs-keyword">var</span> Watchdog = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./util'</span>).Watchdog;
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'g2'</span>);
 <span class="hljs-keyword">var</span> process = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Values of the <strong>stat</strong> field that is returned from G2 status reports</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> STAT_INIT = <span class="hljs-number">0</span>;
 <span class="hljs-keyword">var</span> STAT_READY = <span class="hljs-number">1</span>;
@@ -43,6 +44,7 @@ See <a href="https://github.com/synthetos/g2/blob/edge/TinyG2/tinyg2.h">https://
 	<span class="hljs-keyword">this</span>.status = {<span class="hljs-string">'stat'</span>:<span class="hljs-string">'idle'</span>, <span class="hljs-string">'posx'</span>:<span class="hljs-number">0</span>, <span class="hljs-string">'posy'</span>:<span class="hljs-number">0</span>, <span class="hljs-string">'posz'</span>:<span class="hljs-number">0</span>};
 
 	<span class="hljs-keyword">this</span>.gcode_queue = <span class="hljs-keyword">new</span> Queue();
+	<span class="hljs-keyword">this</span>.watchdog = <span class="hljs-keyword">new</span> Watchdog(<span class="hljs-number">10000</span>,<span class="hljs-number">14</span>); <span class="hljs-comment">//time, exit code</span>
 	<span class="hljs-keyword">this</span>.pause_flag = <span class="hljs-literal">false</span>;
 	<span class="hljs-keyword">this</span>.connected = <span class="hljs-literal">false</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Jogging state</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.jog_stop_pending = <span class="hljs-literal">false</span>;
 	<span class="hljs-keyword">this</span>.jog_direction = <span class="hljs-literal">null</span>;
@@ -65,9 +67,10 @@ util.inherits(G2, events.EventEmitter);</div></div></div><div class="segment"><d
 	} <span class="hljs-keyword">else</span> {
 		log.info(<span class="hljs-string">"Single USB since control port and gcode port are the same. ("</span> + <span class="hljs-keyword">this</span>.control_path + <span class="hljs-string">")"</span>);
 		<span class="hljs-keyword">this</span>.gcode_port = <span class="hljs-keyword">this</span>.control_port;
-	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handle errors</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.control_port.on(<span class="hljs-string">'error'</span>, <span class="hljs-keyword">this</span>.onSerialError.bind(<span class="hljs-keyword">this</span>));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The control port is the only one to truly handle incoming data</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.control_port.on(<span class="hljs-string">'data'</span>, <span class="hljs-keyword">this</span>.onData.bind(<span class="hljs-keyword">this</span>));
+	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handle errors</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.control_port.on(<span class="hljs-string">'error'</span>, <span class="hljs-keyword">this</span>.onSerialError.bind(<span class="hljs-keyword">this</span>));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Handle closing</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.control_port.on(<span class="hljs-string">'close'</span>, <span class="hljs-keyword">this</span>.onSerialClose.bind(<span class="hljs-keyword">this</span>));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The control port is the only one to truly handle incoming data</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">this</span>.control_port.on(<span class="hljs-string">'data'</span>, <span class="hljs-keyword">this</span>.onData.bind(<span class="hljs-keyword">this</span>));
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.gcode_port !== <span class="hljs-keyword">this</span>.control_port) {
 		<span class="hljs-keyword">this</span>.gcode_port.on(<span class="hljs-string">'error'</span>, <span class="hljs-keyword">this</span>.onSerialError.bind(<span class="hljs-keyword">this</span>));
+		<span class="hljs-keyword">this</span>.control_port.on(<span class="hljs-string">'close'</span>, <span class="hljs-keyword">this</span>.onSerialClose.bind(<span class="hljs-keyword">this</span>));
 		<span class="hljs-keyword">this</span>.gcode_port.on(<span class="hljs-string">'data'</span>, <span class="hljs-keyword">this</span>.onWAT.bind(<span class="hljs-keyword">this</span>));
 	}
 
@@ -101,6 +104,7 @@ util.inherits(G2, events.EventEmitter);</div></div></div><div class="segment"><d
 };
 
 G2.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+	<span class="hljs-keyword">this</span>.watchdog.stop();
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.control_port !== <span class="hljs-keyword">this</span>.gcode_port) {
 		<span class="hljs-keyword">this</span>.control_port.close(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 			<span class="hljs-keyword">this</span>.gcode_port.close(callback);   
@@ -111,15 +115,24 @@ G2.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword"
 
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Log serial errors.  Most of these are exit-able offenses, though.</p></div></div><div class="code"><div class="wrapper">G2.prototype.onSerialError = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{
 	<span class="hljs-comment">//if(this.connect_callback) {</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>this.connect_callback(data);</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-comment">//}</span>
+};
+
+G2.prototype.onSerialClose = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{
+	<span class="hljs-keyword">this</span>.connected= <span class="hljs-literal">false</span>;
+	log.error(<span class="hljs-string">'G2 Core serial link was lost.'</span>)
+	process.exit(<span class="hljs-number">14</span>);
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Write data to the control port.  Log to the system logger.</p></div></div><div class="code"><div class="wrapper">G2.prototype.controlWrite = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">s</span>) </span>{
+	<span class="hljs-keyword">this</span>.watchdog.start();
 	t = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
 	log.g2(<span class="hljs-string">'--C-'</span> + t + <span class="hljs-string">'----&gt; '</span> + s.trim());
 	<span class="hljs-keyword">this</span>.control_port.write(s);
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Write data to the gcode port.  Log to the system logger.</p></div></div><div class="code"><div class="wrapper">G2.prototype.gcodeWrite = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">s</span>) </span>{
+	<span class="hljs-keyword">this</span>.watchdog.start();
 	t = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
 	log.g2(<span class="hljs-string">'--G-'</span> + t + <span class="hljs-string">'----&gt; '</span> + s.trim());
 	<span class="hljs-keyword">this</span>.gcode_port.write(s);
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Write data to the serial port.  Log to the system logger.  Execute <strong>callback</strong> when transfer is complete.</p></div></div><div class="code"><div class="wrapper">G2.prototype.controlWriteAndDrain = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">s, callback</span>) </span>{
+	<span class="hljs-keyword">this</span>.watchdog.start();
 	t = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
 	log.g2(<span class="hljs-string">'--C-'</span> + t + <span class="hljs-string">'----&gt; '</span> + s);
 	<span class="hljs-keyword">this</span>.control_port.write(s, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
@@ -128,6 +141,7 @@ G2.prototype.disconnect = <span class="hljs-function"><span class="hljs-keyword"
 };
 
 G2.prototype.gcodeWriteAndDrain = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">s, callback</span>) </span>{
+	<span class="hljs-keyword">this</span>.watchdog.start();
 	t = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
 	log.g2(<span class="hljs-string">'--G-'</span> + t + <span class="hljs-string">'----&gt; '</span> + s);
 	<span class="hljs-keyword">this</span>.gcode_port.write(s, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
@@ -136,6 +150,7 @@ G2.prototype.gcodeWriteAndDrain = <span class="hljs-function"><span class="hljs-
 };
 
 G2.prototype.clearAlarm = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+	<span class="hljs-keyword">this</span>.watchdog.start();
 	<span class="hljs-keyword">this</span>.command({<span class="hljs-string">"clear"</span>:<span class="hljs-literal">null</span>});
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Start or continue jogging in the direction provided, which is one of x,-x,y,-y,z-z,a,-a,b,-b,c,-c</p></div></div><div class="code"><div class="wrapper">G2.prototype.jog = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">direction</span>) </span>{
 
@@ -208,15 +223,19 @@ G2.prototype.stopJog = <span class="hljs-function"><span class="hljs-keyword">fu
 G2.prototype.setUnits = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">units, callback</span>) </span>{
 	<span class="hljs-keyword">if</span>(units === <span class="hljs-number">0</span> || units == <span class="hljs-string">'in'</span>) {
 		gc = <span class="hljs-string">'G20'</span>;
+		units = <span class="hljs-number">0</span>;
 	} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(units === <span class="hljs-number">1</span> || units === <span class="hljs-string">'mm'</span>) {
 		gc = <span class="hljs-string">'G21'</span>;
+		units = <span class="hljs-number">1</span>;
 	} <span class="hljs-keyword">else</span> {
 		<span class="hljs-keyword">return</span> callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Invalid unit setting: '</span> + units))
 	}
-	<span class="hljs-keyword">this</span>.runString(gc, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
-		<span class="hljs-keyword">this</span>.requestStatusReport(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">status</span>) </span>{
-			callback(<span class="hljs-literal">null</span>);
-		});
+	<span class="hljs-keyword">this</span>.set(<span class="hljs-string">'gun'</span>, units, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+		<span class="hljs-keyword">this</span>.runString(gc, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+			<span class="hljs-keyword">this</span>.requestStatusReport(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">status</span>) </span>{
+				callback(<span class="hljs-literal">null</span>);
+			}.bind(<span class="hljs-keyword">this</span>));
+		}.bind(<span class="hljs-keyword">this</span>));		
 	}.bind(<span class="hljs-keyword">this</span>));
 }
 
@@ -292,13 +311,13 @@ For now, let&#39;s not emit a bunch of errors into the log that don&#39;t mean a
 
 G2.prototype.handleExceptionReport = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">response</span>) </span>{
 	<span class="hljs-keyword">if</span>(response.er) {
-		<span class="hljs-keyword">var</span> stat = response.er.st
+		<span class="hljs-keyword">var</span> stat = response.er.st;
 		<span class="hljs-keyword">if</span>(((stat === <span class="hljs-number">204</span>) || (stat === <span class="hljs-number">207</span>)) &amp;&amp; <span class="hljs-keyword">this</span>.quit_pending) {
 			<span class="hljs-keyword">this</span>.gcodeWrite(<span class="hljs-string">"{clear:n}\nM30\n"</span>);
 			<span class="hljs-keyword">this</span>.quit_pending = <span class="hljs-literal">false</span>;
 		}
 	}
-}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>0    machine is initializing
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>0    machine is initializing
 1    machine is ready for use
 2    machine is in alarm state (shut down)
 3    program stop or no more blocks (M0, M1, M60)
@@ -310,6 +329,10 @@ G2.prototype.handleExceptionReport = <span class="hljs-function"><span class="hl
 9    machine is homing</p></div></div><div class="code"><div class="wrapper">G2.prototype.handleStatusReport = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">response</span>) </span>{
 	<span class="hljs-keyword">if</span>(response.sr) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Update our copy of the system status</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> key <span class="hljs-keyword">in</span> response.sr) {
 			value = response.sr[key];
+			<span class="hljs-keyword">if</span>(key === <span class="hljs-string">'unit'</span>) {
+				value = value === <span class="hljs-number">0</span> ? <span class="hljs-string">'in'</span> : <span class="hljs-string">'mm'</span>;
+			}
+
 			<span class="hljs-keyword">this</span>.status[key] = value;
 		}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Emit status no matter what</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'status'</span>, <span class="hljs-keyword">this</span>.status);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Send more g-codes if warranted</p></div></div><div class="code"><div class="wrapper">		<span class="hljs-keyword">if</span>(<span class="hljs-string">'line'</span> <span class="hljs-keyword">in</span> response.sr) {
 			line = response.sr.line;
@@ -351,7 +374,7 @@ G2.prototype.handleExceptionReport = <span class="hljs-function"><span class="hl
 
 	}
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Called once a proper JSON response is decoded from the chunks of data that come back from G2</p></div></div><div class="code"><div class="wrapper">G2.prototype.onMessage = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">response</span>) </span>{
-	</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>TODO more elegant way of dealing with &quot;response&quot; data.</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span>(response.r) {
+	<span class="hljs-keyword">this</span>.watchdog.stop();</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>TODO more elegant way of dealing with &quot;response&quot; data.</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">if</span>(response.r) {
 		<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'response'</span>, <span class="hljs-literal">false</span>, response.r);
 		r = response.r;
 	} <span class="hljs-keyword">else</span> {

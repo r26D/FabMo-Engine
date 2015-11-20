@@ -19,13 +19,11 @@
         }
         res.json(response);
     });
-}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Macros, api {get} /macros Get list of installed macros, and apiDescription Returns a listing with information about all macros</span></p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> getMacros = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Macros, api {get} /macros List all macros, and apiDescription Returns a listing with information about all macros</span></p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> getMacros = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
     response = {<span class="hljs-string">'status'</span> : <span class="hljs-string">'success'</span>,
                 <span class="hljs-string">'data'</span> : {<span class="hljs-string">'macros'</span> : macros.list()}}
     res.json(response);
-}
-
-<span class="hljs-keyword">var</span> getMacro = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Macros, api {get} /macros/:id Get macro, apiDescription Returns the specified macro, apiSuccess {Object} macro The requested macro, apiSuccess {String} macro.name Macro name, apiSuccess {String} macro.description Macro description, apiSuccess {String} macro.content Macro code, apiSuccess {String} macro.type Runtime used by the macro, apiSuccess {String} macro.filename Local filename where the macro is stored, and apiSuccess {Number} macro.index Macro numeric index</span></p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> getMacro = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
     id = req.params.id;
     macro = macros.get(id);
     <span class="hljs-keyword">if</span>(macro) {
@@ -39,9 +37,7 @@
             <span class="hljs-string">'message'</span> : <span class="hljs-string">'No such macro: '</span> + id
         });
     }
-}
-
-<span class="hljs-keyword">var</span> getMacroInfo = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+}</div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> apiGroup Macros, api {get} /macros/:id/info Get macro summary, apiDescription Returns the specified macro info (no macro content provided), apiSuccess {Object} macro The requested macro info, apiSuccess {String} macro.name Macro name, apiSuccess {String} macro.description Macro description, apiSuccess {String} macro.type Runtime used by the macro, apiSuccess {String} macro.filename Local filename where the macro is stored, and apiSuccess {Number} macro.index Macro numeric index</span></p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> getMacroInfo = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
     id = req.params.id;
     info = macros.getInfo(id);
     <span class="hljs-keyword">if</span>(info) {

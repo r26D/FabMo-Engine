@@ -54,12 +54,14 @@
 <span class="hljs-keyword">var</span> _createMacroDefaultContent = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">macro</span>) </span>{
 	<span class="hljs-keyword">switch</span>(macro.type) {
 		<span class="hljs-keyword">case</span> <span class="hljs-string">'nc'</span>:
-			<span class="hljs-keyword">return</span> 	<span class="hljs-string">'( '</span> + macro.name + <span class="hljs-string">' )\n( '</span> + macro.description + <span class="hljs-string">' )\n\n'</span>;
-			<span class="hljs-keyword">break</span>;
+			<span class="hljs-comment">//return 	'( ' + macro.name + ' )\n( ' + macro.description + ' )\n\n';</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-string">''</span>
+            <span class="hljs-keyword">break</span>;
 
 		<span class="hljs-keyword">case</span> <span class="hljs-string">'sbp'</span>:
-			<span class="hljs-keyword">return</span> 	<span class="hljs-string">"' "</span> + macro.name + <span class="hljs-string">"\n' "</span> + macro.description + <span class="hljs-string">"\n\n"</span>;
-			<span class="hljs-keyword">break</span>;
+			<span class="hljs-comment">//return 	"' " + macro.name + "\n' " + macro.description + "\n\n";</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-string">''</span>
+            <span class="hljs-keyword">break</span>;
 
 		<span class="hljs-keyword">default</span>:
 			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Invalid macro type: '</span> + type)
@@ -111,11 +113,11 @@
 			old_macro.content = macro.content || old_macro.content;
 			old_macro.index = macro.index || old_macro.index;
 			old_macro.type = macro.type || old_macro.type;
-			save(old_macro.index, callback);
+			old_macro.filename = _createMacroFilename(old_macro.index, old_macro.type);
+			save(id, callback);
 		}
-
 		<span class="hljs-keyword">if</span>(macro.index &amp;&amp; (macro.index != old_macro.index)) {
-			macros[macro.index] = macro;
+			macros[macro.index] = old_macro;
 			<span class="hljs-keyword">delete</span> macros[old_macro.index];
 			_deleteMacroFile(old_macro.index, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
 				savemacro(macro.index, callback);
@@ -123,6 +125,7 @@
 		} <span class="hljs-keyword">else</span> {
 			savemacro(id, callback);
 		}
+
 	} <span class="hljs-keyword">else</span> {
 		new_macro = {
 			name : macro.name || <span class="hljs-string">'Untitled Macro'</span>,
@@ -225,8 +228,13 @@
 	<span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine'</span>).machine;
 
 	info = macros[idx];
-	<span class="hljs-keyword">if</span>(info) {
-		machine.runFile(info.filename);
+	<span class="hljs-keyword">if</span>(info) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create a lightweight job</p></div></div><div class="code"><div class="wrapper">		machine.status.job = <span class="hljs-keyword">new</span> Job({
+			name : info.name,
+			description : info.description
+		});</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Run it!</p></div></div><div class="code"><div class="wrapper">		machine.status.job.start(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
+			machine.runFile(info.filename);
+		}.bind(<span class="hljs-keyword">this</span>));
+
 	} <span class="hljs-keyword">else</span> {
 		<span class="hljs-keyword">throw</span> <span class="hljs-string">"No such macro."</span>
 	}

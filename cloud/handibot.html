@@ -5,7 +5,7 @@
 <span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'handibot.net'</span>);
 
 
-<span class="hljs-keyword">var</span> HandibotProvider = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(options)</span> {</span>
+<span class="hljs-keyword">var</span> HandibotProvider = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) </span>{
 	<span class="hljs-keyword">this</span>.username = options.username;
 	<span class="hljs-keyword">this</span>.password = options.password;
 	<span class="hljs-keyword">this</span>._state = <span class="hljs-string">'init'</span>;
@@ -13,7 +13,7 @@
 	<span class="hljs-keyword">this</span>.app_instances = [];
 }
 
-HandibotProvider.prototype.login = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+HandibotProvider.prototype.login = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	log.debug(<span class="hljs-string">'Logging in'</span>);
 	<span class="hljs-keyword">var</span> data = {
 		<span class="hljs-string">'email'</span> : <span class="hljs-keyword">this</span>.username,
@@ -25,7 +25,7 @@ HandibotProvider.prototype.login = <span class="hljs-function"><span class="hljs
 			<span class="hljs-string">'form'</span>:data,
 			<span class="hljs-string">'jar'</span>:jar
 		}, 
-		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, res, body)</span> {</span>
+		<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, res, body</span>) </span>{
 			log.debug(<span class="hljs-string">'Got login response'</span>);
 			<span class="hljs-keyword">try</span> {
 				<span class="hljs-keyword">var</span> data = <span class="hljs-built_in">JSON</span>.parse(body);
@@ -46,7 +46,7 @@ HandibotProvider.prototype.login = <span class="hljs-function"><span class="hljs
 	);
 }
 
-HandibotProvider.prototype._getAppInstances = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+HandibotProvider.prototype._getAppInstances = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	<span class="hljs-keyword">var</span> data = {
 		<span class="hljs-string">'userId'</span> : <span class="hljs-keyword">this</span>.userId
 	}
@@ -56,7 +56,7 @@ HandibotProvider.prototype._getAppInstances = <span class="hljs-function"><span 
 			<span class="hljs-string">'form'</span> : {<span class="hljs-string">'data'</span> : <span class="hljs-built_in">JSON</span>.stringify(data)}, 
 			<span class="hljs-string">'jar'</span> : jar
 		},
-		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, res, body)</span> {</span>
+		<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, res, body</span>) </span>{
 			log.debug(<span class="hljs-string">'Got app instance response'</span>);
 			<span class="hljs-keyword">if</span>(err) {
 				callback(err);
@@ -68,7 +68,7 @@ HandibotProvider.prototype._getAppInstances = <span class="hljs-function"><span 
 	);
 }
 
-HandibotProvider.prototype._getAppInstanceDetail = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(id, callback)</span> {</span>
+HandibotProvider.prototype._getAppInstanceDetail = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, callback</span>) </span>{
 	<span class="hljs-keyword">var</span> data = {
 		<span class="hljs-string">'appInstanceId'</span> : id
 	}
@@ -78,7 +78,7 @@ HandibotProvider.prototype._getAppInstanceDetail = <span class="hljs-function"><
 			<span class="hljs-string">'form'</span> : {<span class="hljs-string">'data'</span> : <span class="hljs-built_in">JSON</span>.stringify(data)}, 
 			<span class="hljs-string">'jar'</span> : jar
 		},
-		<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, res, body)</span> {</span>
+		<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, res, body</span>) </span>{
 			log.debug(<span class="hljs-string">'Got app instance detail response'</span>);
 			<span class="hljs-keyword">if</span>(err) {
 				callback(err);
@@ -89,15 +89,15 @@ HandibotProvider.prototype._getAppInstanceDetail = <span class="hljs-function"><
 		}
 	);
 }
-HandibotProvider.prototype.update = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
-	<span class="hljs-keyword">this</span>._getAppInstances(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, results)</span> {</span>
+HandibotProvider.prototype.update = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+	<span class="hljs-keyword">this</span>._getAppInstances(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, results</span>) </span>{
 		<span class="hljs-keyword">if</span>(err) {
 			callback(err);
 		} <span class="hljs-keyword">else</span> {
 			<span class="hljs-keyword">var</span> app_instances = results.appInstances;
-			<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">updateAppInstanceDetail</span><span class="hljs-params">(appinstance, callback)</span> {</span>
+			<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">updateAppInstanceDetail</span>(<span class="hljs-params">appinstance, callback</span>) </span>{
 				<span class="hljs-keyword">var</span> id = appinstance.appInstanceId;
-				<span class="hljs-keyword">this</span>._getAppInstanceDetail(id, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+				<span class="hljs-keyword">this</span>._getAppInstanceDetail(id, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
 					<span class="hljs-keyword">if</span>(err) {
 						callback(err);
 					} <span class="hljs-keyword">else</span> {
@@ -105,16 +105,16 @@ HandibotProvider.prototype.update = <span class="hljs-function"><span class="hlj
 					}
 				})
 			}.bind(<span class="hljs-keyword">this</span>);
-			async.map(app_instances, <span class="hljs-function"><span class="hljs-keyword">function</span>)
-			<span class="hljs-title">log</span>.<span class="hljs-title">debug</span><span class="hljs-params">(JSON.stringify(this.app_instances)</span>);
-			<span class="hljs-title">callback</span><span class="hljs-params">(null, results)</span>;
+			<span class="hljs-keyword">async</span>.map(app_instances, <span class="hljs-function"><span class="hljs-keyword">function</span>)
+			<span class="hljs-title">log</span>.<span class="hljs-title">debug</span>(<span class="hljs-params">JSON.stringify(this.app_instances</span>));
+			<span class="hljs-title">callback</span>(<span class="hljs-params">null, results</span>);
 		}
 	});
 }
 
-<span class="hljs-title">var</span> <span class="hljs-title">hb</span> = <span class="hljs-title">new</span> <span class="hljs-title">HandibotProvider</span><span class="hljs-params">({'username':'ryansturmer@feringtech.com', 'password':'devpass'})</span>;
-<span class="hljs-title">hb</span>.<span class="hljs-title">login</span><span class="hljs-params">(function(err, result)</span> {</span>
-	hb.update(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> {</span>
+<span class="hljs-title">var</span> <span class="hljs-title">hb</span> = <span class="hljs-title">new</span> <span class="hljs-title">HandibotProvider</span>(<span class="hljs-params">{'username':'ryansturmer@feringtech.com', 'password':'devpass'}</span>);
+<span class="hljs-title">hb</span>.<span class="hljs-title">login</span>(<span class="hljs-params">function(err, result</span>) </span>{
+	hb.update(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
 
 	});
 });</div></div></div></div></body></html>

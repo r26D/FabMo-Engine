@@ -13,12 +13,10 @@
 		data : <span class="hljs-literal">null</span>
 	}
 	res.json(answer);
-	updater.updateEngine(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
-
-	});
+	updater.updateEngine(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{});
 };
 
 <span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">server</span>) </span>{
 	server.get(<span class="hljs-string">'/version'</span>,getVersion); <span class="hljs-comment">//OK</span>
-	server.get(<span class="hljs-string">'/update'</span>, doUpdate);
+	server.post(<span class="hljs-string">'/update'</span>, doUpdate);
 };</div></div></div></div></body></html>

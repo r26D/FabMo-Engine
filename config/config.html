@@ -2,13 +2,13 @@
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 <span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
 <span class="hljs-keyword">var</span> PLATFORM = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>).platform;
-<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'config'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Config is the superclass from which all configuration objects descend
-Common functionality is implemented here.</p></div></div><div class="code"><div class="wrapper">Config = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">config_name</span>) </span>{
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'config'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Config is the superclass from which all configuration objects descend</p></div></div><div class="code"><div class="wrapper">Config = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">config_name</span>) </span>{
 	<span class="hljs-keyword">this</span>._cache = {};
 	<span class="hljs-keyword">this</span>.config_name = config_name;
 	<span class="hljs-keyword">this</span>.default_config_file = __dirname + <span class="hljs-string">'/default/'</span> + config_name + <span class="hljs-string">'.json'</span>;
 	<span class="hljs-keyword">this</span>.config_file = Config.getDataDir(<span class="hljs-string">'config'</span>) + <span class="hljs-string">'/'</span> + config_name + <span class="hljs-string">'.json'</span>;
 	<span class="hljs-keyword">this</span>._loaded = <span class="hljs-literal">false</span>;
+	<span class="hljs-keyword">this</span>.userConfigLoaded = <span class="hljs-literal">false</span>;
 };
 
 Config.prototype.get = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">k</span>) </span>{
@@ -40,37 +40,82 @@ Config.prototype.getData = <span class="hljs-function"><span class="hljs-keyword
 			log.error(e);
 			<span class="hljs-keyword">return</span> callback(e);
 		}
-		<span class="hljs-keyword">this</span>.update(data, callback, <span class="hljs-literal">true</span>);
+		<span class="hljs-keyword">this</span>.update(data, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, d</span>) </span>{
+			callback(err, data);
+		}, <span class="hljs-literal">true</span>);
 	}.bind(<span class="hljs-keyword">this</span>));
 };
 
 Config.prototype.save = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
 	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>._loaded &amp;&amp; <span class="hljs-keyword">this</span>.config_file) {
 		log.debug(<span class="hljs-string">"Saving config to "</span> + <span class="hljs-keyword">this</span>.config_file);
-		fs.writeFile(<span class="hljs-keyword">this</span>.config_file, <span class="hljs-built_in">JSON</span>.stringify(<span class="hljs-keyword">this</span>._cache, <span class="hljs-literal">null</span>, <span class="hljs-number">4</span>), callback);
-	} <span class="hljs-keyword">else</span> {
+		fs.open(<span class="hljs-keyword">this</span>.config_file, <span class="hljs-string">'w'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, fd</span>) </span>{
+			<span class="hljs-keyword">if</span>(err) {
+				log.error(err);
+				callback(err);
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">var</span> cfg = <span class="hljs-keyword">new</span> Buffer(<span class="hljs-built_in">JSON</span>.stringify(<span class="hljs-keyword">this</span>._cache, <span class="hljs-literal">null</span>, <span class="hljs-number">4</span>));
+				fs.write(fd, cfg, <span class="hljs-number">0</span>, cfg.length, <span class="hljs-number">0</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, written, string</span>) </span>{
+					<span class="hljs-keyword">if</span>(err) {
+						log.error(err);
+						callback(err);
+					} <span class="hljs-keyword">else</span> {
+						fs.fsync(fd, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+							<span class="hljs-keyword">if</span>(err) {
+								log.error(err);
+							}
+							fs.closeSync(fd);
+							log.debug(<span class="hljs-string">'fsync()ed '</span> + <span class="hljs-keyword">this</span>.config_file);
+							callback(err);
+						}.bind(<span class="hljs-keyword">this</span>));
+					}
+				}.bind(<span class="hljs-keyword">this</span>));
+			}
+		}.bind(<span class="hljs-keyword">this</span>));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>fs.writeFile(this.config_file, JSON.stringify(this._cache, null, 4), function(err, data) {
+    log.debug(&quot;Config file saved.&quot;);
+    callback(err, data);
+});</p></div></div><div class="code"><div class="wrapper">	} <span class="hljs-keyword">else</span> {
 		setImmediate(callback);
 	}
 };</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The init function performs an initial load() from the configuration&#39;s settings files.
 For this to work, the Config object has to have a default_config_file and config_file member</p></div></div><div class="code"><div class="wrapper">Config.prototype.init = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
-		<span class="hljs-keyword">async</span>.series(
+		<span class="hljs-keyword">var</span> default_count;
+        <span class="hljs-keyword">var</span> user_count;
+        <span class="hljs-keyword">async</span>.series(
 		[
 			<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loadDefault</span>(<span class="hljs-params">callback</span>) </span>{ <span class="hljs-keyword">this</span>.load(<span class="hljs-keyword">this</span>.default_config_file, callback); }.bind(<span class="hljs-keyword">this</span>),
-			<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loadUserConfig</span>(<span class="hljs-params">callback</span>) </span>{ <span class="hljs-keyword">this</span>.load(<span class="hljs-keyword">this</span>.config_file, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
-				<span class="hljs-keyword">if</span>(err) {
-					<span class="hljs-keyword">if</span>(err.code === <span class="hljs-string">"ENOENT"</span>) {
-						log.warn(<span class="hljs-string">'Configuration file '</span> + <span class="hljs-keyword">this</span>.config_file + <span class="hljs-string">' not found.'</span>);
-						<span class="hljs-keyword">this</span>._loaded = <span class="hljs-literal">true</span>;
-						<span class="hljs-keyword">this</span>.save(callback);
+			<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">saveDefaultCount</span>(<span class="hljs-params">callback</span>) </span>{
+				default_count = <span class="hljs-built_in">Object</span>.keys(<span class="hljs-keyword">this</span>._cache).length;
+				callback();
+			}.bind(<span class="hljs-keyword">this</span>),
+			<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loadUserConfig</span>(<span class="hljs-params">callback</span>) </span>{ 
+				<span class="hljs-keyword">this</span>.load(<span class="hljs-keyword">this</span>.config_file, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+					<span class="hljs-keyword">if</span>(err) {
+						<span class="hljs-keyword">if</span>(err.code === <span class="hljs-string">"ENOENT"</span>) {
+							log.warn(<span class="hljs-string">'Configuration file '</span> + <span class="hljs-keyword">this</span>.config_file + <span class="hljs-string">' not found.'</span>);
+                            <span class="hljs-keyword">this</span>._loaded = <span class="hljs-literal">true</span>;
+							<span class="hljs-keyword">this</span>.save(callback, <span class="hljs-literal">true</span>);
+						} <span class="hljs-keyword">else</span> {
+							log.warn(<span class="hljs-string">'Problem loading the user configuration file "'</span> + <span class="hljs-keyword">this</span>.config_file + <span class="hljs-string">'": '</span> + err.message);
+							<span class="hljs-keyword">this</span>._loaded = <span class="hljs-literal">true</span>;
+							<span class="hljs-keyword">this</span>.userConfigLoaded = <span class="hljs-literal">true</span>;
+							<span class="hljs-keyword">this</span>.save(callback);
+						}
 					} <span class="hljs-keyword">else</span> {
-						log.warn(<span class="hljs-string">'Problem loading the user configuration file "'</span> + <span class="hljs-keyword">this</span>.config_file + <span class="hljs-string">'": '</span> + err.message);
+						<span class="hljs-keyword">this</span>._loaded = <span class="hljs-literal">true</span>;
+						<span class="hljs-keyword">this</span>.userConfigLoaded = <span class="hljs-literal">true</span>;
+						user_count = <span class="hljs-built_in">Object</span>.keys(data).length;
 						callback(<span class="hljs-literal">null</span>, <span class="hljs-keyword">this</span>);
 					}
+				}.bind(<span class="hljs-keyword">this</span>)); 
+			}.bind(<span class="hljs-keyword">this</span>),
+			<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">saveIfNeeded</span>(<span class="hljs-params">callback</span>) </span>{
+				<span class="hljs-keyword">if</span>(default_count != user_count) {
+					<span class="hljs-keyword">this</span>.save(callback);
 				} <span class="hljs-keyword">else</span> {
-					<span class="hljs-keyword">this</span>._loaded = <span class="hljs-literal">true</span>;
-					callback(<span class="hljs-literal">null</span>, <span class="hljs-keyword">this</span>);
+					callback();
 				}
-			}.bind(<span class="hljs-keyword">this</span>)); }.bind(<span class="hljs-keyword">this</span>)
+			}.bind(<span class="hljs-keyword">this</span>)
 		],
 		<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, results</span>) </span>{
 			<span class="hljs-keyword">if</span>(err) { callback(err); }
