@@ -1,282 +1,293 @@
 <!DOCTYPE html><html lang="en"><head><title>network</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="network"><meta name="groc-project-path" content="network.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">network.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./log'</span>).logger(<span class="hljs-string">'network'</span>);
 <span class="hljs-keyword">var</span> <span class="hljs-keyword">async</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">var</span> doshell = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./util'</span>).doshell
 
-<span class="hljs-keyword">try</span>{<span class="hljs-keyword">var</span> wifiscanner = <span class="hljs-built_in">require</span>(<span class="hljs-string">'node-simplerwifiscanner'</span>);}<span class="hljs-keyword">catch</span>(e){
-        log.warn(<span class="hljs-string">"Did not load connman-simplified: "</span> + e);
-}
-<span class="hljs-keyword">try</span>{<span class="hljs-keyword">var</span> connman = <span class="hljs-built_in">require</span>(<span class="hljs-string">'connman-simplified'</span>)();}<span class="hljs-keyword">catch</span>(e){
-    log.warn(<span class="hljs-string">"Did not load connman-simplified: "</span> + e);
-}
-
-<span class="hljs-keyword">var</span> PROFILES_FOLDER = <span class="hljs-string">"/etc/netctl/"</span>;
-<span class="hljs-keyword">var</span> WIFI_INTERFACE = <span class="hljs-string">"wlan0"</span>;
-<span class="hljs-keyword">var</span> hotspot_ssid=<span class="hljs-string">"handibot"</span>;
-<span class="hljs-keyword">var</span> hotspot_passphrase=<span class="hljs-string">"shopbot"</span>;
 <span class="hljs-keyword">var</span> wifi;
-<span class="hljs-keyword">var</span> properties;
+<span class="hljs-keyword">var</span> WIFI_SCAN_INTERVAL = <span class="hljs-number">5000</span>;
+<span class="hljs-keyword">var</span> WIFI_SCAN_RETRIES = <span class="hljs-number">3</span>;
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">CHECK</span>(<span class="hljs-params">err</span>)</span>{<span class="hljs-keyword">if</span>(err){log.error(err);<span class="hljs-comment">/*process.exit(-1);*/</span>}}
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">jedison</span>(<span class="hljs-params">cmdline, callback</span>) </span>{
+    <span class="hljs-keyword">var</span> callback = callback || <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{}
+    doshell(<span class="hljs-string">'./conf/jedison '</span> + cmdline, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">s</span>) </span>{
+        <span class="hljs-keyword">try</span> {
+            j = <span class="hljs-built_in">JSON</span>.parse(s)
+            <span class="hljs-keyword">if</span>(j.status == <span class="hljs-string">'success'</span>) {
+                callback(<span class="hljs-literal">null</span>, j.data || {})
+            } <span class="hljs-keyword">else</span> {
+                callback(j.message)
+            }
+        } <span class="hljs-keyword">catch</span>(e) {
+            callback(e);
+        }
+    });
+}
+
+<span class="hljs-keyword">var</span> EdisonNetworkManager = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'unknown'</span>;
+  <span class="hljs-keyword">this</span>.state = <span class="hljs-string">'idle'</span>;
+  <span class="hljs-keyword">this</span>.networks = [];
+  <span class="hljs-keyword">this</span>.command = <span class="hljs-literal">null</span>;
+  <span class="hljs-keyword">this</span>.network_health_retries = <span class="hljs-number">5</span>;
+}
+
+EdisonNetworkManager.prototype.getInfo = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+  jedison(<span class="hljs-string">'get wifi-info'</span>, callback);
+}
+
+EdisonNetworkManager.prototype.getNetworks = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+  jedison(<span class="hljs-string">'get networks'</span>, callback);
+}
+
+EdisonNetworkManager.prototype.scan = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+  jedison(<span class="hljs-string">'scan'</span>, callback);
+}
+
+EdisonNetworkManager.prototype.run = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.command) {
+	<span class="hljs-keyword">switch</span>(<span class="hljs-keyword">this</span>.command.cmd) {
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'join'</span>:
+			<span class="hljs-keyword">var</span> ssid = <span class="hljs-keyword">this</span>.command.ssid;
+			<span class="hljs-keyword">var</span> pw = <span class="hljs-keyword">this</span>.command.password;
+			<span class="hljs-keyword">this</span>.command = <span class="hljs-literal">null</span>;
+			<span class="hljs-keyword">this</span>.state = <span class="hljs-string">'idle'</span>;
+			<span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'unknown'</span>;
+			<span class="hljs-keyword">this</span>._joinWifi(ssid,pw,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+				<span class="hljs-keyword">this</span>.run();
+			}.bind(<span class="hljs-keyword">this</span>));
+			<span class="hljs-keyword">break</span>;
+
+		<span class="hljs-keyword">case</span> <span class="hljs-string">'ap'</span>:
+			<span class="hljs-keyword">this</span>.command=<span class="hljs-literal">null</span>;
+			<span class="hljs-keyword">this</span>.state = <span class="hljs-string">'idle'</span>
+			<span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'unknown'</span>
+			<span class="hljs-keyword">this</span>._joinAP(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+				<span class="hljs-keyword">this</span>.run();
+			}.bind(<span class="hljs-keyword">this</span>));
+			<span class="hljs-keyword">break</span>;
+	}
+	<span class="hljs-keyword">return</span>;
+} 
+  <span class="hljs-keyword">switch</span>(<span class="hljs-keyword">this</span>.mode) {
+    <span class="hljs-keyword">case</span> <span class="hljs-string">'ap'</span>:
+      <span class="hljs-keyword">this</span>.runAP();
+      <span class="hljs-keyword">break</span>;
+
+    <span class="hljs-keyword">case</span> <span class="hljs-string">'station'</span>:
+      <span class="hljs-keyword">this</span>.runStation();
+      <span class="hljs-keyword">break</span>;
+
+    <span class="hljs-keyword">default</span>:
+      <span class="hljs-keyword">this</span>.state = <span class="hljs-string">'idle'</span>;
+      <span class="hljs-keyword">this</span>.getInfo(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+        <span class="hljs-keyword">if</span>(!err) {
+          <span class="hljs-keyword">var</span> old_mode = <span class="hljs-keyword">this</span>.mode;
+		<span class="hljs-keyword">if</span>(data.mode == <span class="hljs-string">'managed'</span>) { <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'station'</span>; }
+          <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(data.mode == <span class="hljs-string">'master'</span>) { <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'ap'</span>; }
+          <span class="hljs-keyword">else</span> { log.warn(<span class="hljs-string">'Unknown network mode: '</span> + data.mode)}
+        	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.mode != old_mode) {
+
+        setImmediate(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>));
+		} <span class="hljs-keyword">else</span> {
+
+        setTimeout(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>), <span class="hljs-number">5000</span>);
+
+}
+	} <span class="hljs-keyword">else</span> {
+
+        setTimeout(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>), <span class="hljs-number">5000</span>);
+}
+
+      }.bind(<span class="hljs-keyword">this</span>));
+      <span class="hljs-keyword">break</span>;
+  }
+}
+
+EdisonNetworkManager.prototype.runStation = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">switch</span>(<span class="hljs-keyword">this</span>.state) {
+    <span class="hljs-keyword">case</span> <span class="hljs-string">'idle'</span>:
+      <span class="hljs-keyword">this</span>.scan_retries = WIFI_SCAN_RETRIES;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Fall through</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">case</span> <span class="hljs-string">'scan'</span>:  
+      <span class="hljs-keyword">this</span>.scan(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+        <span class="hljs-keyword">this</span>.state = <span class="hljs-string">'done_scanning'</span>;
+        setTimeout(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>), WIFI_SCAN_INTERVAL);        
+      }.bind(<span class="hljs-keyword">this</span>));
+      <span class="hljs-keyword">break</span>;
+
+    <span class="hljs-keyword">case</span> <span class="hljs-string">'done_scanning'</span>:
+      <span class="hljs-keyword">this</span>.getNetworks(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+        <span class="hljs-keyword">if</span>(!err) {
+          log.debug(<span class="hljs-string">'Scanned and found '</span> + data.length + <span class="hljs-string">' networks.'</span>)
+          <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> data) {
+              <span class="hljs-keyword">var</span> ssid = data[i].ssid;
+              <span class="hljs-keyword">var</span> found = <span class="hljs-literal">false</span>;
+              <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> j <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.networks) {
+                  <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.networks[j].ssid === ssid) {
+                      found = <span class="hljs-literal">true</span>;
+                      <span class="hljs-keyword">break</span>;
+                  }
+              }
+             <span class="hljs-keyword">if</span>(!found) {
+                 <span class="hljs-keyword">this</span>.networks.push(data[i]);
+             }
+          }
+        } <span class="hljs-keyword">else</span> {
+          <span class="hljs-built_in">console</span>.warn(err);
+        }
+        <span class="hljs-keyword">if</span>(data.length === <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-keyword">this</span>.scan_retries &gt; <span class="hljs-number">0</span>) {
+        log.warn(<span class="hljs-string">"No networks?!  Retrying..."</span>);
+	<span class="hljs-keyword">this</span>.state = <span class="hljs-string">'scan'</span>
+        <span class="hljs-keyword">this</span>.scan_retries--;
+} <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">this</span>.state = <span class="hljs-string">'check_network'</span>;
+        <span class="hljs-keyword">this</span>.network_health_retries = <span class="hljs-number">5</span>;
+}
+        setImmediate(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>));
+      }.bind(<span class="hljs-keyword">this</span>));
+      <span class="hljs-keyword">break</span>;
+
+    <span class="hljs-keyword">case</span> <span class="hljs-string">'check_network'</span>:
+      log.debug(<span class="hljs-string">'Checking network health...'</span>);
+      <span class="hljs-keyword">this</span>.getInfo(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+        <span class="hljs-keyword">var</span> networkOK = <span class="hljs-literal">true</span>;
+        <span class="hljs-keyword">if</span>(!err) {
+          <span class="hljs-keyword">if</span>(data.ipaddress === <span class="hljs-string">'?'</span>) {
+            networkOK = <span class="hljs-literal">false</span>;
+          }
+          <span class="hljs-keyword">if</span>(data.mode === <span class="hljs-string">'master'</span>) {
+             <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'ap'</span>;
+             <span class="hljs-keyword">this</span>.state = <span class="hljs-string">'idle'</span>;
+             setImmediate(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>));
+          }
+        } <span class="hljs-keyword">else</span> {
+          networkOK = <span class="hljs-literal">false</span>;
+        }
+        <span class="hljs-keyword">if</span>(networkOK) {
+          log.debug(<span class="hljs-string">"Network health OK"</span>);
+          <span class="hljs-keyword">this</span>.state = <span class="hljs-string">'idle'</span>;          
+          setImmediate(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>));
+        } <span class="hljs-keyword">else</span> {
+          log.warn(<span class="hljs-string">"Network health in question..."</span>);
+          <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.network_health_retries == <span class="hljs-number">0</span>) {
+              <span class="hljs-keyword">this</span>.network_health_retries = <span class="hljs-number">5</span>;
+              log.error(<span class="hljs-string">"Network is down.  Going to AP mode."</span>);
+       	      <span class="hljs-keyword">this</span>.joinAP();
+              setImmediate(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>)); 
+	  } <span class="hljs-keyword">else</span> {
+             <span class="hljs-keyword">this</span>.network_health_retries--;
+             setTimeout(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>),<span class="hljs-number">1000</span>);
+	  }
+	}
+      }.bind(<span class="hljs-keyword">this</span>));
+      <span class="hljs-keyword">break</span>;
+  }
+}
+
+EdisonNetworkManager.prototype.runAP = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">switch</span>(<span class="hljs-keyword">this</span>.state) {
+    <span class="hljs-keyword">default</span>:
+      <span class="hljs-keyword">this</span>.getInfo(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+        <span class="hljs-keyword">if</span>(!err) {
+          <span class="hljs-keyword">if</span>(data.mode === <span class="hljs-string">'managed'</span>) { <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'station'</span>; }
+          <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(data.mode === <span class="hljs-string">'master'</span>) { <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'ap'</span>; }
+          <span class="hljs-keyword">else</span> { log.warn(<span class="hljs-string">'Unknown network mode: '</span> + data.mode)}
+        }
+        setTimeout(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>), <span class="hljs-number">5000</span>);
+      }.bind(<span class="hljs-keyword">this</span>));
+      <span class="hljs-keyword">break</span>;
+  }
+}
 
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">openHotspot</span>(<span class="hljs-params"></span>)</span>{
-  self=<span class="hljs-keyword">this</span>;
-  log.info(<span class="hljs-string">"Opening a hotspot..."</span>);
-  log.info(<span class="hljs-string">"SSID : "</span>+ hotspot_ssid);
-  log.info(<span class="hljs-string">"Passphrase : "</span>+ hotspot_passphrase);
-  self.wifi.openHotspot(hotspot_ssid,hotspot_passphrase,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
-    CHECK(err);
+EdisonNetworkManager.prototype.joinAP = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+	<span class="hljs-keyword">this</span>.command = {
+		<span class="hljs-string">'cmd'</span> : <span class="hljs-string">'ap'</span>,
+	}
+}
+
+EdisonNetworkManager.prototype._joinAP = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+  jedison(<span class="hljs-string">'join ap'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
+    <span class="hljs-keyword">if</span>(!err) {
+	log.info(<span class="hljs-string">"Entered AP mode."</span>);
+    }
+    callback(err, result);
   });
 }
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">mainWifi</span>(<span class="hljs-params"></span>)</span>{
-  self=<span class="hljs-keyword">this</span>;
-  self.wifi.getNetworks(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,list</span>) </span>{ <span class="hljs-comment">// get the list of available networks</span>
-    CHECK(err);
-    log.info(<span class="hljs-string">"networks: "</span> + self.wifi.getServicesString(list));
-    self.wifi.joinFavorite(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{ <span class="hljs-comment">// try to join a favorite</span>
-      <span class="hljs-keyword">if</span>(err){openHotspot();} <span class="hljs-comment">// if it fails, open a hotspot point.</span>
-      <span class="hljs-keyword">else</span>{
-        self.wifi.service.getProperties(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,props</span>)</span>{
-          log.info(<span class="hljs-string">"you're connected to "</span> + props.Name + <span class="hljs-string">" through "</span> + props.Type);
-        });
-      }
-    });
+EdisonNetworkManager.prototype.joinWifi = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid, password</span>) </span>{
+	<span class="hljs-keyword">this</span>.command = {
+		<span class="hljs-string">'cmd'</span> : <span class="hljs-string">'join'</span>,
+		<span class="hljs-string">'ssid'</span> : ssid,
+		<span class="hljs-string">'password'</span> : password
+	}
+}
+EdisonNetworkManager.prototype._joinWifi = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid, password, callback</span>) </span>{
+  log.info(<span class="hljs-string">"Attempting to join wifi network: "</span> + ssid + <span class="hljs-string">" with password: "</span> + password); 
+  jedison(<span class="hljs-string">'join wifi --ssid='</span> + ssid + <span class="hljs-string">' --password='</span> + password , <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
+    <span class="hljs-keyword">if</span>(err) {
+        log.error(err);
+    }
+    log.debug(result);
+    callback(err, result);
   });
 }
 
 exports.init = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
-    connman.init(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
-      self=<span class="hljs-keyword">this</span>;
-      CHECK(err);
-      connman.initWiFi(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,wifi,properties</span>) </span>{
-        CHECK(err);
-        self.wifi=wifi;
-        self.properties=properties;
-        wifi.closeHotspot(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{CHECK(err);});<span class="hljs-comment">// be sure to close a previous hotspot before scanning</span>
-          wifi.enable(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
-          mainWifi();
-        });
-
-      });
-    });    
-}
-
-
-
-
-exports.getAvailableWifiNetworks = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>wifiscanner.scan(function(err,data){
-    if (err) {
-        callback(err)
-    } else {
-        callback(null, data)
-    }
-});</p></div></div><div class="code"><div class="wrapper">    self.wifi.getNetworks(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,data</span>) </span>{
-        <span class="hljs-keyword">if</span>(err)callback(err);
-        <span class="hljs-keyword">else</span>{
-            callback(<span class="hljs-literal">null</span>,data);
-        }
-
-    });
-}
-
-exports.getAvailableWifiNetwork = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid, callback</span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>exports.getAvailableWifiNetworks(function(err, networks) {
-    if(err) {
-        callback(err)
-    } else {
-        var result = null;
-        networks.some(function(network) {
-            if(network.ssid == ssid) {
-                result = network;
-                return true;
-            }
-        });
-        if(result) {
-            callback(null, result);
-        } else {
-            callback(&#39;No such network.&#39;);
-        }
-    }
-})</code></pre></div></div><div class="code"><div class="wrapper">    self.wifi.getServiceBySSID(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,service</span>)</span>{
-            <span class="hljs-keyword">if</span>(err) {
-                callback(err);
-            }<span class="hljs-keyword">else</span> {
-                service.getProperties(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,props</span>)</span>{
-                    <span class="hljs-keyword">if</span>(err) {
-                        callback(err);
-                    }<span class="hljs-keyword">else</span> {
-                        callback(<span class="hljs-literal">null</span>,service.getProperties());
-                    }
-                });
-            }
-    });
-}
-
-exports.connectToAWifiNetwork= <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid,key,callback</span>) </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>wifiscanner.scan(function(err,data){
-    if (err) {
-        callback(err)
-    } else {
-        callback(null, data)
-    }
-});</p></div></div><div class="code"><div class="wrapper">    self.wifi.join(ssid,key,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,data</span>) </span>{
-        <span class="hljs-keyword">if</span>(err){
-        callback(err.message);
-        mainWifi();
-        }
-        <span class="hljs-keyword">else</span>{
-            callback(<span class="hljs-literal">null</span>,data);
-        }
-
-    });
-}
-
-
-exports.disconnectFromAWifiNetwork= <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
-	self.wifi.disconnect(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
-		<span class="hljs-keyword">if</span>(err)callback(err); 
-		<span class="hljs-keyword">else</span> callback(<span class="hljs-literal">null</span>);
+	log.debug(<span class="hljs-string">"Collapsing from AP state to scan (first boot)"</span>);
+	jedison(<span class="hljs-string">'unjoin'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+  		wifi = <span class="hljs-keyword">new</span> EdisonNetworkManager();
+  		wifi.run();
 	});
+}
+
+
+exports.getAvailableWifiNetworks = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+  callback(<span class="hljs-literal">null</span>, wifi.networks);
+}
+
+exports.getAvailableWifiNetwork = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid, callback</span>) </span>{
+    callback(<span class="hljs-string">'not yet'</span>);
+}
+
+exports.connectToAWifiNetwork= <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid,key,callback</span>) </span>{
+    wifi.joinWifi(ssid, key, callback);
+}
+
+
+exports.disconnectFromAWifiNetwork= <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p> self.wifi.disconnect(function(err){
+    if(err)callback(err); 
+    else callback(null);
+  });</p></div></div><div class="code"><div class="wrapper">callback(<span class="hljs-string">'not yet'</span>);
      
 }
 
-exports.forgetAWifiNetwork=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid,callback</span>)</span>{
-	self.wifi.forgetNetwork(ssid,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
-		<span class="hljs-keyword">if</span>(err)callback(err); 
-		<span class="hljs-keyword">else</span> callback(<span class="hljs-literal">null</span>);
-	})
+exports.forgetAWifiNetwork=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid,callback</span>)</span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p> self.wifi.forgetNetwork(ssid,function(err){
+    if(err)callback(err); 
+    else callback(null);
+  })</p></div></div><div class="code"><div class="wrapper">callback(<span class="hljs-string">'not yet'</span>);
 }
 
 
-exports.turnWifiOn=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
-     self.wifi.enable(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
-        <span class="hljs-keyword">if</span>(err)callback(err); 
-        <span class="hljs-keyword">else</span> callback(<span class="hljs-literal">null</span>);
-     });
+exports.turnWifiOn=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>self.wifi.enable(function(err){
+    if(err)callback(err); 
+    else callback(null);
+ });</code></pre></div></div><div class="code"><div class="wrapper">callback(<span class="hljs-string">'Not available on the edison wifi manager.'</span>);
+
 }
 
-exports.turnWifiOff=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
-     self.wifi.disable(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
-        <span class="hljs-keyword">if</span>(err)callback(err); 
-        <span class="hljs-keyword">else</span> callback(<span class="hljs-literal">null</span>);
-     });
+exports.turnWifiOff=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code> self.wifi.disable(function(err){
+    if(err)callback(err); 
+    else callback(null);
+ });</code></pre></div></div><div class="code"><div class="wrapper">callback(<span class="hljs-string">'Not available on the edison wifi manager.'</span>);
+
 }
 
 exports.turnWifiHotspotOn=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
-     self.wifi.openHotspot(hotspot_ssid,hotspot_passphrase,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
-        <span class="hljs-keyword">if</span>(err)callback(err); 
-        <span class="hljs-keyword">else</span> callback(<span class="hljs-literal">null</span>);
-     });
+    log.info(<span class="hljs-string">"Entering AP mode..."</span>)
+    wifi.joinAP();
 }
 
-exports.turnWifiHotspotOff=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{
-     self.wifi.closeHotspot(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
-        <span class="hljs-keyword">if</span>(err)callback(err); 
-        <span class="hljs-keyword">else</span> callback(<span class="hljs-literal">null</span>);
-     });
-}
-
-
-<span class="hljs-comment">/*******************************************************************************************/</span>
-<span class="hljs-comment">/*************************************  OLD MANAGER  ***************************************/</span>
-<span class="hljs-comment">/*******************************************************************************************/</span>
-
-exports.createProfileForAvailableWirelessNetwork = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid, key, callback</span>) </span>{
-    exports.getAvailableWifiNetwork(ssid, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, network</span>) </span>{
-        <span class="hljs-keyword">if</span>(err) {
-            callback(err);
-        } <span class="hljs-keyword">else</span> {
-            wifi_info = {}
-            wifi_info.ssid = ssid
-            wifi_info.security = network.security
-            wifi_info.itr = WIFI_INTERFACE
-            wifi_info.key = key
-            exports.addWifiProfile(wifi_info, callback);
-        }
-    })
-}
-
-<span class="hljs-keyword">var</span> loadNetworkProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">filename, callback</span>) </span>{
-    fs.readFile(PROFILES_FOLDER+filename, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, data</span>) </span>{
-        <span class="hljs-keyword">if</span>(err){
-            callback(err);
-        } <span class="hljs-keyword">else</span> {
-            <span class="hljs-keyword">var</span> profile = parseNetworkProfile(data)
-            callback(<span class="hljs-literal">null</span>, profile);
-        }
-    });
-}
-
-<span class="hljs-keyword">var</span> parseNetworkProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">profile_txt</span>)</span>{
-    <span class="hljs-keyword">var</span> profile = {};
-    <span class="hljs-keyword">var</span> lines = profile_txt.toString().split(<span class="hljs-string">'\n'</span>);
-    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> index <span class="hljs-keyword">in</span> lines){
-        <span class="hljs-keyword">var</span> arg = lines[index].trim().split(<span class="hljs-string">'='</span>);
-        <span class="hljs-keyword">if</span>(arg[<span class="hljs-number">0</span>])
-            profile[arg[<span class="hljs-number">0</span>]]=arg[<span class="hljs-number">1</span>];
-    }
-    <span class="hljs-keyword">return</span> profile;
-}
-
-exports.getWifiProfiles = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
-    fs.readdir(PROFILES_FOLDER,<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err,files</span>)</span>{
-        <span class="hljs-keyword">if</span>(err){
-            callback(err);
-        } <span class="hljs-keyword">else</span> {
-            <span class="hljs-keyword">var</span> wifi_profiles = files.filter(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">filename</span>) </span>{
-                <span class="hljs-keyword">var</span> is_profile = filename.indexOf(WIFI_INTERFACE+<span class="hljs-string">"-"</span>)===<span class="hljs-number">0</span>
-                <span class="hljs-keyword">return</span> is_profile
-            });
-            <span class="hljs-keyword">async</span>.map(wifi_profiles, loadNetworkProfile, callback);
-        }
-    });
-}
-
-exports.getWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid, callback</span>) </span>{
-    loadNetworkProfile(WIFI_INTERFACE+<span class="hljs-string">'-'</span>+ssid, callback);
-}
-
-exports.formatWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">wifi_info</span>)</span>{
-    <span class="hljs-keyword">if</span>(!wifi_info)
-        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
-    <span class="hljs-keyword">if</span>(wifi_info.security !== <span class="hljs-string">"none"</span> &amp;&amp; wifi_info.security &amp;&amp; <span class="hljs-string">"wep"</span> &amp;&amp; wifi_info.security !== <span class="hljs-string">"wpa"</span> )
-        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
-    <span class="hljs-keyword">if</span>(!wifi_info.ssid)
-        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
-
-    <span class="hljs-keyword">var</span> profile_string=<span class="hljs-string">""</span>;
-    profile_string+=    <span class="hljs-string">"Description='FabMo Wireless Manager Profile "</span> + wifi_info.ssid + <span class="hljs-string">"'\n"</span>;
-    profile_string+=    <span class="hljs-string">"Interface="</span>+WIFI_INTERFACE+<span class="hljs-string">'\n'</span>;
-    profile_string+=    <span class="hljs-string">"Connection=wireless\n"</span>;
-    profile_string+=    <span class="hljs-string">"Security="</span>+wifi_info.security+<span class="hljs-string">'\n'</span>;
-    profile_string+=    <span class="hljs-string">"ESSID="</span>+wifi_info.ssid+<span class="hljs-string">'\n'</span>;
-    profile_string+=    <span class="hljs-string">"IP=dhcp\n"</span>;
-    <span class="hljs-keyword">if</span>(wifi_info.security!==<span class="hljs-string">"none"</span> &amp;&amp; wifi_info.key === <span class="hljs-literal">undefined</span>)
-        <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>;
-    <span class="hljs-keyword">else</span>
-        profile_string+=<span class="hljs-string">"Key="</span>+wifi_info.key+<span class="hljs-string">'\n'</span>;
-
-    <span class="hljs-keyword">return</span> profile_string;
-}
-
-exports.addWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">wifi_info, callback</span>) </span>{
-    <span class="hljs-keyword">var</span> txt = exports.formatWifiProfile(wifi_info);
-    <span class="hljs-keyword">if</span>(txt) {
-        fs.writeFile(PROFILES_FOLDER + WIFI_INTERFACE + <span class="hljs-string">'-'</span> + wifi_info.ssid, txt, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
-            callback(err);
-        });
-    } <span class="hljs-keyword">else</span> {
-        err = <span class="hljs-string">"Could not convert "</span> + <span class="hljs-built_in">JSON</span>.stringify(wifi_info) + <span class="hljs-string">" into a valid wifi profile"</span>;
-        callback(err);
-    }
-}
-
-exports.removeWifiProfile = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ssid, callback</span>) </span>{
-    fs.unlink(PROFILES_FOLDER+WIFI_INTERFACE+<span class="hljs-string">'-'</span>+ssid, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
-        callback(err);
-    });
-}
-
-
-<span class="hljs-comment">/*******************************************************************************************/</span>
-<span class="hljs-comment">/********************************* END OF OLD MANAGER  *************************************/</span>
-<span class="hljs-comment">/*******************************************************************************************/</span></div></div></div></div></body></html>
+exports.turnWifiHotspotOff=<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>)</span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><pre><code>self.wifi.closeHotspot(function(err){
+    if(err)callback(err); 
+    else callback(null);
+ });</code></pre></div></div><div class="code"><div class="wrapper">callback(<span class="hljs-string">'not yet'</span>);
+}</div></div></div></div></body></html>

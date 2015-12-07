@@ -31,7 +31,6 @@ OPENSBP_EXTENSIONS = [<span class="hljs-string">'.sbp'</span>, <span class="hljs
 }
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">doshell</span>(<span class="hljs-params">command, callback</span>)</span>{
-    log.debug(<span class="hljs-string">"Executing shell command: "</span> + command)
     exec(command, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">error, stdout, stderr</span>) </span>{ 
         callback(stdout); 
     });
@@ -349,6 +348,11 @@ something else!</p></div></div><div class="code"><div class="wrapper">        in
     };
 }
 
+<span class="hljs-keyword">var</span> getClientAddress = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req</span>) </span>{
+        <span class="hljs-keyword">return</span> (req.headers[<span class="hljs-string">'x-forwarded-for'</span>] || <span class="hljs-string">''</span>).split(<span class="hljs-string">','</span>)[<span class="hljs-number">0</span>] 
+        || req.connection.remoteAddress;
+};
+
 exports.serveStatic = serveStatic;
 exports.Queue = Queue;
 exports.Watchdog = Watchdog;
@@ -359,4 +363,5 @@ exports.walkDir = walkDir;
 exports.createUniqueFilename = createUniqueFilename;
 exports.fixJSON = fixJSON;
 exports.extend = extend;
-exports.doshell = doshell;</div></div></div></div></body></html>
+exports.doshell = doshell;
+exports.getClientAddress = getClientAddress;</div></div></div></div></body></html>

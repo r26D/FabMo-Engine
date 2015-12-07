@@ -46,14 +46,14 @@ ManualRuntime.prototype._onG2Status = <span class="hljs-function"><span class="h
 				<span class="hljs-keyword">break</span>;
 			}
 
-			<span class="hljs-keyword">if</span>(status.stat === <span class="hljs-keyword">this</span>.driver.STAT_STOP || status.stat === <span class="hljs-keyword">this</span>.driver.STAT_END) {
+			<span class="hljs-keyword">if</span>((status.stat === <span class="hljs-keyword">this</span>.driver.STAT_STOP || status.stat === <span class="hljs-keyword">this</span>.driver.STAT_END) &amp;&amp; status.hold === <span class="hljs-number">0</span>) {
 				<span class="hljs-keyword">this</span>._changeState(<span class="hljs-string">"idle"</span>);
 				<span class="hljs-keyword">break</span>;
 			}
 			<span class="hljs-keyword">break</span>;
 
 		<span class="hljs-keyword">case</span> <span class="hljs-string">"paused"</span>:
-			<span class="hljs-keyword">if</span>(status.stat === <span class="hljs-keyword">this</span>.driver.STAT_STOP || status.stat === <span class="hljs-keyword">this</span>.driver.STAT_END) {
+			<span class="hljs-keyword">if</span>((status.stat === <span class="hljs-keyword">this</span>.driver.STAT_STOP || status.stat === <span class="hljs-keyword">this</span>.driver.STAT_END) &amp;&amp; status.hold === <span class="hljs-number">0</span>) {
 				<span class="hljs-keyword">this</span>._changeState(<span class="hljs-string">"idle"</span>);
 				<span class="hljs-keyword">break</span>;
 			}

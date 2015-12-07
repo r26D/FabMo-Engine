@@ -104,9 +104,8 @@
 }
 
 <span class="hljs-keyword">var</span> update = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, macro, callback</span>) </span>{
-	old_macro = get(id);
+	<span class="hljs-keyword">var</span> old_macro = get(id);
 	<span class="hljs-keyword">if</span>(old_macro) {
-
 		<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">savemacro</span>(<span class="hljs-params">id, callback</span>) </span>{
 			old_macro.name = macro.name || old_macro.name;
 			old_macro.description = macro.description || old_macro.description;
@@ -116,12 +115,18 @@
 			old_macro.filename = _createMacroFilename(old_macro.index, old_macro.type);
 			save(id, callback);
 		}
-		<span class="hljs-keyword">if</span>(macro.index &amp;&amp; (macro.index != old_macro.index)) {
-			macros[macro.index] = old_macro;
-			<span class="hljs-keyword">delete</span> macros[old_macro.index];
-			_deleteMacroFile(old_macro.index, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
-				savemacro(macro.index, callback);
-			});
+
+		<span class="hljs-keyword">if</span>(macro.index) {
+			<span class="hljs-keyword">var</span> new_index = <span class="hljs-built_in">parseInt</span>(macro.index);
+			<span class="hljs-keyword">if</span>(new_index != old_macro.index) {
+				macros[new_index] = old_macro;
+				<span class="hljs-keyword">delete</span> macros[old_macro.index];
+				_deleteMacroFile(old_macro.index, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+					savemacro(new_index, callback);
+				});
+			} <span class="hljs-keyword">else</span> {
+				savemacro(id, callback);
+			}
 		} <span class="hljs-keyword">else</span> {
 			savemacro(id, callback);
 		}
@@ -213,7 +218,7 @@
 			<span class="hljs-string">'description'</span> : macro.description,
 			<span class="hljs-string">'enabled'</span> : macro.enabled,
 			<span class="hljs-string">'type'</span> : macro.type,
-			<span class="hljs-string">'index'</span> : macro.index
+			<span class="hljs-string">'index'</span> : <span class="hljs-built_in">parseInt</span>(macro.index)
 		}
 	} <span class="hljs-keyword">else</span> {
 		<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>; 

@@ -569,7 +569,21 @@ G2.prototype.sendMoreGCodes = <span class="hljs-function"><span class="hljs-keyw
 		<span class="hljs-keyword">this</span>.lines_sent += codes.length;
 		<span class="hljs-keyword">this</span>.gcodeWrite(codes.join(<span class="hljs-string">'\n'</span>) + <span class="hljs-string">'\n'</span>);
 	}
-};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Function works like &quot;once()&quot; for a state change
+};
+
+G2.prototype.setMachinePosition = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">position, callback</span>) </span>{
+	<span class="hljs-keyword">var</span> gcode = <span class="hljs-string">"G21\nG28.3 "</span>;
+	[<span class="hljs-string">'x'</span>,<span class="hljs-string">'y'</span>,<span class="hljs-string">'z'</span>,<span class="hljs-string">'a'</span>,<span class="hljs-string">'b'</span>,<span class="hljs-string">'c'</span>,<span class="hljs-string">'u'</span>,<span class="hljs-string">'v'</span>,<span class="hljs-string">'w'</span>].forEach(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">axis</span>) </span>{
+		<span class="hljs-keyword">if</span>(position[axis] != <span class="hljs-literal">undefined</span>) {
+			gcode += <span class="hljs-string">' '</span> + axis + position[axis].toFixed(<span class="hljs-number">3</span>);
+		}		
+	});
+
+	<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.status.unit === <span class="hljs-string">'in'</span>) {
+		gcode += <span class="hljs-string">'\nG20'</span>;
+	}
+	<span class="hljs-keyword">this</span>.runString(gcode, callback);
+}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Function works like &quot;once()&quot; for a state change
 callbacks is an associative array mapping states to callbacks
 If the <em>next</em> state change matches a state in the associative array, the callback it maps to is called.
 If null is specified in the array, this callback is used for any state that is unspecified</p>

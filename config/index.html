@@ -5,6 +5,8 @@
 <span class="hljs-keyword">var</span> OpenSBPConfig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./opensbp_config'</span>).OpenSBPConfig;
 <span class="hljs-keyword">var</span> MachineConfig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine_config'</span>).MachineConfig;
 <span class="hljs-keyword">var</span> DashboardCofnig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./dashboard_config'</span>).DashboardConfig;
+<span class="hljs-keyword">var</span> InstanceConfig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./instance_config'</span>).InstanceConfig;
+
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 <span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
 
@@ -51,6 +53,11 @@ it with the configuration of the actual physical driver.</p>
 	exports.dashboard.init(callback);
 }
 
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">configureInstance</span>(<span class="hljs-params">driver, callback</span>) </span>{
+	exports.instance = <span class="hljs-keyword">new</span> InstanceConfig(driver);
+	exports.instance.init(callback);
+}
+
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">canWriteTo</span>(<span class="hljs-params">dirname</span>) </span>{
 	<span class="hljs-keyword">try</span> {
 		test_path = path.join(dirname,<span class="hljs-string">'/.fabmoenginetest'</span>)
@@ -85,6 +92,7 @@ exports.configureEngine = configureEngine;
 exports.configureDriver = configureDriver;
 exports.configureOpenSBP = configureOpenSBP;
 exports.configureMachine = configureMachine;
+exports.configureInstance = configureInstance;
 
 exports.createDataDirectories = Config.createDataDirectories;
 exports.getDataDir = Config.getDataDir;

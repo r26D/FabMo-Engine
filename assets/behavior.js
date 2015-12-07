@@ -13,7 +13,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "commentsOnly": true,
           "name": "Markdown"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/README.md",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/README.md",
         "projectPath": "README.md",
         "targetPath": "index",
         "pageTitle": "index",
@@ -32,7 +32,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/Gruntfile.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/Gruntfile.js",
         "projectPath": "Gruntfile.js",
         "targetPath": "Gruntfile",
         "pageTitle": "Gruntfile",
@@ -59,7 +59,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/cloud/handibot.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/cloud/handibot.js",
             "projectPath": "cloud/handibot.js",
             "targetPath": "cloud/handibot",
             "pageTitle": "cloud/handibot",
@@ -84,7 +84,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "commentsOnly": true,
               "name": "Markdown"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/README.md",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/README.md",
             "projectPath": "config/README.md",
             "targetPath": "config/README",
             "pageTitle": "config/README",
@@ -103,7 +103,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/config.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/config.js",
             "projectPath": "config/config.js",
             "targetPath": "config/config",
             "pageTitle": "config/config",
@@ -122,7 +122,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/dashboard_config.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/dashboard_config.js",
             "projectPath": "config/dashboard_config.js",
             "targetPath": "config/dashboard_config",
             "pageTitle": "config/dashboard_config",
@@ -141,7 +141,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/engine_config.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/engine_config.js",
             "projectPath": "config/engine_config.js",
             "targetPath": "config/engine_config",
             "pageTitle": "config/engine_config",
@@ -160,7 +160,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/g2_config.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/g2_config.js",
             "projectPath": "config/g2_config.js",
             "targetPath": "config/g2_config",
             "pageTitle": "config/g2_config",
@@ -179,7 +179,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/index.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/index.js",
             "projectPath": "config/index.js",
             "targetPath": "config/index",
             "pageTitle": "config/index",
@@ -198,7 +198,26 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/machine_config.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/instance_config.js",
+            "projectPath": "config/instance_config.js",
+            "targetPath": "config/instance_config",
+            "pageTitle": "config/instance_config",
+            "title": "instance_config"
+          },
+          "depth": 2
+        }, {
+          "type": "file",
+          "data": {
+            "language": {
+              "nameMatchers": [".js"],
+              "pygmentsLexer": "javascript",
+              "multiLineComment": ["/*", "*", "*/"],
+              "singleLineComment": ["//"],
+              "ignorePrefix": "}",
+              "foldPrefix": "^",
+              "name": "JavaScript"
+            },
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/machine_config.js",
             "projectPath": "config/machine_config.js",
             "targetPath": "config/machine_config",
             "pageTitle": "config/machine_config",
@@ -217,7 +236,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/opensbp_config.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/config/opensbp_config.js",
             "projectPath": "config/opensbp_config.js",
             "targetPath": "config/opensbp_config",
             "pageTitle": "config/opensbp_config",
@@ -242,7 +261,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "commentsOnly": true,
               "name": "Markdown"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/dashboard/README.md",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/dashboard/README.md",
             "projectPath": "dashboard/README.md",
             "targetPath": "dashboard/README",
             "pageTitle": "dashboard/README",
@@ -261,7 +280,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/dashboard/app_manager.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/dashboard/app_manager.js",
             "projectPath": "dashboard/app_manager.js",
             "targetPath": "dashboard/app_manager",
             "pageTitle": "dashboard/app_manager",
@@ -280,7 +299,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/dashboard/index.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/dashboard/index.js",
             "projectPath": "dashboard/index.js",
             "targetPath": "dashboard/index",
             "pageTitle": "dashboard/index",
@@ -301,7 +320,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/db.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/db.js",
         "projectPath": "db.js",
         "targetPath": "db",
         "pageTitle": "db",
@@ -320,7 +339,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/debug.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/debug.js",
         "projectPath": "debug.js",
         "targetPath": "debug",
         "pageTitle": "debug",
@@ -339,7 +358,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/detection_daemon.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/detection_daemon.js",
         "projectPath": "detection_daemon.js",
         "targetPath": "detection_daemon",
         "pageTitle": "detection_daemon",
@@ -358,7 +377,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/engine.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/engine.js",
         "projectPath": "engine.js",
         "targetPath": "engine",
         "pageTitle": "engine",
@@ -377,7 +396,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/g2.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/g2.js",
         "projectPath": "g2.js",
         "targetPath": "g2",
         "pageTitle": "g2",
@@ -396,7 +415,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/log.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/log.js",
         "projectPath": "log.js",
         "targetPath": "log",
         "pageTitle": "log",
@@ -415,7 +434,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/machine.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/machine.js",
         "projectPath": "machine.js",
         "targetPath": "machine",
         "pageTitle": "machine",
@@ -434,7 +453,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/macros.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/macros.js",
         "projectPath": "macros.js",
         "targetPath": "macros",
         "pageTitle": "macros",
@@ -453,7 +472,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/network.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/network.js",
         "projectPath": "network.js",
         "targetPath": "network",
         "pageTitle": "network",
@@ -476,7 +495,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "commentsOnly": true,
               "name": "Markdown"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/README.md",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/README.md",
             "projectPath": "routes/README.md",
             "targetPath": "routes/README",
             "pageTitle": "routes/README",
@@ -495,7 +514,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/config.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/config.js",
             "projectPath": "routes/config.js",
             "targetPath": "routes/config",
             "pageTitle": "routes/config",
@@ -514,7 +533,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/dashboard.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/dashboard.js",
             "projectPath": "routes/dashboard.js",
             "targetPath": "routes/dashboard",
             "pageTitle": "routes/dashboard",
@@ -533,7 +552,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/direct.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/direct.js",
             "projectPath": "routes/direct.js",
             "targetPath": "routes/direct",
             "pageTitle": "routes/direct",
@@ -552,7 +571,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/index.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/index.js",
             "projectPath": "routes/index.js",
             "targetPath": "routes/index",
             "pageTitle": "routes/index",
@@ -571,7 +590,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/jobs.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/jobs.js",
             "projectPath": "routes/jobs.js",
             "targetPath": "routes/jobs",
             "pageTitle": "routes/jobs",
@@ -590,7 +609,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/kill.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/kill.js",
             "projectPath": "routes/kill.js",
             "targetPath": "routes/kill",
             "pageTitle": "routes/kill",
@@ -609,7 +628,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/log.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/log.js",
             "projectPath": "routes/log.js",
             "targetPath": "routes/log",
             "pageTitle": "routes/log",
@@ -628,7 +647,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/macros.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/macros.js",
             "projectPath": "routes/macros.js",
             "targetPath": "routes/macros",
             "pageTitle": "routes/macros",
@@ -647,7 +666,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/network_manager.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/network_manager.js",
             "projectPath": "routes/network_manager.js",
             "targetPath": "routes/network_manager",
             "pageTitle": "routes/network_manager",
@@ -666,7 +685,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/passthrough.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/passthrough.js",
             "projectPath": "routes/passthrough.js",
             "targetPath": "routes/passthrough",
             "pageTitle": "routes/passthrough",
@@ -685,7 +704,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/state.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/state.js",
             "projectPath": "routes/state.js",
             "targetPath": "routes/state",
             "pageTitle": "routes/state",
@@ -704,7 +723,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/time.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/time.js",
             "projectPath": "routes/time.js",
             "targetPath": "routes/time",
             "pageTitle": "routes/time",
@@ -723,7 +742,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/update.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/update.js",
             "projectPath": "routes/update.js",
             "targetPath": "routes/update",
             "pageTitle": "routes/update",
@@ -742,7 +761,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/websocket.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/routes/websocket.js",
             "projectPath": "routes/websocket.js",
             "targetPath": "routes/websocket",
             "pageTitle": "routes/websocket",
@@ -771,7 +790,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/manual.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/manual.js",
             "projectPath": "runtime/manual.js",
             "targetPath": "runtime/manual",
             "pageTitle": "runtime/manual",
@@ -790,7 +809,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/passthrough.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/runtime/passthrough.js",
             "projectPath": "runtime/passthrough.js",
             "targetPath": "runtime/passthrough",
             "pageTitle": "runtime/passthrough",
@@ -819,7 +838,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/scripts/convert_sb3.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/scripts/convert_sb3.js",
             "projectPath": "scripts/convert_sb3.js",
             "targetPath": "scripts/convert_sb3",
             "pageTitle": "scripts/convert_sb3",
@@ -838,7 +857,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/scripts/sb3_to_gcode.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/scripts/sb3_to_gcode.js",
             "projectPath": "scripts/sb3_to_gcode.js",
             "targetPath": "scripts/sb3_to_gcode",
             "pageTitle": "scripts/sb3_to_gcode",
@@ -859,7 +878,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/server.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/server.js",
         "projectPath": "server.js",
         "targetPath": "server",
         "pageTitle": "server",
@@ -886,7 +905,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
               "foldPrefix": "^",
               "name": "JavaScript"
             },
-            "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/updater/index.js",
+            "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/updater/index.js",
             "projectPath": "updater/index.js",
             "targetPath": "updater/index",
             "pageTitle": "updater/index",
@@ -907,7 +926,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "foldPrefix": "^",
           "name": "JavaScript"
         },
-        "sourcePath": "/Users/ryansturmer/projects/fering/shopbot/FabMo-Engine/util.js",
+        "sourcePath": "/home/ryansturmer/projects/fering/shopbot/FabMo-Engine/util.js",
         "projectPath": "util.js",
         "targetPath": "util",
         "pageTitle": "util",

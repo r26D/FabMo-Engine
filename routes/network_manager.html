@@ -95,7 +95,7 @@ wifiState = <span class="hljs-function"><span class="hljs-keyword">function</spa
 
 hotspotState = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req,res,next</span>)</span>{
     state = req.params.enabled;
-    <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">true</span>){
+    <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">true</span> || state === <span class="hljs-string">'true'</span>){
         network.turnWifiHotspotOn(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
             <span class="hljs-keyword">if</span>(err) {
                 res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});
@@ -103,7 +103,7 @@ hotspotState = <span class="hljs-function"><span class="hljs-keyword">function</
                 res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'success'</span>});
             }
         });
-    }<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">false</span>){
+    }<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(state===<span class="hljs-literal">false</span> || state === <span class="hljs-string">'false'</span>){
         network.turnWifiHotspotOff(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>)</span>{
         <span class="hljs-keyword">if</span>(err) {
             res.json({<span class="hljs-string">'status'</span>:<span class="hljs-string">'error'</span>, <span class="hljs-string">'message'</span> : err});

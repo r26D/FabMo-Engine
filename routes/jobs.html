@@ -243,6 +243,26 @@
     });
 };
 
+<span class="hljs-keyword">var</span> getJobGCode = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+    db.Job.getFileForJobId(req.params.id, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, file</span>) </span>{
+        <span class="hljs-keyword">if</span>(err) {
+            log.error(err);
+            <span class="hljs-keyword">var</span> answer = {
+                    status:<span class="hljs-string">"fail"</span>,
+                    data:{file:err}
+            };
+            res.json(answer);                        
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">var</span> gcode_filename = <span class="hljs-string">'gcode.nc'</span>;
+            machine.getGCodeForFile(file.path, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, gcode</span>) </span>{                
+                res.setHeader(<span class="hljs-string">'content-type'</span>, <span class="hljs-string">'applications/octet-stream'</span>);
+                res.setHeader(<span class="hljs-string">'content-disposition'</span>, <span class="hljs-string">'filename="'</span> + gcode_filename + <span class="hljs-string">'"'</span>);
+                res.send(gcode);
+            });
+        }
+    });
+};
+
 <span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">server</span>) </span>{
     server.post(<span class="hljs-string">'/job'</span>, submitJob);
     server.get(<span class="hljs-string">'/jobs'</span>, getAllJobs);
@@ -250,6 +270,8 @@
     server.del(<span class="hljs-string">'/job/:id'</span>, cancelJob);
     server.post(<span class="hljs-string">'/job/:id'</span>, resubmitJob);
     server.get(<span class="hljs-string">'/job/:id/file'</span>, getJobFile);
+    server.get(<span class="hljs-string">'/job/:id/gcode'</span>, getJobGCode);
+
     server.get(<span class="hljs-string">'/jobs/queue'</span>, getQueue);
     server.del(<span class="hljs-string">'/jobs/queue'</span>, clearQueue);
     server.post(<span class="hljs-string">'/jobs/queue/run'</span>, runNextJob);
