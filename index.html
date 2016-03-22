@@ -8,8 +8,8 @@
 <li>Hosting of the &quot;FabMo Dashboard&quot; a web frontend to the FabMo Engine that provides an app hosting environment</li>
 </ul>
 <h2 id="documentation">Documentation</h2>
-<p><a href="http://shopbottools.github.io/FabMo-Engine/">Source Code Documentation</a> </p>
-<p><a href="http://shopbottools.github.io/FabMo-Engine/api">API Documentation</a></p>
+<p><a href="http://fabmo.github.io/FabMo-Engine/">Source Code Documentation</a> </p>
+<p><a href="http://fabmo.github.io/FabMo-Engine/api">API Documentation</a></p>
 <h2 id="quick-start">Quick Start</h2>
 <ol>
 <li>Install nodejs - The officially supported version is v0.12.7  - Newer versions <em>do not work at this time</em></li>
@@ -17,10 +17,10 @@
 <li>From inside the source directory, install all of the engine dependencies with <code>npm install</code></li>
 <li>Create the engine data directory at <code>/opt/fabmo</code> or <code>C:\opt\fabmo</code> if you&#39;re on windows.  Set the permissions on this directory so that the user running the engine can read/write to it.</li>
 <li>Start the engine with <code>npm run debug</code> for development mode or <code>npm start</code> for production mode.</li>
-<li>On Windows or OSX it is unlikely that the default COM port settings are satisfactory.  After running the engine once, edit <code>C:\fabmo\config\engine.json</code> or <code>/opt/fabmo/config/engine.json</code> and set the two COM ports for your platform with the appropriate values for your system.</li>
+<li>On Windows it is unlikely that the default COM port settings are satisfactory.  After running the engine once, edit <code>C:\fabmo\config\engine.json</code> and set the two COM ports for your platform with the appropriate values for your system.</li>
 </ol>
 <p><strong> Note that you should not need to run the engine as a priveleged user.  If you have to run your engine using <code>sudo</code> check your node installation and the permissions settings for the /opt/fabmo directory </strong></p>
-<p>When the engine starts, it will connect to G2 and setup an http server to accept connections on port 9876.  Once the engine is running you can visit <a href="http://localhost:9876/"><a href="http://localhost:9876/">http://localhost:9876/</a></a> to use the engine dashboard.</p>
+<p>When the engine starts, it will connect to G2 and setup an http server to accept connections on port 9876.  Once the engine is running you can visit <a href="http://localhost:9876/"><a href="http://localhost:9876/">http://localhost:9876/</a></a> to use the fabmo dashboard.</p>
 <h2 id="installing-the-engine">Installing the Engine</h2>
 <p>The engine is run from source, and only needs to be checked out and stored in a local directory.  Run <code>npm install</code> from the source directory to install the needed dependencies.</p>
 <h3 id="on-the-intel-edison">On the Intel Edison</h3>
@@ -36,6 +36,6 @@
 <li>After the engine has had time to start, check its status: <code>systemctl status fabmo</code></li>
 </ol>
 <h2 id="running-the-engine">Running the Engine</h2>
-<p>For debugging the engine, you can run it directly from the command prompt with <code>npm start</code> or <code>node server.js</code></p>
+<p>For debugging the engine, you can run it directly from the command prompt with <code>npm start</code> or <code>node server.js</code>  Running with <code>npm run debug</code> puts the engine in debug mode, in which it does more agressive app reloading.  <code>npm debug slow</code> introduces deliberate network latency on GET/POST requests, for testing.  This latency can be adjusted in <code>engine.js</code></p>
 <h2 id="development">Development</h2>
-<p>A number of grunt tasks have been set up to facilitate engine development.  To see them, run <code>grunt</code> with no arguments in the source directory, and a list will be produced with explanations.  Currently, tasks exist for testing and generating/publishing documentation.</p></div></div></div></div></body></html>
+<p>A number of grunt tasks have been set up to facilitate engine development.  To see them, run <code>grunt</code> with no arguments in the source directory, and a list will be produced with explanations.  Currently, tasks exist for testing and generating/publishing documentation.,</p></div></div></div></div></body></html>

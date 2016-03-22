@@ -41,7 +41,7 @@ OPENSBP_EXTENSIONS = [<span class="hljs-string">'.sbp'</span>, <span class="hljs
         <span class="hljs-keyword">if</span>(a.hasOwnProperty(k) || force) {
             <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> b[k] === <span class="hljs-string">'object'</span> &amp;&amp; b[k] !== <span class="hljs-literal">null</span>) {
                 <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> a[k] === <span class="hljs-string">'object'</span> &amp;&amp; a[k] !== <span class="hljs-literal">null</span>) {
-                    extend(a[k], b[k]);
+                    extend(a[k], b[k], force);
                 } <span class="hljs-keyword">else</span> {
                     <span class="hljs-keyword">if</span>(force) {
                         a[k] = b[k];

@@ -16,7 +16,7 @@ The detection daemon is what we as a FabMo device run so that we can be discover
 	socket.on(<span class="hljs-string">"message"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"> data, rinfo </span>) </span>{
 		<span class="hljs-keyword">if</span>(data.toString() == REQ) <span class="hljs-comment">// Respond properly to queries asking if we are a FabMo device</span>
 		{
-			log.info(<span class="hljs-string">'scan in progress by '</span>+ rinfo.address);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Respond indicating that we are a FabMo system</p></div></div><div class="code"><div class="wrapper">			socket.send(<span class="hljs-keyword">new</span> Buffer(OK), <span class="hljs-number">0</span>, OK.length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
+			<span class="hljs-comment">//log.debug('scan in progress by '+ rinfo.address);</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Respond indicating that we are a FabMo system</p></div></div><div class="code"><div class="wrapper">			socket.send(<span class="hljs-keyword">new</span> Buffer(OK), <span class="hljs-number">0</span>, OK.length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
 				<span class="hljs-keyword">if</span> (err) {
 					log.error(err);
 				}
@@ -37,7 +37,7 @@ The detection daemon is what we as a FabMo device run so that we can be discover
 					}
 				});
 			},os.networkInterfaces());
-			log.info(<span class="hljs-built_in">JSON</span>.stringify(result));
+			<span class="hljs-comment">//log.debug(JSON.stringify(result));</span>
 			socket.send(<span class="hljs-keyword">new</span> Buffer(<span class="hljs-built_in">JSON</span>.stringify(result)), <span class="hljs-number">0</span>, <span class="hljs-built_in">JSON</span>.stringify(result).length, rinfo.port, rinfo.address, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
 				<span class="hljs-keyword">if</span> (err) log.error(err);
 						<span class="hljs-comment">//console.log("ask info");</span>
@@ -46,7 +46,7 @@ The detection daemon is what we as a FabMo device run so that we can be discover
 		}
 		<span class="hljs-keyword">else</span>
 		{
-			log.info(<span class="hljs-string">"received from "</span>+rinfo.address+<span class="hljs-string">" : unknown message : '"</span>+ data.toString() +<span class="hljs-string">"'"</span>);
+			log.error(<span class="hljs-string">"received from "</span>+rinfo.address+<span class="hljs-string">" : unknown message : '"</span>+ data.toString() +<span class="hljs-string">"'"</span>);
 		}
 	});
 

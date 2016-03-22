@@ -41,6 +41,10 @@ exports.loadApp = <span class="hljs-function"><span class="hljs-keyword">functio
 	<span class="hljs-keyword">return</span> exports.appManager.loadApp(pathname, options, callback);
 };
 
+exports.installAppArchive = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">path, name, callback</span>) </span>{
+	<span class="hljs-keyword">return</span> exports.appManager.installAppArchive(path, name, callback);
+};
+
 exports.deleteApp = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">id, callback</span>) </span>{
 	<span class="hljs-keyword">return</span> exports.appManager.deleteApp(id, callback);
 };

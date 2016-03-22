@@ -2,14 +2,19 @@
 <span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 <span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
 <span class="hljs-keyword">var</span> PLATFORM = <span class="hljs-built_in">require</span>(<span class="hljs-string">'process'</span>).platform;
-<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'config'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Config is the superclass from which all configuration objects descend</p></div></div><div class="code"><div class="wrapper">Config = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">config_name</span>) </span>{
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../log'</span>).logger(<span class="hljs-string">'config'</span>);
+<span class="hljs-keyword">var</span> EventEmitter = <span class="hljs-built_in">require</span>(<span class="hljs-string">'events'</span>).EventEmitter;
+<span class="hljs-keyword">var</span> util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'util'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Config is the superclass from which all configuration objects descend</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> Config = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">config_name</span>) </span>{
 	<span class="hljs-keyword">this</span>._cache = {};
 	<span class="hljs-keyword">this</span>.config_name = config_name;
 	<span class="hljs-keyword">this</span>.default_config_file = __dirname + <span class="hljs-string">'/default/'</span> + config_name + <span class="hljs-string">'.json'</span>;
 	<span class="hljs-keyword">this</span>.config_file = Config.getDataDir(<span class="hljs-string">'config'</span>) + <span class="hljs-string">'/'</span> + config_name + <span class="hljs-string">'.json'</span>;
 	<span class="hljs-keyword">this</span>._loaded = <span class="hljs-literal">false</span>;
 	<span class="hljs-keyword">this</span>.userConfigLoaded = <span class="hljs-literal">false</span>;
+	EventEmitter.call(<span class="hljs-keyword">this</span>);
 };
+util.inherits(Config,EventEmitter);
+
 
 Config.prototype.get = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">k</span>) </span>{
 	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._cache[k];
@@ -27,8 +32,20 @@ Config.prototype.getMany = <span class="hljs-function"><span class="hljs-keyword
 Config.prototype.set = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">k,v, callback</span>) </span>{
 	<span class="hljs-keyword">var</span> u = {}
 	u[k] = v;
-	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.update(u, callback);
+	<span class="hljs-keyword">this</span>.setMany(u, callback);
 };
+
+Config.prototype.setMany = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data, callback</span>) </span>{
+	<span class="hljs-keyword">this</span>.update(data, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
+		<span class="hljs-keyword">if</span>(callback &amp;&amp; <span class="hljs-keyword">typeof</span> callback === <span class="hljs-string">'function'</span>) {
+			callback(err, result);
+		} <span class="hljs-keyword">else</span> {
+			log.warn(<span class="hljs-string">"No callback passed to setMany"</span>);
+
+		}
+		<span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'change'</span>, data);
+	}.bind(<span class="hljs-keyword">this</span>));
+}
 
 Config.prototype.getData = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
 	<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._cache;

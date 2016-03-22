@@ -189,11 +189,13 @@
 				results.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">info</span>) </span>{
 					<span class="hljs-keyword">if</span>(info) {
 						groups = info.filename.match(re);
-						idx = <span class="hljs-built_in">parseInt</span>(groups[<span class="hljs-number">1</span>]);
-						ext = groups[<span class="hljs-number">2</span>];
-						info.index = idx;
-						info.type = ext;
-						macros[idx] = info;
+						<span class="hljs-keyword">if</span>(groups) {
+							idx = <span class="hljs-built_in">parseInt</span>(groups[<span class="hljs-number">1</span>]);
+							ext = groups[<span class="hljs-number">2</span>];
+							info.index = idx;
+							info.type = ext;
+							macros[idx] = info;							
+						}
 					}
 				});
 				callback(<span class="hljs-literal">null</span>);
@@ -233,15 +235,10 @@
 	<span class="hljs-keyword">var</span> machine = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./machine'</span>).machine;
 
 	info = macros[idx];
-	<span class="hljs-keyword">if</span>(info) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create a lightweight job</p></div></div><div class="code"><div class="wrapper">		machine.status.job = <span class="hljs-keyword">new</span> Job({
-			name : info.name,
-			description : info.description
-		});</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Run it!</p></div></div><div class="code"><div class="wrapper">		machine.status.job.start(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
+	<span class="hljs-keyword">if</span>(info) {
 			machine.runFile(info.filename);
-		}.bind(<span class="hljs-keyword">this</span>));
-
 	} <span class="hljs-keyword">else</span> {
-		<span class="hljs-keyword">throw</span> <span class="hljs-string">"No such macro."</span>
+		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"No such macro."</span>)
 	}
 }
 

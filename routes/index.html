@@ -10,8 +10,12 @@
 		<span class="hljs-keyword">if</span>((path.extname(filePath) == <span class="hljs-string">'.js'</span>) &amp;&amp; (path.basename(filePath) != <span class="hljs-string">'index.js'</span>)) {
 		<span class="hljs-keyword">try</span>{
 			routes = <span class="hljs-built_in">require</span>(filePath);
-			routes(server);
-			log.debug(<span class="hljs-string">'  Loaded routes from "'</span> + filePath + <span class="hljs-string">'"'</span>);
+			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span>(routes) == <span class="hljs-string">'function'</span>) {
+				routes(server);
+				log.debug(<span class="hljs-string">'  Loaded routes from "'</span> + filePath + <span class="hljs-string">'"'</span>);				
+			} <span class="hljs-keyword">else</span> {
+				log.debug(<span class="hljs-string">'  (Skipping route load for '</span> + filePath + <span class="hljs-string">')'</span>);
+			}
 		} <span class="hljs-keyword">catch</span>(e) {
 			log.warn(<span class="hljs-string">'Could not load routes from "'</span> + filePath + <span class="hljs-string">'": '</span> + e);
 		}

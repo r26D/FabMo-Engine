@@ -40,6 +40,7 @@ EdisonNetworkManager.prototype.getNetworks = <span class="hljs-function"><span c
 }
 
 EdisonNetworkManager.prototype.scan = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">callback</span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Scanning for networks..."</span>); 
   jedison(<span class="hljs-string">'scan'</span>, callback);
 }
 
@@ -151,10 +152,12 @@ EdisonNetworkManager.prototype.runStation = <span class="hljs-function"><span cl
         <span class="hljs-keyword">var</span> networkOK = <span class="hljs-literal">true</span>;
         <span class="hljs-keyword">if</span>(!err) {
           <span class="hljs-keyword">if</span>(data.ipaddress === <span class="hljs-string">'?'</span>) {
-            networkOK = <span class="hljs-literal">false</span>;
+           	log.info(<span class="hljs-string">"Ip address == ?"</span>); 
+		networkOK = <span class="hljs-literal">false</span>;
           }
           <span class="hljs-keyword">if</span>(data.mode === <span class="hljs-string">'master'</span>) {
-             <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'ap'</span>;
+             log.info(<span class="hljs-string">"In master mode..."</span>); 
+	     <span class="hljs-keyword">this</span>.mode = <span class="hljs-string">'ap'</span>;
              <span class="hljs-keyword">this</span>.state = <span class="hljs-string">'idle'</span>;
              setImmediate(<span class="hljs-keyword">this</span>.run.bind(<span class="hljs-keyword">this</span>));
           }
