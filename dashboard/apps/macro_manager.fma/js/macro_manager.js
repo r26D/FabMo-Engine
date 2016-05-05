@@ -6,6 +6,7 @@ function getMacroFromClick(elem) {
 }
 
 function clearMacroTable() {
+    //console.log(this);
     console.log('yo im clearing');
     var table = document.getElementById('macro_table');
     var rows = table.rows.length;
@@ -15,6 +16,7 @@ function clearMacroTable() {
 }
 
 function addMacros(macros, callback) {
+    //console.log(this);
     console.log('yo im adding');
     callback = callback || function() {};
     var table = document.getElementById('macro_table');
@@ -79,6 +81,11 @@ function addMacros(macros, callback) {
         var macro = getMacroFromClick(this);
         fabmo.launchApp('editor', {'macro' : macro.index});
     });
+    
+    $('.field').on('focus', function(e) {
+        $(this).select();
+    });
+
 
     $('.field').change(function(evt) {
         var newValue = $(this).val();
@@ -95,6 +102,7 @@ function addMacros(macros, callback) {
     });
 }
 
+
 function updateMacroIndex(macros) {
     macroIndex = {};
     macros.forEach(function(item) {
@@ -108,6 +116,7 @@ function refreshMacros(callback) {
         if(err) {
             return callback(err);
         }
+        
         updateMacroIndex(macros);
         clearMacroTable();
         addMacros(macros);
