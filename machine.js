@@ -1,4 +1,4 @@
-var g2 = require('./g2');
+var driver = require('./marlin');
 var util = require('util');
 var events = require('events');
 var PLATFORM = require('process').platform;
@@ -58,7 +58,7 @@ function Machine(control_path, gcode_path, callback) {
 	this.fireButtonDebounce = false;
 	this.APCollapseTimer = null;
 
-	// Instantiate driver and connect to G2
+	// Instantiate driver and connect to driver
 	this.status = {
 		state : "not_ready",
 		posx : 0.0,
@@ -80,12 +80,12 @@ function Machine(control_path, gcode_path, callback) {
 		auth : false
 	};
 
-	this.driver = new g2.G2();
+	this.driver = new driver.Marlin();
 	this.driver.on("error", function(err) {log.error(err);});
 
 	this.driver.connect(control_path, gcode_path, function(err, data) {
-	
-	    // Set the initial state based on whether or not we got a valid connection to G2
+
+	    // Set the initial state based on whether or not we got a valid connection to driver
 	    if(err){
 	    	log.warn("Setting the disconnected state");
 		    this.status.state = 'not_ready';
@@ -100,7 +100,7 @@ function Machine(control_path, gcode_path, callback) {
 	    this.passthrough_runtime = new PassthroughRuntime();
 	    this.idle_runtime = new IdleRuntime();
 
-	    // Idle 
+	    // Idle
 	    this.setRuntime(null, function() {});
 
 	    if(err) {
@@ -109,10 +109,10 @@ function Machine(control_path, gcode_path, callback) {
 		    this.driver.requestStatusReport(function(result) {
 		    	if('stat' in result) {
 		    		switch(result.stat) {
-		    			case g2.STAT_INTERLOCK:
-		    			case g2.STAT_SHUTDOWN:
-		    			case g2.STAT_PANIC:
-		    				this.die('A G2 exception has occurred. You must reboot your tool.');
+		    			case driver.STAT_INTERLOCK:
+		    			case driver.STAT_SHUTDOWN:
+		    			case driver.STAT_PANIC:
+		    				this.die('A driver exception has occurred. You must reboot your tool.');
 		    				break;
 		    		}
 		    	}
@@ -187,7 +187,7 @@ Machine.prototype.handleFireButton = function(stat) {
  * State Functions
  */
 Machine.prototype.die = function(err_msg) {
-	this.setState(this, 'dead', {error : 'A G2 exception has occurred. You must reboot your tool.'});
+	this.setState(this, 'dead', {error : 'A driver exception has occurred. You must reboot your tool.'});
 	this.emit('status',this.status);
 }
 
@@ -204,8 +204,8 @@ Machine.prototype.arm = function(action, timeout) {
 			break;
 		default:
 		throw new Error("Cannot arm the machine from the " + this.status.state + " state.");
-		break;		
-	}	
+		break;
+	}
 
 	delete this.status.info
 	this.action = action;
@@ -226,7 +226,7 @@ Machine.prototype.arm = function(action, timeout) {
 		log.info("Firing automatically since authorization is disabled.");
 		this.fire(true);
 	} else {
-		this.setState(this, 'armed');	
+		this.setState(this, 'armed');
 		this.emit('status', this.status);
 	}
 }
@@ -284,7 +284,7 @@ Machine.prototype.fire = function(force) {
 			this._runFile(filename);
 			break;
 		case 'resume':
-			log.debug("Firing a resume")		
+			log.debug("Firing a resume")
 			this._resume();
 			break;
 	}
@@ -293,12 +293,12 @@ Machine.prototype.fire = function(force) {
 Machine.prototype.authorize = function(timeout) {
 	var timeout = timeout || config.machine.get('auth_timeout');
 	if(timeout) {
-			log.info("Machine is authorized for the next " + timeout + " seconds.");			
+			log.info("Machine is authorized for the next " + timeout + " seconds.");
 		if(this._authTimer) { clearTimeout(this._authTimer);}
 		this._authTimer = setTimeout(function() {
 			log.info('Authorization timeout (' + timeout + 's) expired.');
 			this.deauthorize();
-		}.bind(this), timeout*1000);		
+		}.bind(this), timeout*1000);
 	} else {
 		if(!this.status.auth) {
 			log.info("Machine is authorized indefinitely.");
@@ -341,13 +341,13 @@ Machine.prototype.runJob = function(job) {
 		} else {
 			log.info("Running file " + file.path);
 			this.status.job = job;
-			this._runFile(file.path);			
+			this._runFile(file.path);
 		}
-	}.bind(this));	
+	}.bind(this));
 };
 
 Machine.prototype.getGCodeForFile = function(filename, callback) {
-	fs.readFile(filename, 'utf8', function (err,data) { 
+	fs.readFile(filename, 'utf8', function (err,data) {
 		if (err) {
 			log.error('Error reading file ' + filename);
 				log.error(err);
@@ -373,7 +373,7 @@ Machine.prototype._runFile = function(filename) {
 	var parts = filename.split(path.sep);
 	var ext = path.extname(filename).toLowerCase();
 
-	// Choose the appropriate runtime based on the file extension	
+	// Choose the appropriate runtime based on the file extension
 	var runtime = this.gcode_runtime;
 	if(ext === '.sbp') {
 		runtime = this.sbp_runtime;
@@ -400,7 +400,7 @@ Machine.prototype.setRuntime = function(runtime, callback) {
 		if(runtime) {
 			if(this.current_runtime != runtime) {
 				if(this.current_runtime) {
-					this.current_runtime.disconnect();					
+					this.current_runtime.disconnect();
 				}
 				runtime.connect(this);
 				this.current_runtime = runtime;
@@ -444,7 +444,7 @@ Machine.prototype.setState = function(source, newstate, stateinfo) {
 	if ((source === this) || (source === this.current_runtime)) {
 		log.info("Got a machine state change: " + newstate)
 		this.status.state = newstate;
-		
+
 		if(stateinfo) {
 			this.status.info = stateinfo
 		} else {
@@ -469,15 +469,15 @@ Machine.prototype.setState = function(source, newstate, stateinfo) {
 			case 'paused':
 				this.driver.get('mpo', function(err, mpo) {
 					if(config.instance) {
-						config.instance.update({'position' : mpo});						
+						config.instance.update({'position' : mpo});
 					}
 				});
 				break;
 			case 'dead':
-				log.error('G2 is dead!');
+				log.error('driver is dead!');
 				break;
 		}
-	} else {		
+	} else {
 		log.warn("Got a state change from a runtime that's not the current one. (" + source + ")")
 	}
 	this.emit('status',this.status);
@@ -531,8 +531,8 @@ Machine.prototype.runNextJob = function(callback) {
 		if(pendingJobs.length > 0) {
 			this.arm({
 				type : 'nextJob'
-			}, config.machine.get('auth_timeout'));	
-			callback();		
+			}, config.machine.get('auth_timeout'));
+			callback();
 		} else {
 			callback(new Error('No pending jobs.'));
 		}
@@ -544,7 +544,7 @@ Machine.prototype.executeRuntimeCode = function(runtimeName, code) {
 		return this._executeRuntimeCode(runtimeName, code);
 	}
 	if(runtimeName === 'manual') {
-		this.arm(null, config.machine.get('auth_timeout'));		
+		this.arm(null, config.machine.get('auth_timeout'));
 		return;
 	} else {
 		this.arm({
@@ -553,7 +553,7 @@ Machine.prototype.executeRuntimeCode = function(runtimeName, code) {
 				name : runtimeName,
 				code : code
 			}
-		}, config.machine.get('auth_timeout'));		
+		}, config.machine.get('auth_timeout'));
 	}
 }
 
@@ -580,7 +580,7 @@ Machine.prototype._executeRuntimeCode = function(runtimeName, code, callback) {
 					this.authorize();
 					var callback = callback || function() {};
 					callback(err, data);
-				}.bind(this));			
+				}.bind(this));
 			}
 		}.bind(this));
 	}

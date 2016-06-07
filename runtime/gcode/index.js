@@ -98,7 +98,7 @@ GCodeRuntime.prototype._onDriverStatus = function(status) {
 					this._changeState("paused");
 					this.machine.emit('job_pause', this);
 					break;
-				case this.driver.STAT_STOP:			
+				case this.driver.STAT_STOP:
 				case this.driver.STAT_END:
 					this._idle();
 					this.machine.emit('job_complete', this);
@@ -128,7 +128,7 @@ GCodeRuntime.prototype._onDriverStatus = function(status) {
 
 		case "stopped":
 			switch(this.status_report.stat) {
-				case this.driver.STAT_STOP:			
+				case this.driver.STAT_STOP:
 				case this.driver.STAT_END:
 					this._idle();
 					this.machine.emit('job_complete', this);
@@ -148,7 +148,7 @@ GCodeRuntime.prototype._die = function() {
  	} catch(e) {}
  	finally {
 		this.machine.status.job=null;
- 		this.machine.setState(this, 'dead', {error : 'A G2 exception has occurred. You must reboot your tool.'});
+ 		this.machine.setState(this, 'dead', {error : 'A Driver exception has occurred. You must reboot your tool.'});
  	}
 }
 
@@ -162,7 +162,7 @@ GCodeRuntime.prototype._fail = function(message) {
  	finally {
 		this.machine.status.job=null;
  		this.machine.setState(this, 'stopped', {error : message});
- 	}	
+ 	}
 }
 
 GCodeRuntime.prototype._idle = function() {
@@ -170,7 +170,7 @@ GCodeRuntime.prototype._idle = function() {
 	this.machine.status.line=null;
 	this.machine.status.nb_lines=null;
 	var job = this.machine.status.job;
-	
+
 	// Set the machine state to idle and return the units to their default configuration
 	var finishUp = function() {
 		this.driver.setUnits(config.machine.get('units'), function() {
@@ -203,6 +203,7 @@ GCodeRuntime.prototype._idle = function() {
 // callback runs only when execution is complete.
 GCodeRuntime.prototype.runString = function(string, callback) {
 	if(this.machine.status.state === 'idle' || this.machine.status.state === 'armed') {
+		// TODO rewrite this to be driver agnostic
 		var lines =  string.split('\n');
 		var mode = config.driver.get('gdi') ? 'G91': 'G90';
 		this.machine.status.nb_lines = lines.length;
@@ -212,7 +213,7 @@ GCodeRuntime.prototype.runString = function(string, callback) {
 			}
 		}
 		lines.unshift(mode);
-		lines.push('M30\n');
+		//lines.push('M30\n');
 		// TODO no need to stitch this string back together, it's just going to be split again in the driver
 		string = lines.join("\n");
 		this.completeCallback = callback;

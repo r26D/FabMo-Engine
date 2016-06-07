@@ -8,7 +8,7 @@ var Watchdog = require('./util').Watchdog;
 var log = require('./log').logger('driver');
 var process = require('process');
 
-// Values of the **stat** field that is returned from G2 status reports
+// Values of the **stat** field that is returned from Marlin status reports
 var STAT_INIT = 0;
 var STAT_READY = 1;
 var STAT_ALARM = 2;
@@ -49,23 +49,23 @@ var JOG_AXES = {'x':'X',
 				'c':'C',
 				'-c':'C-'};
 
-// Error codes defined by G2
-// See https://github.com/synthetos/g2/blob/edge/TinyG2/tinyg2.h for the latest error codes and messages
+// Error codes defined by Marlin
+// See https://github.com/synthetos/driver/blob/edge/TinyMarlin/tinydriver.h for the latest error codes and messages
 try {
-	var G2_ERRORS = JSON.parse(fs.readFileSync('./data/g2_errors.json','utf8'));
+	var Marlin_ERRORS = JSON.parse(fs.readFileSync('./data/marlin_errors.json','utf8'));
 } catch(e) {
-	var G2_ERRORS = {};
+	var Marlin_ERRORS = {};
 }
 
-// G2 Constructor
-function G2() {
+// Marlin Constructor
+function Marlin() {
 	this.current_data = [];
 	this.current_gcode_data = [];
-	this.g2_status = {'stat':null, 'posx':0, 'posy':0, 'posz':0};
+	this.driver_status = {'stat':null, 'posx':0, 'posy':0, 'posz':0};
 	this.status = {'stat':'idle', 'posx':0, 'posy':0, 'posz':0};
 
 	this.gcode_queue = new Queue();
-	this.watchdog = new Watchdog(10000,14); //time, exit code
+	//this.watchdog = new Watchdog(10000,14); //time, exit code
 	this.pause_flag = false;
 	this.connected = false;
 
@@ -94,139 +94,97 @@ function G2() {
 	events.EventEmitter.call(this);
 	this.setMaxListeners(50);
 }
-util.inherits(G2, events.EventEmitter);
+util.inherits(Marlin, events.EventEmitter);
 
-// Actually open the serial port and configure G2 based on stored settings
-G2.prototype.connect = function(control_path, gcode_path, callback) {
+// Actually open the serial port and configure Marlin based on stored settings
+Marlin.prototype.connect = function(serial_path, gcode_path, callback) {
 
 	// Store paths for safe keeping
-	this.control_path = control_path;
-	this.gcode_path = gcode_path;
+	this.serial_path = serial_path;
 
 	// Called once BOTH ports have been opened
 	this.connect_callback = callback;
 
-	// Open both ports
-	log.info('Opening control port ' + control_path);
-	this.control_port = new serialport.SerialPort(control_path, {rtscts:true}, false);
-	if(control_path !== gcode_path) {
-		log.info("Dual USB since control port and gcode port are different. (" + this.control_path + "," + this.gcode_path + ")");
-		this.gcode_port = new serialport.SerialPort(gcode_path, {rtscts:true}, false);
-	} else {
-		log.info("Single USB since control port and gcode port are the same. (" + this.control_path + ")");
-		this.gcode_port = this.control_port;
-	}
+	// Open serialport
+	log.info('Opening serial port ' + serial_path);
+	this.serial_port = new serialport.SerialPort(serial_path, {rtscts:false,baudrate:115200}, false);
+
 
 	// Handle errors
-	this.control_port.on('error', this.onSerialError.bind(this));
+	this.serial_port.on('error', this.onSerialError.bind(this));
 
 	// Handle closing
-	this.control_port.on('close', this.onSerialClose.bind(this));
+	this.serial_port.on('close', this.onSerialClose.bind(this));
 
 	// The control port is the only one to truly handle incoming data
-	this.control_port.on('data', this.onData.bind(this));
-	if(this.gcode_port !== this.control_port) {
-		this.gcode_port.on('error', this.onSerialError.bind(this));
-		this.control_port.on('close', this.onSerialClose.bind(this));
-		this.gcode_port.on('data', this.onWAT.bind(this));
-	}
+	this.serial_port.on('data', this.onData.bind(this));
 
 	var onOpen = function(callback) {
-		this.controlWrite("\x04")
-		this.gcodeWrite("{clr:n}\n");
-		this.command("M30");
-		this.requestStatusReport();
-		this.connected = true;
-		callback(null, this);
+		//this.serialWrite("\x04")
+		//this.serialWrite("{clr:n}\n");
+		this.once('start',function(){
+			this.requestStatusReport();
+			this.connected = true;
+			callback(null, this);
+		})
+
 	}.bind(this);
 
-	this.control_port.open(function(error) {
+	this.serial_port.open(function(error) {
 		if(error) {
-			log.error("ERROR OPENING CONTROL PORT " + error );
+			log.error("ERROR OPENING SERIAL PORT " + error );
 			return callback(error);
 		}
-
-		if(this.control_port !== this.gcode_port) {
-			this.gcode_port.open(function(error) {
-				if(error) {
-					log.error("ERROR OPENING GCODE PORT " + error );
-					return callback(error);
-				}
-				onOpen(callback);
-			}.bind(this));
-		} else {
-			onOpen(callback);
-		}
+		onOpen(callback);
 	}.bind(this));
 };
 
-G2.prototype.disconnect = function(callback) {
-	this.watchdog.stop();
-	if(this.control_port !== this.gcode_port) {
-		this.control_port.close(function(callback) {
-			this.gcode_port.close(callback);
-		}.bind(this));
-	} else {
-		this.control_port.close(callback);
-	}
-
+Marlin.prototype.disconnect = function(callback) {
+	//this.watchdog.stop();
+	this.serial_port.close(callback);
 };
 
 // Log serial errors.  Most of these are exit-able offenses, though.
-G2.prototype.onSerialError = function(data) {
+Marlin.prototype.onSerialError = function(data) {
+	log.error(data);
 	//if(this.connect_callback) {
 	//	this.connect_callback(data);
 	//}
 };
 
-G2.prototype.onSerialClose = function(data) {
+Marlin.prototype.onSerialClose = function(data) {
 	this.connected= false;
-	log.error('G2 Core serial link was lost.')
+	log.error('Marlin serial link was lost.')
 	process.exit(14);
 };
 
-// Write data to the control port.  Log to the system logger.
-G2.prototype.controlWrite = function(s) {
-	this.watchdog.start();
+// Write data to the serial port.  Log to the system logger.
+Marlin.prototype.serialWrite = function(s) {
+	//this.watchdog.start();
 	t = new Date().getTime();
 	log.driver('--C-' + t + '----> ' + s.trim());
-	this.control_port.write(s);
+	this.serial_port.write(s);
 };
 
-// Write data to the gcode port.  Log to the system logger.
-G2.prototype.gcodeWrite = function(s) {
-	this.watchdog.start();
-	t = new Date().getTime();
-	log.driver('--G-' + t + '----> ' + s.trim());
-	this.gcode_port.write(s);
-};
 
 // Write data to the serial port.  Log to the system logger.  Execute **callback** when transfer is complete.
-G2.prototype.controlWriteAndDrain = function(s, callback) {
-	this.watchdog.start();
+Marlin.prototype.serialWriteAndDrain = function(s, callback) {
+	//this.watchdog.start();
 	t = new Date().getTime();
 	log.driver('--C-' + t + '----> ' + s);
-	this.control_port.write(s, function () {
-		this.control_port.drain(callback);
+	this.serial_port.write(s, function () {
+		this.serial_port.drain(callback);
 	}.bind(this));
 };
 
-G2.prototype.gcodeWriteAndDrain = function(s, callback) {
-	this.watchdog.start();
-	t = new Date().getTime();
-	log.driver('--G-' + t + '----> ' + s);
-	this.gcode_port.write(s, function () {
-		this.gcode_port.drain(callback);
-	}.bind(this));
-};
 
-G2.prototype.clearAlarm = function() {
-	this.watchdog.start();
+Marlin.prototype.clearAlarm = function() {
+	//this.watchdog.start();
 	this.command({"clear":null});
 };
 
 // Start or continue jogging in the direction provided, which is one of x,-x,y,-y,z-z,a,-a,b,-b,c,-c
-G2.prototype.jog = function(direction) {
+Marlin.prototype.jog = function(direction) {
 
 	var MOVES = 10;
 	var FEED_RATE = 60.0;			// in/min
@@ -263,7 +221,7 @@ G2.prototype.jog = function(direction) {
 
 		// Build serial string and send
 		try {
-			this.gcodeWrite(codes.join('\n'));
+			this.serialWrite(codes.join('\n'));
 		} finally {
 			// Timeout jogging if we don't get a keepalive from the client
 			this.jog_heartbeat = setTimeout(function() {
@@ -279,7 +237,7 @@ G2.prototype.jog = function(direction) {
 };
 
 // Start or continue jogging in the direction provided, which is one of x,-x,y,-y,z-z,a,-a,b,-b,c,-c
-G2.prototype.fixed_move = function(direction,step,speed) {
+Marlin.prototype.fixed_move = function(direction,step,speed) {
 	if(this.quit_pending){
 		log.warn("WARNING QUIT PENDING WHILE DOING A FIXED MOVE")
 	}
@@ -302,17 +260,17 @@ G2.prototype.fixed_move = function(direction,step,speed) {
 		} else {
 			move = 'G91 G1 ' + d + mstep + ' F' + speed;
 		}
-		this.gcodeWrite(move);
+		this.serialWrite(move);
 	}
 };
 
-G2.prototype.jog_keepalive = function() {
+Marlin.prototype.jog_keepalive = function() {
 	log.info('Keeping jog alive.');
 	clearTimeout(this.jog_heartbeat);
 	this.jog_heartbeat = setTimeout(this.stopJog.bind(this), JOG_TIMEOUT);
 };
 
-G2.prototype.stopJog = function() {
+Marlin.prototype.stopJog = function() {
 	if(this.jog_direction && !this.jog_stop_pending) {
 		log.debug('stopJog()');
 		this.jog_stop_pending = true;
@@ -323,7 +281,7 @@ G2.prototype.stopJog = function() {
 	}
 };
 
-G2.prototype.setUnits = function(units, callback) {
+Marlin.prototype.setUnits = function(units, callback) {
 	if(units === 0 || units == 'in') {
 		gc = 'G20';
 		units = 0;
@@ -342,32 +300,26 @@ G2.prototype.setUnits = function(units, callback) {
 	}.bind(this));
 }
 
-G2.prototype.requestStatusReport = function(callback) {
+Marlin.prototype.requestStatusReport = function(callback) {
 	// Register the callback to be called when the next status report comes in
 	typeof callback === 'function' && this.once('status', callback);
-	this.command({'sr':null});
+
+
+	this.command("M114"); //position
+	this.once("ok",function(){
+		this.command("M105"); //temperature
+			this.once("ok",function(){
+			});
+	});
 };
 
-G2.prototype.requestQueueReport = function() { this.command({'qr':null}); };
-
-G2.prototype.onWAT = function(data) {
-	var s = data.toString('ascii');
-	var len = s.length;
-	for(var i=0; i<len; i++) {
-		c = s[i];
-		if(c === '\n') {
-			string = this.current_gcode_data.join('');
-			t = new Date().getTime();
-			log.driver('<-G--' + t + '---- ' + string);
-			this.current_gcode_data = [];
-		} else {
-			this.current_gcode_data.push(c);
-		}
-	}
-
+Marlin.prototype.requestQueueReport = function() {
+	this.command({'qr':null});
 };
-// Called for every chunk of data returned from G2
-G2.prototype.onData = function(data) {
+
+
+// Called for every chunk of data returned from Marlin
+Marlin.prototype.onData = function(data) {
 	t = new Date().getTime();
 	//log.debug('<----' + t + '---- ' + data);
 	this.emit('raw_data',data);
@@ -376,9 +328,64 @@ G2.prototype.onData = function(data) {
 	for(var i=0; i<len; i++) {
 		c = s[i];
 		if(c === '\n') {
-			var json_string = this.current_data.join('');
+			var data_string = this.current_data.join('');
 			t = new Date().getTime();
-			log.driver('<-C--' + t + '---- ' + json_string);
+			log.driver('<-C--' + t + '---- ' + data_string);
+			if(data_string==="start"){
+				this.emit('start');
+			}
+			if(data_string==="ok"){
+				this.emit("ok");
+				if(this.gcode_queue.getLength() > 0) {
+					this.sendMoreGCodes();
+				}
+			}
+
+			if(data_string.match(/^echo:/)){
+				log.info(data_string.replace("echo:",""));
+			}
+			else if(data_string.match(/^Compiled:/)){
+				log.info(data_string);// compilation date.
+			}
+			else if (data_string.match(/^[ok ]?[C: ]?X:/)) {
+				if (data_string.match(/Count/)){ //include information from the stepper
+					pos_array = data_string.split('Count');
+					pos_array[0] = pos_array[0].trim();
+					var pos_raw = /^[ok ]?[C: ]?X:([-+]?[0-9]*[.][0-9]+)[ ]?Y:([-+]?[0-9]*[.][0-9]+)[ ]?Z:([-+]?[0-9]*[.][0-9]+)[ ]?E:([-+]?[0-9]*[.][0-9]+)$/.exec(pos_array[0]);
+					var pos = {
+						posx: parseFloat(pos_raw[1]),
+						posy: parseFloat(pos_raw[2]),
+						posz: parseFloat(pos_raw[3]),
+						pose: parseFloat(pos_raw[4]),
+					};
+				}else{
+					var pos_raw = /^[ok ]?[C: ]?X:([-+]?[0-9]*[.][0-9]+)[ ]?Y:([-+]?[0-9]*[.][0-9]+)[ ]?Z:([-+]?[0-9]*[.][0-9]+)[ ]?E:([-+]?[0-9]*[.][0-9]+)$/.exec(data_string);
+					var pos = {
+						posx: parseFloat(pos_raw[1]),
+						posy: parseFloat(pos_raw[2]),
+						posz: parseFloat(pos_raw[3]),
+						pose: parseFloat(pos_raw[4]),
+					};
+				}
+				for(key in pos){
+					this.status[key]=pos[key];
+				}
+				this.emit('status', this.status);
+			}else if (data_string.match(/^ok T:/)) {
+				var temp_raw= /^ok T:([-+]?[0-9]*[.][0-9]+) \/([-+]?[0-9]*[.][0-9]+) B:([-+]?[0-9]*[.][0-9]+) \/([-+]?[0-9]*[.][0-9]+)/.exec(data_string);
+				var temp ={
+					e0_temp:parseFloat(temp_raw[1]),
+					e0_target:parseFloat(temp_raw[2]),
+					bed_temp:parseFloat(temp_raw[3]),
+					bed_target:parseFloat(temp_raw[4]),
+				}
+				for(key in temp){
+					this.status[key]=temp[key];
+				}
+				this.emit('status', this.status);
+			}
+
+			/*
 			obj = null;
 			try {
 				obj = JSON.parse(json_string);
@@ -394,6 +401,7 @@ G2.prototype.onData = function(data) {
 					this.onMessage(obj);
 				}
 			}
+			*/
 			this.current_data = [];
 		} else {
 			this.current_data.push(c);
@@ -401,20 +409,20 @@ G2.prototype.onData = function(data) {
 	}
 };
 
-G2.prototype.handleQueueReport = function(r) {
+Marlin.prototype.handleQueueReport = function(r) {
 	// Deal with jog mode
 	var qo = r.qo || 0;
 	if(this.jog_command && (qo > 0)) {
-		this.gcodeWrite(this.jog_command + '\n');
+		this.serialWrite(this.jog_command + '\n');
 		return;
 	}
 };
 
-G2.prototype.handleFooter = function(response) {
+Marlin.prototype.handleFooter = function(response) {
 	if(response.f) {
 		if(response.f[1] !== 0) {
 			var err_code = response.f[1];
-			var err_msg = G2_ERRORS[err_code] || ['ERR_UNKNOWN', 'Unknown Error'];
+			var err_msg = Marlin_ERRORS[err_code] || ['ERR_UNKNOWN', 'Unknown Error'];
 			// TODO we'll have to go back and clean up alarms later
 			// For now, let's not emit a bunch of errors into the log that don't mean anything to us
 			this.emit('error', [err_code, err_msg[0], err_msg[1]]);
@@ -423,22 +431,22 @@ G2.prototype.handleFooter = function(response) {
 	}
 };
 
-G2.prototype.handleExceptionReport = function(response) {
+Marlin.prototype.handleExceptionReport = function(response) {
 	if(response.er) {
 		this._lastExceptionReport = response.er;
 		var stat = response.er.st;
 		if(((stat === 204) || (stat === 207)) && this.quit_pending) {
-			this.gcodeWrite("{clr:n}\nM30\n");
+			this.serialWrite("{clr:n}\nM30\n");
 			this.quit_pending = false;
 		}
 	}
 };
 
-G2.prototype.getLastException = function() {
+Marlin.prototype.getLastException = function() {
 	return this._lastExceptionReport || null;
 }
 
-G2.prototype.clearLastException = function() {
+Marlin.prototype.clearLastException = function() {
 	this._lastExceptionReport = null;
 }
 
@@ -454,7 +462,7 @@ G2.prototype.clearLastException = function() {
 8	machine is running (cycling)
 9	machine is homing
 */
-G2.prototype.handleStatusReport = function(response) {
+Marlin.prototype.handleStatusReport = function(response) {
 	/* RAS: Keeping this around for debugging a bit longer - 2016/03/11
 	if(response.sr && ((response.sr.stat === this.STAT_END) || (response.sr.stat === this.STAT_RUNNING))) {
 		if(this.status.stat === this.STAT_END) {
@@ -518,9 +526,9 @@ G2.prototype.handleStatusReport = function(response) {
 	}
 };
 
-// Called once a proper JSON response is decoded from the chunks of data that come back from G2
-G2.prototype.onMessage = function(response) {
-	this.watchdog.stop();
+// Called once a proper JSON response is decoded from the chunks of data that come back from Marlin
+Marlin.prototype.onMessage = function(response) {
+	//this.watchdog.stop();
 	// TODO more elegant way of dealing with "response" data.
 	if(response.r) {
 		this.emit('response', false, response.r);
@@ -529,7 +537,7 @@ G2.prototype.onMessage = function(response) {
 		r = response;
 	}
 
-	// Deal with G2 status (top priority)
+	// Deal with Marlin status (top priority)
 	this.handleStatusReport(r);
 
 	// Deal with exceptions
@@ -564,37 +572,39 @@ G2.prototype.onMessage = function(response) {
 	}
 };
 
-G2.prototype.feedHold = function(callback) {
+Marlin.prototype.feedHold = function(callback) {
 	this.pause_flag = true;
 	this.flooded = false;
 	typeof callback === 'function' && this.once('state', callback);
 	log.debug("Sending a feedhold");
-	this.controlWriteAndDrain('!\n', function() {
+	this.serialWriteAndDrain('!\n', function() {
 		log.debug("Drained.");
 	});
 };
 
-G2.prototype.queueFlush = function(callback) {
+Marlin.prototype.queueFlush = function(callback) {
 	log.debug('Clearing the queue.');
 	this.flushcallback = callback;
-	this.gcodeWrite('{clr:n}\n');
-	this.controlWrite('\%\n');
+	this.serialWrite('{clr:n}\n');
+	this.serialWrite('\%\n');
 };
 
-G2.prototype.resume = function() {
-	this.controlWrite('~\n'); //cycle start command character
+Marlin.prototype.resume = function() {
+	this.serialWrite('~\n'); //cycle start command character
 	this.pause_flag = false;
 };
 
 
-G2.prototype.quit = function() {
+Marlin.prototype.quit = function() {
 	this.quit_pending = true;
 	this.gcode_queue.clear();
-	this.gcodeWrite('{clr:n}\n');
-	this.controlWrite('\x04');
+	this.serialWrite('{clr:n}\n');
+	this.serialWrite('\x04');
 }
 
-G2.prototype.get = function(key, callback) {
+Marlin.prototype.get = function(key, callback) {
+	callback(null,null);
+	/*
 	var keys;
 	if(key instanceof Array) {
 		keys = key;
@@ -648,9 +658,12 @@ G2.prototype.get = function(key, callback) {
 			}
 		}
 	);
+	*/
 };
 
-G2.prototype.setMany = function(obj, callback) {
+Marlin.prototype.setMany = function(obj, callback) {
+	callback(null,null);
+	/*
 	var keys = Object.keys(obj);
 	async.map(keys,
 		// Function called for each item in the keys array
@@ -682,9 +695,12 @@ G2.prototype.setMany = function(obj, callback) {
 			}
 		}
 	);
+	*/
 };
 
-G2.prototype.set = function(key, value, callback) {
+Marlin.prototype.set = function(key, value, callback) {
+	callback(null,null);
+	/*
 	cmd = {};
 	cmd[key] = value;
 	if (key in this.readers) {
@@ -708,28 +724,60 @@ G2.prototype.set = function(key, value, callback) {
 	}.bind(this), CMD_TIMEOUT);
 
 	this.command(cmd);
+	*/
 };
 
-// Send a command to G2 (can be string or JSON)
-G2.prototype.command = function(obj) {
-	var cmd;
-	if((typeof obj) == 'string') {
-		cmd = obj.trim();
-		//this.controlWrite('{"gc":"'+cmd+'"}\n');
-		this.gcodeWrite(cmd + '\n');
-	} else {
-		cmd = JSON.stringify(obj);
-		this.controlWrite(cmd + '\n');
+// Write data to the gcode port.  Log to the system logger.
+Marlin.prototype.gcodeWrite = function(s) {
+	t = new Date().getTime();
+	log.driver('--G-' + t + '----> ' + s.trim());
+	this.serialWrite(s);
+};
+
+// Write data to the control port.  Log to the system logger.
+Marlin.prototype.controlWrite = function(s) {
+	// t = new Date().getTime();
+	// log.driver('--C-' + t + '----> ' + s.trim());
+	//this.serialWrite(s);
+};
+
+// Write data to the serial port.  Log to the system logger.  Execute **callback** when transfer is complete.
+Marlin.prototype.controlWriteAndDrain = function(s, callback) {
+	// t = new Date().getTime();
+	// log.driver('--C-' + t + '----> ' + s);
+	// this.serialWrite(s, function () {
+	// 	this.serial_port.drain(callback);
+	// }.bind(this));
+};
+
+Marlin.prototype.gcodeWriteAndDrain = function(s, callback) {
+	t = new Date().getTime();
+	log.driver('--G-' + t + '----> ' + s);
+	this.serialWrite(s, function () {
+		this.serial_port.drain(callback);
+	}.bind(this));
+};
+
+
+
+// Send a command to Marlin (can be string or JSON)
+Marlin.prototype.command = function(obj) {
+	if(!(obj instanceof String)){
+		obj = JSON.stringify(obj);
 	}
+	var cmd;
+	cmd = obj.trim();
+	//this.serialWrite('{"gc":"'+cmd+'"}\n');
+	this.serialWrite(cmd + '\n');
+
 };
 
 // Send a (possibly multi-line) string
-// An M30 will be placed at the end to put the machine back in the "idle" state
-G2.prototype.runString = function(data, callback) {
-	this.runSegment(data + "\nM30\n", callback);
+Marlin.prototype.runString = function(data, callback) {
+	this.runSegment(data + "\nN0M110"+ "\n", callback); // set line to 0 for next string execution.
 };
 
-G2.prototype.runImmediate = function(data, callback) {
+Marlin.prototype.runImmediate = function(data, callback) {
 	this.expectStateChange( {
 		'end':callback,
 		'stop':callback,
@@ -741,7 +789,7 @@ G2.prototype.runImmediate = function(data, callback) {
 }
 
 // Send a (possibly multi-line) string
-G2.prototype.runSegment = function(data, callback) {
+Marlin.prototype.runSegment = function(data, callback) {
 	line_count = 0;
 
 	// Divide string into a list of lines
@@ -754,7 +802,16 @@ G2.prototype.runSegment = function(data, callback) {
 		if(callback) {
 			callback.line = line_count;
 		}
+		if(line!==""){
+			if (line[0]!==undefined && line[0] === 'N' ){
+				var cs = 0; //checksum
+				for(var j = 0; line[j] !== '*' && line[j] !== undefined; j++)
+					cs = cs ^ line.charCodeAt(j);
+				cs &= 0xff;  // Defensive programming
+				line+="*"+cs;
+			}
 		this.gcode_queue.enqueue(line);
+		}
 	}
 
 	this.lines_sent = 0;
@@ -769,19 +826,20 @@ G2.prototype.runSegment = function(data, callback) {
 	}
 };
 
-G2.prototype.sendMoreGCodes = function() {
+Marlin.prototype.sendMoreGCodes = function() {
 	codes = this.gcode_queue.multiDequeue(GCODE_BLOCK_SEND_SIZE);
 	if(codes.length > 0) {
 		this.lines_sent += codes.length;
-		this.gcodeWrite(codes.join('\n') + '\n');
+		this.serialWrite(codes.join('\n') + '\n');
 	}
 };
 
-G2.prototype.setMachinePosition = function(position, callback) {
+Marlin.prototype.setMachinePosition = function(position, callback) {
 	var gcode = "G21\n";
-	['x','y','z','a','b','c','u','v','w'].forEach(function(axis) {
+	['x','y','z','a','b','c','u','v','w','e'].forEach(function(axis) {
+		if(!position){callback('no position transmitted',null); return;}
 		if(position[axis] != undefined) {
-			gcode += 'G28.3 ' + axis + position[axis].toFixed(5) + '\n';
+			gcode += 'G92 ' + axis + position[axis].toFixed(5) + '\n';
 		}
 	});
 
@@ -805,7 +863,7 @@ G2.prototype.setMachinePosition = function(position, callback) {
 // In the above example, when the next change of state happens, the appropriate callback is called in the case
 // that the new state is either STAT_END or STAT_PAUSE.  If the new state is neither, other_callback is called.
 
-G2.prototype.expectStateChange = function(callbacks) {
+Marlin.prototype.expectStateChange = function(callbacks) {
 	if("timeout" in callbacks) {
 		var fn = callbacks.timeout;
 		setTimeout(function() {
@@ -843,7 +901,7 @@ var state = function(s) {
 };
 
 // export the class
-exports.G2 = G2;
+exports.Marlin = Marlin;
 
 exports.STAT_INIT = STAT_INIT;
 exports.STAT_READY = STAT_READY;
@@ -859,16 +917,16 @@ exports.STAT_INTERLOCK = STAT_INTERLOCK;
 exports.STAT_SHUTDOWN = STAT_SHUTDOWN;
 exports.STAT_PANIC = STAT_PANIC;
 
-G2.prototype.STAT_INIT = STAT_INIT;
-G2.prototype.STAT_READY = STAT_READY;
-G2.prototype.STAT_ALARM = STAT_ALARM;
-G2.prototype.STAT_STOP = STAT_STOP;
-G2.prototype.STAT_END = STAT_END;
-G2.prototype.STAT_RUNNING = STAT_RUNNING;
-G2.prototype.STAT_HOLDING = STAT_HOLDING;
-G2.prototype.STAT_PROBE = STAT_PROBE;
-G2.prototype.STAT_CYCLING = STAT_CYCLING;
-G2.prototype.STAT_HOMING = STAT_HOMING;
-G2.prototype.STAT_INTERLOCK = STAT_INTERLOCK;
-G2.prototype.STAT_SHUTDOWN = STAT_SHUTDOWN;
-G2.prototype.STAT_PANIC = STAT_PANIC;
+Marlin.prototype.STAT_INIT = STAT_INIT;
+Marlin.prototype.STAT_READY = STAT_READY;
+Marlin.prototype.STAT_ALARM = STAT_ALARM;
+Marlin.prototype.STAT_STOP = STAT_STOP;
+Marlin.prototype.STAT_END = STAT_END;
+Marlin.prototype.STAT_RUNNING = STAT_RUNNING;
+Marlin.prototype.STAT_HOLDING = STAT_HOLDING;
+Marlin.prototype.STAT_PROBE = STAT_PROBE;
+Marlin.prototype.STAT_CYCLING = STAT_CYCLING;
+Marlin.prototype.STAT_HOMING = STAT_HOMING;
+Marlin.prototype.STAT_INTERLOCK = STAT_INTERLOCK;
+Marlin.prototype.STAT_SHUTDOWN = STAT_SHUTDOWN;
+Marlin.prototype.STAT_PANIC = STAT_PANIC;

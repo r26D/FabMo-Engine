@@ -2,13 +2,13 @@ async = require('async');
 util = require('util');
 Config = require('./config').Config;
 
-var log = require('../log').logger('g2config');
+var log = require('../log').logger('marlinconfig');
 
-// A DriverConfig is the configuration object that stores the configuration values for G2.
-// G2 configuration data is *already* JSON formatted, so DriverConfig objects are easy to create from config files using `load()`
+// A DriverConfig is the configuration object that stores the configuration values for Marlin.
+// Marlin configuration data is *already* JSON formatted, so DriverConfig objects are easy to create from config files using `load()`
 // A DriverConfig object is bound to a driver, which gets updated when configuration values are loaded/changed.
 DriverConfig = function(driver) {
-	Config.call(this, 'g2');
+	Config.call(this, 'marlin');
 };
 util.inherits(DriverConfig, Config);
 
@@ -18,19 +18,21 @@ DriverConfig.prototype.init = function(driver, callback) {
 }
 
 DriverConfig.prototype.changeUnits = function(units, callback) {
-	this.driver.setUnits(units, function(err, data) {
-		if(err) {
-			callback(err);
-		} else {
-			this.getFromDriver(function(err, g2_values) {
-				if(err) {
-					callback(err);
-				} else  {
-					this.setMany(g2_values, callback);
-				}
-			}.bind(this));
-		}
-	}.bind(this));
+// TODO
+	// this.driver.setUnits(units, function(err, data) {
+	// 	if(err) {
+	// 		callback(err);
+	// 	} else {
+	// 		this.getFromDriver(function(err, marlin_values) {
+	// 			if(err) {
+	// 				callback(err);
+	// 			} else  {
+	// 				this.setMany(marlin_values, callback);
+	// 			}
+	// 		}.bind(this));
+	// 	}
+	// }.bind(this));
+	callback(null,null);
 }
 
 DriverConfig.prototype.getFromDriver = function(callback) {
@@ -40,7 +42,7 @@ DriverConfig.prototype.getFromDriver = function(callback) {
 			callback(err);
 		} else {
 			if(keys.length != values.length) {
-				callback(new Error("Something went wrong when getting values from G2"))
+				callback(new Error("Something went wrong when getting values from Marlin"))
 			} else {
 				var obj = {}
 				for(var i=0; i<keys.length; i++) {
@@ -98,30 +100,33 @@ DriverConfig.prototype.restore = function(callback) {
 // TODO: Move this data out into a configuration file, perhaps.
 DriverConfig.prototype.configureStatusReports = function(callback) {
 	if(this.driver) {
-	this.driver.command({"sr":{
-						"posx":true,
-						"posy":true,
-						"posz":true,
-						"posa":true,
-						"posb":true,
-						"vel":true,
-						"stat":true,
-						"hold":true,
-						"line":true,
-						"coor":true,
-						"unit":true,
-						"in1":true,
-						"in2":true,
-						"in3":true,
-						"in4":true,
-						"in5":true,
-						"in6":true,
-						"in7":true,
-						"in8":true
-					}});
-		this.driver.command({"qv":0});
-		this.driver.command({"jv":4});
-		this.driver.requestStatusReport();
+	// this.driver.command({"sr":{
+	// 					"posx":true,
+	// 					"posy":true,
+	// 					"posz":true,
+	// 					"posa":true,
+	// 					"posb":true,
+	// 					"vel":true,
+	// 					"stat":true,
+	// 					"hold":true,
+	// 					"line":true,
+	// 					"coor":true,
+	// 					"unit":true,
+	// 					"in1":true,
+	// 					"in2":true,
+	// 					"in3":true,
+	// 					"in4":true,
+	// 					"in5":true,
+	// 					"in6":true,
+	// 					"in7":true,
+	// 					"in8":true
+	// 				}});
+	// 	this.driver.command({"qv":0});
+	// 	this.driver.command({"jv":4});
+		driver = this.driver;
+		setInterval(function () {
+			driver.requestStatusReport();
+		},500);
 		return callback(null, this);
 	} else {
 		return callback(null, this);

@@ -1,5 +1,5 @@
-/** 
- * log.js is a "Poor man's" logging module.  It provides basic colorized logging using named 
+/**
+ * log.js is a "Poor man's" logging module.  It provides basic colorized logging using named
  * loggers with selectable log levels.
  */
 var process = require('process');
@@ -10,7 +10,7 @@ var LOG_BUFFER_SIZE = 5000;
 
 // String versions of the allowable log levels
 LEVELS = {
-	'g2' : 0,
+	'driver' : 0,
 	'debug' : 1,
 	'info' : 2,
 	'warn' : 3,
@@ -19,7 +19,7 @@ LEVELS = {
 
 // Default log levels for loggers with specific names.
 LOG_LEVELS = {
-	'g2' : 'debug',
+	'driver' : 'debug',
 	'gcode' : 'debug',
 	'sbp' : 'debug',
 	'machine' : 'debug',
@@ -36,14 +36,14 @@ function setGlobalLevel(lvl){
 	{
 		if (lvl >= 0 && lvl <= 3)
 		{
-			// assign the log level to the string equivalent of the integer 
+			// assign the log level to the string equivalent of the integer
 			Object.keys(LOG_LEVELS).forEach(function(key) {
 	  			LOG_LEVELS[key] = Object.keys(LEVELS).filter(function(key) {return (LEVELS[key] === lvl);})[0];
 	  		});
 		}
 		else if (Object.keys(LEVELS).indexOf(lvl) >= 0) // if a string
 		{
-			//  assign the log level to the string that is given 
+			//  assign the log level to the string that is given
 			Object.keys(LOG_LEVELS).forEach(function(key) {
 	  			LOG_LEVELS[key] = lvl;
 	  		});
@@ -78,7 +78,7 @@ Logger.prototype.write = function(level, msg) {
 		buffer_msg = level + ': ' + msg + ' ['+this.name+']';
 		if(colors) {
 			switch(level) {
-				case 'g2':
+				case 'driver':
 					console.log((level + ': ').magenta + msg + ' ['+this.name+']');
 					break;
 				case 'debug':
@@ -116,7 +116,7 @@ Logger.prototype.error = function(msg) {
 	}
 };
 
-Logger.prototype.g2 = function(msg) {this.write('g2', msg);};
+Logger.prototype.driver = function(msg) {this.write('driver', msg);};
 Logger.prototype.uncaught = function(err) {
 	if(colors) {
 		console.log("UNCAUGHT EXCEPTION".red.underline);
@@ -124,7 +124,7 @@ Logger.prototype.uncaught = function(err) {
 	} else {
 		console.log("UNCAUGHT EXCEPTION");
 		console.log(err.stack);
-	}	
+	}
 }
 
 // Factory function for producing a new, named logger object
@@ -154,5 +154,5 @@ var clearLogBuffer = function() {
 exports.suppress = suppress;
 exports.logger = logger;
 exports.setGlobalLevel = setGlobalLevel;
-exports.getLogBuffer = getLogBuffer; 
+exports.getLogBuffer = getLogBuffer;
 exports.clearLogBuffer = clearLogBuffer();

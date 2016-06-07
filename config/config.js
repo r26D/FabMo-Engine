@@ -56,6 +56,7 @@ Config.prototype.getData = function() {
 
 // The load function retreives a configuration from disk and loads it into the configuration object
 Config.prototype.load = function(filename, callback) {
+	console.log(filename);
 	this._filename = filename;
 	fs.readFile(filename, 'utf8', function (err, data) {
 		if (err) { return callback(err); }
@@ -120,7 +121,7 @@ Config.prototype.init = function(callback) {
 				default_count = Object.keys(this._cache).length;
 				callback();
 			}.bind(this),
-			function loadUserConfig(callback) { 
+			function loadUserConfig(callback) {
 				this.load(this.config_file, function(err, data) {
 					if(err) {
 						if(err.code === "ENOENT") {
@@ -139,7 +140,7 @@ Config.prototype.init = function(callback) {
 						user_count = Object.keys(data).length;
 						callback(null, this);
 					}
-				}.bind(this)); 
+				}.bind(this));
 			}.bind(this),
 			function saveIfNeeded(callback) {
 				if(default_count != user_count) {

@@ -85,7 +85,7 @@ Engine.prototype.getVersion = function(callback) {
             try {
                 data = JSON.parse(data);
                 if(data.number) {
-                    this.version.number = data.number;                    
+                    this.version.number = data.number;
                     this.version.type = 'release';
                 }
             } catch(e) {
@@ -191,13 +191,13 @@ Engine.prototype.start = function(callback) {
             db.cleanup(callback);
         },
 
-        // Connect to G2 and initialize machine runtimes
+        // Connect to Driver and initialize machine runtimes
         function connect(callback) {
-            log.info("Connecting to G2...");
+            log.info("Connecting to Driver...");
             machine.connect(function(err, machine) {
                 if(err) {
                     log.error("!!!!!!!!!!!!!!!!!!!!!!!!");
-                    log.error("Could not connect to G2.");
+                    log.error("Could not connect to Driver.");
                     log.error("(" + err + ")");
                     log.error("!!!!!!!!!!!!!!!!!!!!!!!!");
                 }
@@ -215,23 +215,23 @@ Engine.prototype.start = function(callback) {
                 callback(null);
             });
         }.bind(this),
-    
+
         function set_units(callback) {
             this.machine.driver.setUnits(config.machine.get('units'), callback);
         }.bind(this),
 
-        // Configure G2 by loading all its json settings and static configuration parameters
+        // Configure Driver by loading all its json settings and static configuration parameters
         function load_driver_config(callback) {
             if(this.machine.isConnected()) {
-                log.info("Configuring G2...");
+                log.info("Configuring Driver...");
                 config.configureDriver(machine.machine.driver, function(err, data) {
                     if(err) {
-                        log.error("There were problems loading the G2 configuration.");
+                        log.error("There were problems loading the Driver configuration.");
                     }
                     callback(null);
                 });
             } else {
-                log.warn("Skipping G2 configuration due to no connection.");
+                log.warn("Skipping Driver configuration due to no connection.");
                 config.configureDriver(null, function(err, data) {
                     callback(null);
                 })
@@ -241,17 +241,17 @@ Engine.prototype.start = function(callback) {
 
         function get_g2_version(callback) {
             if(this.machine.isConnected()) {
-                log.info("Getting G2 firmware version...");
+                log.info("Getting Driver firmware version...");
                 this.machine.driver.get('fb', function(err, value) {
                     if(err) {
-                        log.error('Could not get the G2 firmware build. (' + err + ')');
+                        log.error('Could not get the Driver firmware build. (' + err + ')');
                     } else {
-                        log.info('G2 Firmware Build: ' + value);
+                        log.info('Driver Firmware Build: ' + value);
                     }
                     callback(null);
                 });
             } else {
-                log.warn("Skipping G2 firmware version check due to no connection.")
+                log.warn("Skipping Driver firmware version check due to no connection.")
                 callback(null);
             }
         }.bind(this),
@@ -305,7 +305,7 @@ Engine.prototype.start = function(callback) {
             var server = restify.createServer({name:"FabMo Engine"});
             this.server = server;
 
-            // Allow JSON over Cross-origin resource sharing 
+            // Allow JSON over Cross-origin resource sharing
             log.info("Configuring cross-origin requests...");
             server.use(
                 function crossOrigin(req,res,next){
@@ -334,7 +334,7 @@ Engine.prototype.start = function(callback) {
             }
 
             server.use(restify.queryParser());
-            
+
             server.on('uncaughtException', function(req, res, route, err) {
                 log.uncaught(err);
                 answer = {

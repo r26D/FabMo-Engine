@@ -1,7 +1,7 @@
 var Config = require('./config').Config;
 var async = require('async');
 var EngineConfig = require('./engine_config').EngineConfig;
-var G2Config = require('./g2_config').G2Config;
+var DriverConfig = require('./marlin_config').DriverConfig;
 var OpenSBPConfig = require('./opensbp_config').OpenSBPConfig;
 var MachineConfig = require('./machine_config').MachineConfig;
 var DashboardCofnig = require('./dashboard_config').DashboardConfig;
@@ -14,7 +14,7 @@ var log = require('../log').logger('config');
 
 // Provide the exported functions for managing application configuration
 
-// Configure the engine by loading the configuration from disk, and performing 
+// Configure the engine by loading the configuration from disk, and performing
 // configuration of the application based on the values loaded.
 //
 // Also, create `exports.engine` which is an EngineConfig object
@@ -26,11 +26,11 @@ function configureEngine(callback) {
 // Configure the driver by loading the configuration from disk and synchronizing
 // it with the configuration of the actual physical driver.
 //
-// Also, create `exports.driver` which is a G2Config object
+// Also, create `exports.driver` which is a DriverConfig object
 function configureDriver(driver, callback) {
     if(driver) {
-    	log.info("Configuring G2 Driver...");
-    	//exports.driver = new G2Config(driver);
+    	log.info("Configuring Driver...");
+    	//exports.driver = new DriverConfig(driver);
 		async.series([
 		function(callback) { exports.driver.init(driver, callback); },
 		function(callback) { exports.driver.configureStatusReports(callback); }
@@ -101,7 +101,7 @@ function clearAppRoot(callback) {
 }
 
 exports.machine = new MachineConfig();
-exports.driver = new G2Config();
+exports.driver = new DriverConfig();
 
 exports.configureEngine = configureEngine;
 exports.configureDriver = configureDriver;
