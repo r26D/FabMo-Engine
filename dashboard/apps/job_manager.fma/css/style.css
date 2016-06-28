@@ -201,14 +201,15 @@ td.actions-control {
 
 .job_item:first-child {
   display: block;
-  width:98%;
+  width:95%;
   margin-left: auto;
   margin-right: auto;
   margin-bottom: .5em;
   margin-top: 2em;
   padding: 1em;
+  height: 200px;
 }
-
+/*
 .job_item:first-child:before{
   content: '';
   float: left;
@@ -219,7 +220,7 @@ td.actions-control {
   content: '';
   float: right;
   width: 0.5em;
-}
+}*/
 
 @media screen and (max-width: 630px){
 .job_item:first-child .description{
@@ -231,24 +232,24 @@ td.actions-control {
     font-size: .9em;
     padding: 0.5em;
     color: #666;
-    width: 160px;
+    width: 95%;
     display: inline-block;
     margin-top: 0;
     background-color: #FFFFFF;
     border-radius: 5px;
     margin: .5em .5em .5em 1%;
-    height: 200px;
+    height: 60px;
     box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, 0.15);
     border: 1px solid #ccc;
     overflow: hidden;
 }
 
 .chosen{
-  opacity: .5;
-  background-color: #333;
+  opacity: .9;
+  /*background-color: #333;
   color: #fff;
-  width: 160px !important;
-  
+  width: 160px !important;*/
+
 }
 
 .chosen .play-button, .chosen .icon-row {
@@ -260,7 +261,7 @@ td.actions-control {
 
 .ghost{
   opacity: .5;
-  background-color: #777;
+  background-color: #fff;
 }
 .job_item:first-child #menu{
   display: none;
@@ -309,7 +310,7 @@ td.actions-control {
 }
 
 .preview, .edit, .download, .cancel {
-  
+
   z-index: 1000;
 }
 
