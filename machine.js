@@ -1,4 +1,3 @@
-var driver = require('./marlin');
 var util = require('util');
 var events = require('events');
 var PLATFORM = require('process').platform;
@@ -11,7 +10,9 @@ var config = require('./config');
 var updater = require('./updater');
 var u = require('./util');
 var async = require('async');
+
 var g2 = require('./g2')
+var marlin = require('./marlin');
 
 var GCodeRuntime = require('./runtime/gcode').GCodeRuntime;
 var SBPRuntime = require('./runtime/opensbp').SBPRuntime;
@@ -46,11 +47,12 @@ function connect(callback) {
 	}
 
 	var cfg_driver = config.engine.get('driver');
+	var driver = null;
 	switch(cfg_driver) {
-		case 'g2':
-			driver = new driver.Marlin();
-			break;
 		case 'marlin':
+			driver = new marlin.Marlin();
+			break;
+		case 'g2':
 			driver = new g2.G2();
 			break;
 		default:
@@ -59,7 +61,7 @@ function connect(callback) {
 	}
 
 	if(control_path && gcode_path) {
-		exports.machine = new Machine(control_path, gcode_path, callback);
+		exports.machine = new Machine(driver, control_path, gcode_path, callback);
 	} else {
 		typeof callback === "function" && callback('No supported serial path for platform "' + PLATFORM + '"');
 	}
@@ -135,9 +137,9 @@ function Machine(driver, control_path, gcode_path, callback) {
 		    this.driver.requestStatusReport(function(result) {
 		    	if('stat' in result) {
 		    		switch(result.stat) {
-		    			case driver.STAT_INTERLOCK:
-		    			case driver.STAT_SHUTDOWN:
-		    			case driver.STAT_PANIC:
+		    			case this.driver.STAT_INTERLOCK:
+		    			case this.driver.STAT_SHUTDOWN:
+		    			case this.driver.STAT_PANIC:
 		    				this.die('A driver exception has occurred. You must reboot your tool.');
 		    				break;
 		    		}
