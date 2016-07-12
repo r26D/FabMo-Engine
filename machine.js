@@ -44,6 +44,20 @@ function connect(callback) {
 			gcode_path = null;
 			break;
 	}
+
+	var cfg_driver = config.engine.get('driver');
+	switch(cfg_driver) {
+		case 'g2':
+			driver = new driver.Marlin();
+			break;
+		case 'marlin':
+			driver = new g2.G2();
+			break;
+		default:
+			return callback(new Error("Unknown driver specified: " + cfg_driver))
+			break;
+	}
+
 	if(control_path && gcode_path) {
 		exports.machine = new Machine(control_path, gcode_path, callback);
 	} else {
@@ -51,7 +65,7 @@ function connect(callback) {
 	}
 }
 
-function Machine(control_path, gcode_path, callback) {
+function Machine(driver, control_path, gcode_path, callback) {
 
 	// Handle Inheritance
 	events.EventEmitter.call(this);
@@ -83,9 +97,7 @@ function Machine(control_path, gcode_path, callback) {
 
 	this.info_id = 0;
 
-	//this.driver = new driver.Marlin();
-	this.driver = new g2.G2();
-
+	this.driver = driver;
 	this.driver.on("error", function(err) {log.error(err);});
 
 	this.driver.connect(control_path, gcode_path, function(err, data) {
