@@ -106,6 +106,13 @@ Logger.prototype.write = function(level, msg) {
 
 // These functions provide a shorthand alternative to specifying the log level every time
 Logger.prototype.debug = function(msg) { this.write('debug', msg);};
+Logger.prototype.stack = function(msg) {
+	var stackTrace = new Error().stack;
+	stackTrace = stackTrace.split('\n');
+	stackTrace = stackTrace.slice(2).join('\n');
+	this.write('debug', 'Stack Trace:\n' + stackTrace);
+}
+
 Logger.prototype.info = function(msg) { this.write('info', msg);};
 Logger.prototype.warn = function(msg) { this.write('warn', msg);};
 Logger.prototype.error = function(msg) {
@@ -117,6 +124,7 @@ Logger.prototype.error = function(msg) {
 };
 
 Logger.prototype.driver = function(msg) {this.write('driver', msg);};
+
 Logger.prototype.uncaught = function(err) {
 	if(colors) {
 		console.log("UNCAUGHT EXCEPTION".red.underline);

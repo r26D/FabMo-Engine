@@ -137,6 +137,10 @@ Marlin.prototype.connect = function(serial_path, gcode_path, callback) {
 		}
 		onOpen(callback);
 	}.bind(this));
+
+	setInterval(function () {
+		this.requestStatusReport();
+	}.bind(this),500);
 };
 
 Marlin.prototype.disconnect = function(callback) {

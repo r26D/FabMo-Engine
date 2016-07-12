@@ -23,7 +23,7 @@ var flattenObject = function(ob) {
       var flatObject = flattenObject(ob[i]);
       for (var x in flatObject) {
         if (!flatObject.hasOwnProperty(x)) continue;
-    
+
         toReturn[i + '-' + x] = flatObject[x];
       }
     } else {
@@ -59,6 +59,7 @@ function update() {
               }
             }
         });
+        /*
         var unit1 = (360/data.driver['1sa']) * data.driver['1mi'] / data.driver['1tr'];
         $("#opensbp-units1").val(unit1);
         var unit2 = (360/data.driver['2sa']) * data.driver['2mi'] / data.driver['2tr'];
@@ -70,21 +71,25 @@ function update() {
         var unit5 = (360/data.driver['5sa']) * data.driver['5mi'] / data.driver['5tr'];
         $("#opensbp-units5").val(unit5);
         var unit6 = (360/data.driver['6sa']) * data.driver['6mi'] / data.driver['6tr'];
-        $("#opensbp-units6").val(unit6);
+        $("#opensbp-units6").val(unit6);*/
       }
     });
 
     fabmo.getNetworkIdentity(function(err, data) {
+      if (err) {
+        console.info('Network not reachable');
+        return
+      }
       if(data.id) {
         $('#input-machine-name').val(data.name);
-        $('#section-machine-name').show();        
+        $('#section-machine-name').show();
       } else {
         $('#section-machine-name').hide();
       }
 
       if(data.id) {
         $('#input-machine-id').val(data.id);
-        $('#section-machine-id').show();        
+        $('#section-machine-id').show();
       } else {
         $('#section-machine-id').hide();
       }
@@ -108,7 +113,7 @@ function setConfig(id, value) {
 	do {
 	  co[parts[i]] = {};
 	  if(i < parts.length-1) {
-	    co = co[parts[i]];            
+	    co = co[parts[i]];
 	  }
 	} while(i++ < parts.length-1 );
 

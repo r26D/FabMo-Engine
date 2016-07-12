@@ -124,9 +124,6 @@ DriverConfig.prototype.configureStatusReports = function(callback) {
 	// 	this.driver.command({"qv":0});
 	// 	this.driver.command({"jv":4});
 		driver = this.driver;
-		setInterval(function () {
-			driver.requestStatusReport();
-		},500);
 		return callback(null, this);
 	} else {
 		return callback(null, this);

@@ -1,11 +1,16 @@
 var Config = require('./config').Config;
 var async = require('async');
 var EngineConfig = require('./engine_config').EngineConfig;
-var DriverConfig = require('./marlin_config').DriverConfig;
 var OpenSBPConfig = require('./opensbp_config').OpenSBPConfig;
 var MachineConfig = require('./machine_config').MachineConfig;
 var DashboardCofnig = require('./dashboard_config').DashboardConfig;
 var InstanceConfig = require('./instance_config').InstanceConfig;
+
+// Driver layer stuff
+var G2 = require('../g2').G2;
+var Marlin = require('../marlin').Marlin;
+var G2Config = require('./g2_config').DriverConfig;
+var MarlinConfig = require('./marlin_config').DriverConfig;
 
 var fs = require('fs');
 var path = require('path');
@@ -29,11 +34,18 @@ function configureEngine(callback) {
 // Also, create `exports.driver` which is a DriverConfig object
 function configureDriver(driver, callback) {
     if(driver) {
-    	log.info("Configuring Driver...");
-    	//exports.driver = new DriverConfig(driver);
+			log.info("Configuring Driver...");
+			if(driver instanceof G2) {
+				exports.driver = new G2Config();
+			} else if(driver instanceof Marlin) {
+				exports.driver = new MarlinConfig();
+			} else {
+				return callback(new Error("Unknown driver has no configuration."));
+			}
+
 		async.series([
-		function(callback) { exports.driver.init(driver, callback); },
-		function(callback) { exports.driver.configureStatusReports(callback); }
+			function(callback) { exports.driver.init(driver, callback); },
+			function(callback) { exports.driver.configureStatusReports(callback); }
 		],
 		function finished(err, result) {
 			if(err) { callback(err); }

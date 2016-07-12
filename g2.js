@@ -325,20 +325,21 @@ G2.prototype.stopJog = function() {
 
 G2.prototype.setUnits = function(units, callback) {
 	if(units === 0 || units == 'in') {
+		log.info('Setting driver units to INCH');
 		gc = 'G20';
 		units = 0;
 	} else if(units === 1 || units === 'mm') {
+		log.info('Setting driver units to MM');
 		gc = 'G21';
 		units = 1;
 	} else {
-		return callback(new Error('Invalid unit setting: ' + units))
+		return callback(new Error('Invalid unit setting: ' + units));
 	}
 	this.set('gun', units, function() {
-		this.runString(gc, function() {
-			this.requestStatusReport(function(status) {
-				callback(null);
-			}.bind(this));
-		}.bind(this));
+		this.once('status', function(status) {
+			callback(null);
+		});
+		this.runString(gc);
 	}.bind(this));
 }
 
@@ -685,6 +686,9 @@ G2.prototype.setMany = function(obj, callback) {
 };
 
 G2.prototype.set = function(key, value, callback) {
+	if(value === undefined) {
+		return callback(new Error("Undefined value passed to G2"));
+	}
 	cmd = {};
 	cmd[key] = value;
 	if (key in this.readers) {

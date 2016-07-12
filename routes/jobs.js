@@ -17,7 +17,7 @@ var submitJob = function(req, res, next) {
         }
 
         async.map(
-            uploads, 
+            uploads,
             function create_job(item, callback) {
                 var file = item.file;
                 var filename = item.filename || (!file.name || file.name === 'blob') ? item.filename : file.name;
@@ -42,7 +42,7 @@ var submitJob = function(req, res, next) {
                             status:"error",
                             message:err.message
                         });
-                    } 
+                    }
                     return res.json({
                         status:"success",
                         data : {
@@ -174,7 +174,7 @@ var getQueue = function(req, res, next) {
                 status:"error",
                 message:"failed to get pending jobs from DB"
             });
-        }   
+        }
 
         db.Job.getRunning(function(err, running) {
             if(err) {
@@ -283,7 +283,7 @@ var getJobHistory = function(req, res, next) {
  * @apiDescription Get detailed information about a specific job.
  * @apiParam {String} id ID of requested job
  * @apiSuccess {Object} data Response data
- * @apiSuccess {Object} data.job Requested job 
+ * @apiSuccess {Object} data.job Requested job
  * @apiSuccess {Number} data.job._id Unique job ID
  * @apiSuccess {String} data.job.state `pending` | `running` | `finished` | `cancelled`
  * @apiSuccess {String} data.job.name Human readable job name
@@ -340,8 +340,40 @@ var cancelJob = function(req, res, next) {
             };
             res.json(answer);
         } else {
-            result.cancel(function(err, result) {
+            result.cancelOrTrash(function(err, result) {
                 if(err) {
+                    log.error(err);
+                    answer = {
+                            status:"fail",
+                            data:{job:err}
+                    };
+                    res.json(answer);
+                } else {
+                    answer = {
+                        status:"success",
+                        data : {job:result}
+                    };
+                    res.json(answer);
+                }
+            });
+        }
+    });
+};
+
+var updateOrder = function (req, res, next) {
+    var answer;
+    var order = parseInt(req.params.order);
+    var id = parseInt(req.params.id);
+    db.Job.getById(id, function(err,result) {
+        if(err) {
+            answer = {
+                    status:"fail",
+                    data:{job:err}
+            };
+            return res.json(answer);
+        } else {
+            result.update_order(order, function(err, result){
+                 if(err) {
                     log.error(err);
                     answer = {
                             status:"fail",
@@ -368,7 +400,7 @@ var getJobFile = function(req, res, next) {
                     status:"fail",
                     data:{file:err}
             };
-            res.json(answer);                        
+            res.json(answer);
         } else {
             fs.readFile(file.path, function(err, data) {
                 res.header('Content-Type', 'text/plain');
@@ -381,6 +413,8 @@ var getJobFile = function(req, res, next) {
     });
 };
 
+
+
 var getJobGCode = function(req, res, next) {
     db.Job.getFileForJobId(req.params.id, function(err, file) {
         if(err) {
@@ -389,10 +423,10 @@ var getJobGCode = function(req, res, next) {
                     status:"fail",
                     data:{file:err}
             };
-            res.json(answer);                        
+            res.json(answer);
         } else {
             var gcode_filename = 'gcode.nc';
-            machine.getGCodeForFile(file.path, function(err, gcode) {                
+            machine.getGCodeForFile(file.path, function(err, gcode) {
 		      res.setHeader('content-type', 'applications/octet-stream');
               res.setHeader('content-disposition', 'filename="' + gcode_filename + '"');
               res.send(gcode);
@@ -406,6 +440,7 @@ module.exports = function(server) {
     server.get('/jobs', getAllJobs);
     server.get('/job/:id', getJobById);
     server.del('/job/:id', cancelJob);
+    server.patch('/job/:id', updateOrder);
     server.post('/job/:id', resubmitJob);
     server.get('/job/:id/file', getJobFile);
     server.get('/job/:id/gcode', getJobGCode);

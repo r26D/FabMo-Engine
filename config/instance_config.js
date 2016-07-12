@@ -1,6 +1,7 @@
 Config = require('./config').Config;
 var log = require('../log');
 var logger = log.logger('config');
+var util = require('util');
 
 // The InstanceConfig object keeps track of runtime settings - they aren't set by the user and are used for things like positional memory, etc.
 InstanceConfig = function(driver) {

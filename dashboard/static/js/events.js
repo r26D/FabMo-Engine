@@ -54,7 +54,7 @@ define(function(require) {
     }
     $('.DRO-button').on('click', function(evt) {
         setRightMenuBehavior();
-         var el = $(this),  
+         var el = $(this),
         newone = el.clone(true);
         el.before(newone);
         $("." + el.attr("class") + ":last").remove();
@@ -109,15 +109,24 @@ define(function(require) {
         $("#app_menu_container").css(
             "width",
             $(".main-section").width() - ($(".main-section").width() % 132)
-        );
+        )
+        if ($('.axi').is(':focus')){
+
+        } else {
+            rightMenuLoad();
+        }
+
+
     };
 
 
     window.setInterval(function() {
         $('.pauseJob').toggleClass('blink');
+
     }, 1000);
 
     var colapseMenu = function() {
+
         //L & R = width of left & right menus
         var l = 0;
         var r = 0;
@@ -139,10 +148,12 @@ define(function(require) {
                 $(".main-section").width() - ($(".main-section").width() % 132)
             );
             $('.collapseLeft').hide();
-            l = parseInt($("#left-menu").css("width")) + 1; //Save left menu size		
+            l = parseInt($("#left-menu").css("width")) + 1; //Save left menu size
         }
-        //Handle collapse of left 
-        $('.collapseLeft').click(function() {
+        //Handle collapse of left
+        $('.collapseLeft').click(function(evt) {
+          console.log("collapse")
+            evt.preventDefault();
             $('.collapseLeft').hide();
             $('#left-menu').addClass("colapsed");
             $('#widget-links-general').addClass("colapsed");
@@ -222,7 +233,8 @@ define(function(require) {
         });
 
         //Idem if we colapse or un-colapse the right menu
-        $("#icon_colapse").click(function() {
+        $("#icon_colapse").click(function(evt) {
+          evt.preventDefault();
             colapseMenu();
         });
 

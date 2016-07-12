@@ -15,6 +15,7 @@ job_queue = new util.Queue();
 var db;
 var files;
 var jobs;
+var users;
 
 function notifyChange() {
 	var machine = require('./machine').machine;
@@ -31,6 +32,7 @@ Job = function(options) {
     this.started_at = null;
     this.finished_at = null;
     this.state = "pending";
+    this.order = null;
 };
 
 Job.prototype.clone = function(callback) {
@@ -40,6 +42,12 @@ Job.prototype.clone = function(callback) {
 		description : this.description
 	});
 	job.save(callback);
+};
+
+Job.prototype.update_order = function (order, callback){
+    log.info("Upating " + this._id ? this._id : '<volatile job>');
+    this.order = order;
+    this.save(callback);
 };
 
 Job.prototype.start = function(callback) {
@@ -63,14 +71,33 @@ Job.prototype.fail = function(callback) {
 	this.save(callback);
 };
 
+Job.prototype.cancelOrTrash = function(callback) {
+		if(this.state === 'running') {
+			this.cancel(callback);
+		} else {
+			this.trash(callback);
+		}
+}
+
 Job.prototype.cancel = function(callback) {
-	if(this.state === 'pending' || this.state === 'running') {
-		log.debug("Cancelling pending job id " + this._id);
+	if(this.state === 'running') {
+		log.debug("Cancelling running job id " + this._id);
 		this.state = 'cancelled';
 		this.finished_at = Date.now();
 		this.save(callback);
 	} else {
 		setImmediate(callback, new Error('Cannot cancel a job that is ' + this.state));
+	}
+};
+
+Job.prototype.trash = function(callback) {
+	if(this.state !== 'running') {
+		log.debug("Trashing job id " + this._id);
+		this.state = 'trash';
+		this.finished_at = Date.now();
+		this.save(callback);
+	} else {
+		setImmediate(callback, new Error('Cannot trash a job that is ' + this.state));
 	}
 };
 
@@ -89,7 +116,7 @@ Job.prototype.save = function(callback) {
 		notifyChange();
 		callback(null, this);
 	}.bind(this));
-	
+
 };
 
 Job.prototype.delete = function(callback){
@@ -177,6 +204,10 @@ Job.getById = function(id,callback)
 
 Job.getNext = function(callback) {
 	jobs.find({state:'pending'}).toArray(function(err, result) {
+        result.sort(function(a, b){
+            return a.order - b.order;
+        });
+        log.info('printing' + result[0]);
 		if(err) {
 			callback(err, null);
 		} else {
@@ -205,7 +236,7 @@ Job.deletePending = function(callback) {
 };
 
 // The File class represents a fabrication file on disk
-// In addition to the filename and path, file statistics such as 
+// In addition to the filename and path, file statistics such as
 // The run count, last time run, etc. are stored in the database.
 function File(filename,path, callback){
 	var that=this;
@@ -312,7 +343,7 @@ File.add = function(friendly_filename, pathname, callback) {
 					}.bind(this)); // unlink
 				}); // move
 			}
-		});		
+		});
 	})
 
 
@@ -366,6 +397,135 @@ var createJob = function(file, options, callback) {
     });
 }
 
+User = function(username,password,isAdmin,created_at,_id) {
+	this._id = _id;
+    this.username = username;
+    this.password = password;
+	this.isAdmin = isAdmin || false;
+    this.created_at = created_at || Date.now();
+};
+
+User.prototype.validPassword= function(password){
+	var pass_shasum = crypto.createHash('sha256').update(password).digest('hex');
+
+	if(pass_shasum === this.password){
+		return true;
+	}else if(password === this.password){
+		return true;
+	}else{
+		return false;
+	}
+};
+
+// Delete this user from the database
+User.prototype.delete = function(callback){
+	users.remove({_id : this._id},function(err){if(!err)callback();else callback(err);});
+};
+
+// verify user password and encrypt it.
+User.verifyAndEncryptPassword = function(password,callback){
+	if(!/^([a-zA-Z0-9@*#]{5,15})$/.test(password) ){ //validatepassword
+		if(callback) callback('Password not valid, it should contain between 5 and 15 characters. The only special characters authorized are "@ * #".',null);
+		return undefined;
+	}
+	var pass_shasum = crypto.createHash('sha256').update(password).digest('hex'); // save encrypted password
+	if(callback)callback(null,pass_shasum);
+	return pass_shasum;
+};
+
+// Grant user admin status
+User.prototype.grantAdmin = function(callback){
+	this.isAdmin = true;
+	this.save(callback);
+};
+
+// Revoke user admin status
+User.prototype.revokeAdmin = function(callback){
+	this.isAdmin = false;
+	this.save(callback);
+};
+
+User.prototype.save = function(callback){
+	var user = this;
+	users.save(user, function(err, record) {
+		if(err){
+			log.err(err);
+			if(callback)callback(err,null);
+			return;
+		}
+		if(!record) {
+			if(callback)callback(err,null);
+			return;
+		}
+		if(callback)callback(null, this);
+	}.bind(this));
+};
+
+User.add = function(username,password,callback){
+	if(!/^([a-zA-Z0-9]{3,20})$/.test(username) ){ //validate username
+		callback('Username not valid, it should contain between 3 and 20 characters. Special characters are not authorized.',null);
+		return ;
+	}
+	User.verifyAndEncryptPassword(password,function(err,pass_shasum){
+		if (err){callback(err,password);return ;}
+		users.findOne({username:username},function(err,document) {
+			if(document){
+				callback('Username already taken !',null);
+				return ;
+			}else{
+				user = new User(username,pass_shasum);
+				user.save(callback);
+				//callback(null,user);
+				return ;
+			}
+		});
+	})
+}
+
+User.findOne = function(username,callback){
+	users.findOne({username:username},function(err,doc){
+		if(err){console.log(err);callback(err,null);}
+		if(doc){
+			user = new User(doc.username,doc.password,doc.isAdmin,doc.created_at,doc._id);
+			callback(err,user);
+		}else{
+			callback(err);
+		}
+	});
+}
+
+User.getAll = function(callback){
+	users.find({},{password:0},function(err,cursor){ // do not returns passwords.
+		if(err){console.log(err);callback(err,null);}
+		if(cursor){
+			var user_array = [];
+			cursor.toArray(function(err,users){
+				for(user in users){
+						user_array.push(new User(users[user].username,users[user].password,users[user].isAdmin,users[user].created_at,users[user]._id));
+				}
+				callback(null,user_array);
+			});
+		}else{
+			callback(err);
+		}
+	});
+}
+
+User.findById = function(id,callback){
+	users.findOne({_id:id},function(err,doc){
+		if(err){console.log(err);callback(err,null);return;}
+		if(doc){
+			user = new User(doc.username,doc.password,doc.isAdmin,doc.created_at,doc._id);
+			callback(err,user);
+			return;
+		}else{
+			callback("user doesn't exist !");
+			return;
+		}
+	});
+}
+
+
 checkCollection = function(collection, callback) {
 	collection.find().toArray(function(err, data) {
 		if(err) {
@@ -390,6 +550,18 @@ exports.configureDB = function(callback) {
 	db = new Engine.Db(config.getDataDir('db'), {});
 	files = db.collection("files");
 	jobs = db.collection("jobs");
+	users = db.collection("users");
+
+	users.find({}).toArray(function(err,result){ //init the user database with an admin account if it's empty
+		if (err){
+			throw err;
+		}
+		if(result.length === 0 ){
+			var pass_shasum = crypto.createHash('sha256').update("go2fabmo").digest('hex');
+			user = new User("admin",pass_shasum,true);
+			user.save();
+		}
+	});
 
 	async.parallel([
 			function(cb) {
@@ -398,7 +570,7 @@ exports.configureDB = function(callback) {
 			function(cb) {
 				checkCollection(jobs, cb);
 			}
-		], 
+		],
 		function(err, results) {
 			if(err) {
 				log.error('There was a database corruption issue!')
@@ -445,4 +617,5 @@ exports.cleanup = function(callback) {
 
 exports.File = File;
 exports.Job = Job;
+exports.User = User
 exports.createJob = createJob;

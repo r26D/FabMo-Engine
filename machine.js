@@ -9,14 +9,15 @@ var db = require('./db');
 var log = require('./log').logger('machine');
 var config = require('./config');
 var updater = require('./updater');
+var u = require('./util');
+var async = require('async');
+var g2 = require('./g2')
 
 var GCodeRuntime = require('./runtime/gcode').GCodeRuntime;
 var SBPRuntime = require('./runtime/opensbp').SBPRuntime;
 var ManualRuntime = require('./runtime/manual').ManualRuntime;
 var PassthroughRuntime = require('./runtime/passthrough').PassthroughRuntime;
 var IdleRuntime = require('./runtime/idle').IdleRuntime;
-
-AP_COLLAPSE_TIME = 5000;
 
 function connect(callback) {
 
@@ -80,12 +81,17 @@ function Machine(control_path, gcode_path, callback) {
 		auth : false
 	};
 
-	this.driver = new driver.Marlin();
+	this.info_id = 0;
+
+	//this.driver = new driver.Marlin();
+	this.driver = new g2.G2();
+
 	this.driver.on("error", function(err) {log.error(err);});
 
 	this.driver.connect(control_path, gcode_path, function(err, data) {
 
 	    // Set the initial state based on whether or not we got a valid connection to driver
+
 	    if(err){
 	    	log.warn("Setting the disconnected state");
 		    this.status.state = 'not_ready';
@@ -99,6 +105,14 @@ function Machine(control_path, gcode_path, callback) {
 	    this.manual_runtime = new ManualRuntime();
 	    this.passthrough_runtime = new PassthroughRuntime();
 	    this.idle_runtime = new IdleRuntime();
+
+		this.runtimes = [
+			this.gcode_runtime,
+			this.sbp_runtime,
+			this.manual_runtime,
+			this.passthrough_runtime,
+			this.idle_runtime
+		]
 
 	    // Idle
 	    this.setRuntime(null, function() {});
@@ -146,29 +160,29 @@ function Machine(control_path, gcode_path, callback) {
 util.inherits(Machine, events.EventEmitter);
 
 Machine.prototype.handleAPCollapseButton = function(stat) {
-	var n =  config.machine.get('auth_input');
+	var n =  config.machine.get('ap_input');
 	if(n == 0) { return; }
-	var auth_input = 'in' + n;
+	var ap_input = 'in' + n;
 
 	// If the button has been pressed
-	if(stat[auth_input]) {
-
+	if(stat[ap_input]) {
+		var ap_collapse_time = config.machine.get('ap_time');
 		// For the first time
 		if(!this.APCollapseTimer) {
 			// Do an AP collapse in 10 seconds, if the button is never released
-			log.debug('Starting a timer for AP mode collapse (auth button was pressed)')
+			log.debug('Starting a timer for AP mode collapse (AP button was pressed)')
 			this.APCollapseTimer = setTimeout(function APCollapse() {
-				log.info("AP Collapse button held for " + (AP_COLLAPSE_TIME/1000) + " seconds.  Triggering AP collapse.");
+				log.info("AP Collapse button held for " + ap_collapse_time + " seconds.  Triggering AP collapse.");
 				this.APCollapseTimer = null;
 				updater.APModeCollapse();
-			}.bind(this), AP_COLLAPSE_TIME);
+			}.bind(this), ap_collapse_time*1000);
 		}
 	}
 	// Otherwise
 	else {
 		// Cancel an AP collapse that is pending, if there is one.
 		if(this.APCollapseTimer) {
-			log.debug('Cancelling AP collapse (auth button was released)')
+			log.debug('Cancelling AP collapse (AP button was released)')
 			clearTimeout(this.APCollapseTimer);
 			this.APCollapseTimer = null;
 		}
@@ -189,6 +203,13 @@ Machine.prototype.handleFireButton = function(stat) {
 Machine.prototype.die = function(err_msg) {
 	this.setState(this, 'dead', {error : 'A driver exception has occurred. You must reboot your tool.'});
 	this.emit('status',this.status);
+}
+
+Machine.prototype.restoreDriverState = function(callback) {
+	callback = callback || function() {};
+	this.driver.setUnits(config.machine.get('units'), function() {
+		config.driver.restore(callback);
+	}.bind(this));
 }
 
 Machine.prototype.arm = function(action, timeout) {
@@ -346,6 +367,57 @@ Machine.prototype.runJob = function(job) {
 	}.bind(this));
 };
 
+Machine.prototype.setPreferredUnits = function(units, callback) {
+	log.info("SETTING PREFERRED UNITS");
+	try {
+		if(config.driver.changeUnits) {
+			units = u.unitType(units);
+			var uv = null;
+ 			switch(units) {
+				case 'in':
+					log.info("Changing default units to INCH");
+					uv = 0;
+					break;
+
+				case 'mm':
+					log.info("Changing default units to MM");
+					uv = 1;
+				break;
+
+				default:
+					log.warn('Invalid units "' + gc + '"found in machine configuration.');
+				break;
+			}
+			if(uv !== null) {
+
+				// Change units on the driver
+				config.driver.changeUnits(uv, function(err, data) {
+					log.info("Done setting driver units")
+					// Change units on each runtime in turn
+					async.eachSeries(this.runtimes, function runtime_set_units(item, callback) {
+						log.info("Setting preferred units for " + item)
+						if(item.setPreferredUnits) {
+							return item.setPreferredUnits(uv, callback);
+						}
+						callback();
+					}.bind(this), callback);
+				}.bind(this));
+			}
+		} else {
+			return callback(null);
+		}
+	}
+	catch (e) {
+		log.warn("Couldn't access driver configuration...");
+		log.error(e)
+		try {
+			this.driver.setUnits(uv);
+		} catch(e) {
+			callback(e);
+		}
+	}
+}
+
 Machine.prototype.getGCodeForFile = function(filename, callback) {
 	fs.readFile(filename, 'utf8', function (err,data) {
 		if (err) {
@@ -447,6 +519,8 @@ Machine.prototype.setState = function(source, newstate, stateinfo) {
 
 		if(stateinfo) {
 			this.status.info = stateinfo
+			this.info_id += 1;
+			this.status.info.id = this.info_id;
 		} else {
 			delete this.status.info
 		}

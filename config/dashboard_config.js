@@ -1,5 +1,6 @@
 var Config = require('./config').Config;
 var log = require('../log').logger('dashboard_config');
+var util = require('util');
 
 // The EngineConfig object keeps track of engine-specific settings
 var DashboardConfig = function(driver) {

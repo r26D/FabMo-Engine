@@ -62,7 +62,9 @@ DriverConfig.prototype.update = function(data, callback) {
 		// Call driver.set() for each item in the collection of data that was passed in.
 		function iterator(key, cb) {
 			if(this.driver) {
-				this.driver.set(key, data[key], cb);
+				this.driver.set(key, data[key], function(err, data) {
+					cb(null, data);
+				});
 			} else {
 				cb(null);
 			}

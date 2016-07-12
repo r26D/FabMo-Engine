@@ -4,7 +4,7 @@ var socketio = require('socket.io');
 var async = require('async');
 var process = require('process');
 var machine = require('./machine');
-var detection_daemon = require('./detection_daemon')();
+var detection_daemon = require('./detection_daemon');
 var config = require('./config');
 var PLATFORM = process.platform;
 var log = require('./log').logger('engine');
@@ -15,6 +15,9 @@ var network = require('./network');
 var glob = require('glob');
 var argv = require('minimist')(process.argv);
 var fs = require('fs');
+var sessions = require("client-sessions");
+var authentication = require('./authentication');
+var crypto = require('crypto');
 
 var Engine = function() {
     this.version = null;
@@ -57,7 +60,7 @@ Engine.prototype.setTime = function(obj) {
         var t = d.getUTCFullYear() + '-' + d.getUTCMonth() + '-' + d.getUTCDay() + ' ' + d.getUTCHours() + ':' + d.getUTCMinutes() + ':' + d.getUTCSeconds()
     cmd = 'timedatectl set-time ' + t + '; timedatectl';
         util.doshell(cmd, function(stdout) {
-            console.log(stdout);
+            log.debug(stdout);
         });
     }
 }
@@ -205,6 +208,12 @@ Engine.prototype.start = function(callback) {
             });
         }.bind(this),
 
+        function launch_detection_daemon(callback){
+            log.info("Launching detection daemon...");
+            detection_daemon();
+            callback(null);
+        }.bind(this),
+
         function load_machine_config(callback) {
             this.machine = machine.machine;
             log.info('Loading the machine configuration...')
@@ -216,11 +225,11 @@ Engine.prototype.start = function(callback) {
             });
         }.bind(this),
 
+        // Configure Driver by loading all its json settings and static configuration parameters
         function set_units(callback) {
             this.machine.driver.setUnits(config.machine.get('units'), callback);
         }.bind(this),
 
-        // Configure Driver by loading all its json settings and static configuration parameters
         function load_driver_config(callback) {
             if(this.machine.isConnected()) {
                 log.info("Configuring Driver...");
@@ -256,11 +265,34 @@ Engine.prototype.start = function(callback) {
             }
         }.bind(this),
 
-        function apply_machine_config(callback) {
-            log.info("Applying machine configuration...");
-            config.machine.apply(callback);
+        function g2_shim(callback) {
+          log.debug("Running G2 Shim...");
+          var entries = [
+            '1sa','1tr','1mi',
+            '2sa','2tr','2mi',
+            '3sa','3tr','3mi',
+            '4sa','4tr','4mi',
+            '5sa','5tr','5mi',
+            '6sa','6tr','6mi'
+          ]
+          var do_shim = false;
+          for(var i=0; i<entries.length; i++) {
+            if(config.driver.has(entries[i])) {
+              do_shim = true;
+            }
+          }
+          if(do_shim) {
+            log.debug("Deleting obsolete entries in G2 config");
+            config.driver.deleteMany(entries, function(err, data) {
+              config.driver.restore(function() {
+                callback();
+              });
+            });
+          } else {
+            log.debug("No obsolete entries in G2 config.");
+            callback();
+          }
         }.bind(this),
-
 
         function load_opensbp_commands(callback) {
             log.info("Loading OpenSBP Commands...");
@@ -271,6 +303,12 @@ Engine.prototype.start = function(callback) {
             log.info("Configuring OpenSBP runtime...");
             config.configureOpenSBP(callback);
         },
+
+        function apply_machine_config(callback) {
+            log.info("Applying machine configuration...");
+            config.machine.apply(callback);
+        }.bind(this),
+
 
         function configure_dashboard(callback) {
             log.info("Configuring dashboard...");
@@ -298,6 +336,28 @@ Engine.prototype.start = function(callback) {
             log.info("Applying instance configuration...");
             config.instance.apply(callback);
         },
+
+        function generate_auth_key(callback) {
+          log.info("Configuring secret key...")
+          var secret_file = config.getDataDir() + '/config/auth_secret'
+          fs.readFile(secret_file, 'utf8', function(err, data) {
+
+            // If there's already a secret key from disk, use it
+            if(!err && data && (data.length == 512)) {
+              log.info("Secret key already exists, using that.")
+              this.auth_secret = data;
+              return callback();
+            }
+
+            // If not, generate, save and use a new one
+            log.info("Generating a new secret key.")
+            this.auth_secret = crypto.randomBytes(256).toString('hex');
+            fs.writeFile(secret_file, this.auth_secret, function(err, data) {
+              callback();
+            }.bind(this));
+
+          }.bind(this))
+        }.bind(this),
 
         // Kick off the server if all of the above went OK.
         function start_server(callback) {
@@ -349,6 +409,29 @@ Engine.prototype.start = function(callback) {
             server.use(restify.bodyParser({'uploadDir':config.engine.get('upload_dir') || '/tmp'}));
             server.pre(restify.pre.sanitizePath());
 
+            log.info("Cofiguring authentication...");
+            log.info("Secret Key: " + this.auth_secret.slice(0,5) + '...' + this.auth_secret.slice(-5));
+            server.cookieSecret = this.auth_secret;
+            server.use(sessions({
+                // cookie name dictates the key name added to the request object
+                cookieName: 'session',
+                // should be a large unguessable string
+                secret: server.cookieSecret, // REQUIRE HTTPS SUPPORT !!!
+                // how long the session will stay valid in ms
+                duration: 1 * 24 * 60 * 60 * 1000, // 1 day
+                cookie: {
+                  //: '/api', // cookie will only be sent to requests under '/api'
+                  //maxAge: 60000, // duration of the cookie in milliseconds, defaults to duration above
+                  ephemeral: false, // when true, cookie expires when the browser closes
+                  httpOnly: false, // when true, cookie is not accessible from javascript
+                  secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
+                }
+            }));
+
+            server.use(authentication.passport.initialize());
+            server.use(authentication.passport.session());
+
+            authentication.configure();
             log.info("Enabling gzip for transport...");
             server.use(restify.gzipResponse());
             // Import the routes module and apply the routes to the server

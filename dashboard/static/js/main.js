@@ -29,20 +29,31 @@ define(function(require) {
     var authorizeDialog = false;
     var isRunning = false;
     var isAuth = false;
-    // Detect touch screen
+    var lastInfoSeen = null;
 
+    // Detect touch screen
     var supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
 
     // Initial read of engine configuration
+    engine.getCurrentUser(function(err,user){
+        if(err){
+            window.location.href = '#/authentication';
+        } else {
+            /*console.log(user);*/
+        }
+    });
+
     engine.getConfig();
     engine.getVersion(function(err, version) {
+
         context.setEngineVersion(version);
 
         context.apps = new context.models.Apps();
         // Load the apps from the server
         context.apps.fetch({
             success: function() {
-                // Create the menu based on the apps thus retrieved 
+
+                // Create the menu based on the apps thus retrieved
                 context.appMenuView = new context.views.AppMenuView({
                     collection: context.apps,
                     el: '#app_menu_container'
@@ -61,7 +72,7 @@ define(function(require) {
                 router.setContext(context);
 
                 dashboard.setRouter(router);
-                
+
                 // Sort of a hack, but works OK.
                 $('.loader').hide();
 
@@ -70,6 +81,8 @@ define(function(require) {
 
                 // Request a status update from the tool
                 engine.getStatus();
+
+
 
                 dashboard.engine.on('change', function(topic) {
                     if (topic === 'apps') {
@@ -262,9 +275,20 @@ define(function(require) {
         dashboard.engine.sbp('ZB');
     });
 
+
     $('#connection-strength-indicator').click(function(evt) {
         dashboard.launchApp('network-manager');
     });
+
+	engine.on('authentication_failed',function(message){
+	    console.log('authentication failed');
+	    if(message==="not authenticated"){
+	        window.location='#/authentication?message=not-authenticated';
+	    }
+	    else if(message==="kicked out"){
+	        window.location='#/authentication?message=kicked-out';
+	    }
+	});
 
     var disconnected = false;
     last_state_seen = null;
@@ -290,11 +314,11 @@ define(function(require) {
             dashboard.hideModal();
             modalIsShown = false;
         }
-     
-        
+
+
         if (last_state_seen != status.state) {
             last_state_seen = status.state;
-            
+
         }
         switch (status.state) {
             case 'running':
@@ -315,7 +339,8 @@ define(function(require) {
             // authenticate.setIsRunning(false);
         }
 
-        if (status['info']) {
+        if (status['info'] && status['info']['id'] != lastInfoSeen) {
+            lastInfoSeen = status['info']['id'];
             if (status.info['message']) {
                 keypad.setEnabled(false);
                 keyboard.setEnabled(false);
@@ -351,7 +376,7 @@ define(function(require) {
                     }
                 });
                 modalIsShown = true;
-            } 
+            }
         } else if (status.state == 'armed') {
             authorizeDialog = true;
                 keypad.setEnabled(false);
@@ -365,7 +390,7 @@ define(function(require) {
                     dashboard.engine.quit();
                 }
             });
-        } 
+        }
     });
 
     function setConnectionStrength(level) {
@@ -421,50 +446,117 @@ define(function(require) {
 
     ping();
 
-    (function() {
-        if ($(window).width() < 620) {
-            function start_marquee() {
-                function go() {
-                    i = i < width ? i + step : 1;
-                    m.style.marginLeft = -i + 'px';
-                }
-                var i = 0,
-                    step = 3,
-                    space = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-                var m = document.getElementById('marquee');
-                var t = m.innerHTML;
-                m.innerHTML = t + space;
-                m.style.position = 'absolute';
-                var width = (m.clientWidth + 1);
-                m.style.position = '';
-                m.innerHTML = t + space + t + space + t + space + t + space + t + space + t + space + t + space;
-                if (m.addEventListener) {
-                    m.addEventListener('mouseenter', function() {
-                        step = 0;
-                    }, false);
-                    m.addEventListener('mouseleave', function() {
-                        step = 3;
-                    }, false);
-                }
-                var x = setInterval(go, 50);
-            }
-            if (window.addEventListener) {
-                window.addEventListener('load', start_marquee, false);
-            } else if (window.attachEvent) { //IE7-8
-                window.attachEvent('onload', start_marquee);
-            }
 
-            $('.currentContainer').css('width', '100px');
-            $('.currentJobTitle').css('width', '50%');
-            $('.currentJobTitle').css('padding-left', '100px');
+// (function($) {
+//         $.fn.textWidth = function(){
+//              var calc = '<span style="display:none">' + $(this).text() + '</span>';
+//              $('body').append(calc);
+//              var width = $('body').find('span:last').width();
+//              $('body').find('span:last').remove();
+//             return width;
+//         };
 
-            if ($(window).width() < 400) {
-                $('.currentContainer').css('width', '50px');
-                $('.currentJobTitle').css('width', '50%');
-                $('.currentJobTitle').css('padding-left', '50px');
-            }
-        }
-    })();
+//         $.fn.marquee = function(args) {
+//             var that = $(this);
+//             console.log(that);
+//             var textWidth = that.textWidth(),
+//                 offset = that.width(),
+//                 width = offset,
+//                 css = {
+//                     'text-indent' : that.css('text-indent'),
+//                     'overflow' : that.css('overflow'),
+//                     'white-space' : that.css('white-space')
+//                 },
+//                 marqueeCss = {
+//                     'text-indent' : width,
+//                     'overflow' : 'hidden',
+//                     'white-space' : 'nowrap'
+//                 },
+//                 args = $.extend(true, { count: -1, speed: 1e1, leftToRight: false }, args),
+//                 i = 0,
+//                 stop = textWidth*1,
+//                 dfd = $.Deferred();
+
+//             function go() {
+//                 if(!that.length) return dfd.reject();
+//                 if(width == stop) {
+//                     i++;
+//                     if(i == args.count) {
+//                         that.css(css);
+//                         return dfd.resolve();
+//                     }
+//                     if(args.leftToRight) {
+//                         width = textWidth*-1;
+//                     } else {
+//                         width = offset;
+//                     }
+//                 }
+//                 that.css('text-indent', width + 'px');
+//                 if(args.leftToRight) {
+//                     width++;
+//                 } else {
+//                     width--;
+//                 }
+//                 setTimeout(go, args.speed);
+//             };
+//             if(args.leftToRight) {
+//                 width = textWidth*-1;
+//                 width++;
+//                 stop = offset;
+//             } else {
+//                 width--;
+//             }
+//             that.css(marqueeCss);
+//             go();
+//             return dfd.promise();
+//         };
+//         $('.currentJobTitle').marquee();
+//     })(jQuery);
+
+    // (function() {
+    //     if ($(window).width() < 620) {
+    //         function start_marquee() {
+    //             function go() {
+    //                 i = i < width ? i + step : 1;
+    //                 m.style.marginLeft = -i + 'px';
+    //             }
+    //             var i = 0,
+    //                 step = 3,
+    //                 space = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+    //             var m = document.getElementById('marquee');
+    //             var t = m.innerHTML;
+    //             m.innerHTML = t + space;
+    //             m.style.position = 'absolute';
+    //             var width = (m.clientWidth + 1);
+    //             m.style.position = '';
+    //             m.innerHTML = t + space + t + space + t + space + t + space + t + space + t + space + t + space;
+    //             if (m.addEventListener) {
+    //                 m.addEventListener('mouseenter', function() {
+    //                     step = 0;
+    //                 }, false);
+    //                 m.addEventListener('mouseleave', function() {
+    //                     step = 3;
+    //                 }, false);
+    //             }
+    //             var x = setInterval(go, 50);
+    //         }
+    //         if (window.addEventListener) {
+    //             window.addEventListener('load', start_marquee, false);
+    //         } else if (window.attachEvent) { //IE7-8
+    //             window.attachEvent('onload', start_marquee);
+    //         }
+
+    //         $('.currentContainer').css('width', '100px');
+    //         $('.currentJobTitle').css('width', '50%');
+    //         $('.currentJobTitle').css('padding-left', '100px');
+
+    //         if ($(window).width() < 400) {
+    //             $('.currentContainer').css('width', '50px');
+    //             $('.currentJobTitle').css('width', '50%');
+    //             $('.currentJobTitle').css('padding-left', '50px');
+    //         }
+    //     }
+    // })();
     engine.sendTime();
 
     function touchScreen() {
@@ -476,10 +568,5 @@ define(function(require) {
         }
     }
     touchScreen();
+
 });
-
-
-
-
-
-
