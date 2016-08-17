@@ -301,8 +301,14 @@ function addHistoryEntries(jobs) {
     var done = row.insertCell(2);
     var time = row.insertCell(3);
 
+    var divJob = document.createElement("div");
+    divJob.className = "job-" + job.state;
+    divJob.innerHTML = job.name;
+    createThumbnail(divJob, job._id, 50, 50);
+    name.appendChild(divJob);
+
     menu.innerHTML = createHistoryMenu(job._id);
-    name.innerHTML = '<div class="job-' + job.state + '">' + job.name + '</div>';
+    // name.innerHTML = '<div class="job-' + job.state + '">' + job.name + '</div>';
     done.innerHTML = moment(job.finished_at).fromNow();
     time.innerHTML = moment.utc(job.finished_at - job.started_at).format('HH:mm:ss');
   });
