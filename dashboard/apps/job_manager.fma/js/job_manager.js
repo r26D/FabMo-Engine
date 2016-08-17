@@ -97,6 +97,45 @@ function makeActions() {
   return actions;
 }
 
+//Creates the thumbnail and insert the image into the parentNode (as the first
+//node)
+function createThumbnail(parentNode, jobId, width, height) {
+    //For some reason, if I create the img element here and update the src in
+    //the callback function, the image is not update
+    //This is why I create and insert the img element in the callback function
+    var url = '/job/' + jobId + '/gcode';
+    $.get(url, function(gcode, status) {
+        var colors = { G1 : '#000000', G2G3 : "#000000" };
+        var img = document.createElement("img");
+        parentNode.insertBefore(img, parentNode.firstChild);
+        img.width = width;
+        img.height = height;
+        img.alt = "No possible preview";
+        img.src = GCode2DViewer.getImage(gcode, colors, width, height);
+    });
+}
+
+//job: the job object
+//isRecent: true if the job is a recent job and recent menu is created, else
+//menuCreationFunction is the function for created the menu, it must take the
+//jobId as parameter and return the html code as a string
+function fillJobHolder(job, menuCreationFunction) {
+    var id = document.getElementById(job._id);
+
+    var menu = document.createElement("div");
+    menu.id = "menu";
+    menu.innerHTML = menuCreationFunction(job._id);
+    id.appendChild(menu);
+
+    id.innerHTML += '<div class="name">' + job.name + '</div>';
+
+    var description = document.createElement("div");
+    description.className = "description";
+    createThumbnail(description, job._id, 100, 100);
+    description.innerHTML += job.description;
+    id.appendChild(description);
+}
+
 function addQueueEntries(jobs) {
   clearQueue();
   var table = document.getElementById('queue_table');
@@ -122,15 +161,17 @@ function addQueueEntries(jobs) {
       listItem.setAttribute("class", "job_item");
       listItem.setAttribute("data-id", jobs[i]._id);
       table.appendChild(listItem);
-      var id = document.getElementById(jobs[i]._id);
-      id.innerHTML = '<div id="menu"></div><div class="name">' + jobs[i].name + '</div><div class="description">' + jobs[i].description + '</div>';
-      var menu = id.firstChild;
 
-      // menu.className += ' actions-control';
-      // var name = row.insertCell(1);
-
-      menu.innerHTML = createQueueMenu(jobs[i]._id);
-      // name.innerHTML = job.name;
+      fillJobHolder(jobs[i], createQueueMenu);
+      // var id = document.getElementById(jobs[i]._id);
+      // id.innerHTML = '<div id="menu"></div><div class="name">' + jobs[i].name + '</div><div class="description">' + jobs[i].description + '</div>';
+      // var menu = id.firstChild;
+      //
+      // // menu.className += ' actions-control';
+      // // var name = row.insertCell(1);
+      //
+      // menu.innerHTML = createQueueMenu(jobs[i]._id);
+      // // name.innerHTML = job.name;
     };
     setFirstCard(jobs[0]._id);
     bindMenuEvents();
@@ -162,14 +203,16 @@ function addQueueEntries(jobs) {
       recentItem.setAttribute("class", "recent_item");
       recentItem.setAttribute("data-id", recent[i]._id);
       recentJobs.appendChild(recentItem);
-      var id = document.getElementById(recent[i]._id);
-      id.innerHTML = '<div id="menu"></div><div class="name">' + recent[i].name + '</div><div class="description">' + recent[i].description + '</div>';
-      var menu = id.firstChild;
 
-      // menu.className += ' actions-control';
-      // var name = row.insertCell(1);
-
-      menu.innerHTML = createRecentMenu(recent[i]._id);
+      fillJobHolder(recent[i], createRecentMenu);
+      // var id = document.getElementById(recent[i]._id);
+      // id.innerHTML = '<div id="menu"></div><div class="name">' + recent[i].name + '</div><div class="description">' + recent[i].description + '</div>';
+      // var menu = id.firstChild;
+      //
+      // // menu.className += ' actions-control';
+      // // var name = row.insertCell(1);
+      //
+      // menu.innerHTML = createRecentMenu(recent[i]._id);
 
     };
      bindMenuEvents();
