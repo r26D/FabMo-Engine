@@ -100,19 +100,20 @@ function makeActions() {
 //Creates the thumbnail and insert the image into the parentNode (as the first
 //node)
 function createThumbnail(parentNode, jobId, width, height) {
-    //For some reason, if I create the img element here and update the src in
-    //the callback function, the image is not update
-    //This is why I create and insert the img element in the callback function
-    var url = '/job/' + jobId + '/gcode';
-    $.get(url, function(gcode, status) {
-        var colors = { G1 : '#000000', G2G3 : "#000000" };
-        var img = document.createElement("img");
-        parentNode.insertBefore(img, parentNode.firstChild);
-        img.width = width;
-        img.height = height;
-        img.alt = "No possible preview";
-        img.src = GCode2DViewer.getImage(gcode, colors, width, height);
-    });
+  //For some reason, if I create the img element here and update the src in
+  //the callback function, the image is not update
+  //This is why I create and insert the img element in the callback function
+  var url = '/job/' + jobId + '/gcode';
+  $.get(url, function(gcode, status) {
+    var colors = { G1 : '#000000', G2G3 : "#000000" };
+    var img = document.createElement("img");
+    img.style.marginRight = "4px";
+    parentNode.insertBefore(img, parentNode.firstChild);
+    img.width = width;
+    img.height = height;
+    img.alt = "[No possible preview]";
+    img.src = GCode2DViewer.getImage(gcode, colors, width, height);
+  });
 }
 
 //job: the job object
@@ -120,20 +121,20 @@ function createThumbnail(parentNode, jobId, width, height) {
 //menuCreationFunction is the function for created the menu, it must take the
 //jobId as parameter and return the html code as a string
 function fillJobHolder(job, menuCreationFunction) {
-    var id = document.getElementById(job._id);
+  var id = document.getElementById(job._id);
 
-    var menu = document.createElement("div");
-    menu.id = "menu";
-    menu.innerHTML = menuCreationFunction(job._id);
-    id.appendChild(menu);
+  var menu = document.createElement("div");
+  menu.id = "menu";
+  menu.innerHTML = menuCreationFunction(job._id);
+  id.appendChild(menu);
 
-    id.innerHTML += '<div class="name">' + job.name + '</div>';
+  id.innerHTML += '<div class="name">' + job.name + '</div>';
 
-    var description = document.createElement("div");
-    description.className = "description";
-    createThumbnail(description, job._id, 100, 100);
-    description.innerHTML += job.description;
-    id.appendChild(description);
+  var description = document.createElement("div");
+  description.className = "description";
+  createThumbnail(description, job._id, 100, 100);
+  description.innerHTML += job.description;
+  id.appendChild(description);
 }
 
 function addQueueEntries(jobs) {
