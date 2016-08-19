@@ -117,7 +117,6 @@ function createThumbnail(parentNode, jobId, width, height) {
 }
 
 //job: the job object
-//isRecent: true if the job is a recent job and recent menu is created, else
 //menuCreationFunction is the function for created the menu, it must take the
 //jobId as parameter and return the html code as a string
 function fillJobHolder(job, menuCreationFunction) {
