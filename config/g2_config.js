@@ -56,7 +56,14 @@ G2Config.prototype.getFromDriver = function(callback) {
 // Update the configuration with the data provided (data is just an object with configuration keys/values)
 G2Config.prototype.update = function(data, callback) {
 	keys = Object.keys(data);
-	// TODO: We can probably replace this with a `setMany()`
+	this.driver.setMany(data, function(err, data) {
+		if(err) { return callback(err); }
+		keys.forEach(function(k) {
+			this._cache[k] = data[k];	
+		}.bind(this));
+		callback(null, data);		
+	}.bind(this));
+	/*// TODO: We can probably replace this with a `setMany()`
 	async.mapSeries(
 		keys,
 		// Call driver.set() for each item in the collection of data that was passed in.
@@ -88,7 +95,7 @@ G2Config.prototype.update = function(data, callback) {
 				}
 			}.bind(this));
 		}.bind(this)
-	);
+	);*/
 };
 
 G2Config.prototype.restore = function(callback) {

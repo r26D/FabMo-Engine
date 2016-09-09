@@ -86,7 +86,7 @@ function Machine(control_path, gcode_path, callback) {
 	this.driver.on("error", function(err) {log.error(err);});
 
 	this.driver.connect(control_path, gcode_path, function(err, data) {
-
+		log.info("Connect callback!")
 	    // Set the initial state based on whether or not we got a valid connection to G2
 	    if(err){
 	    	log.warn("Setting the disconnected state");
@@ -121,7 +121,7 @@ function Machine(control_path, gcode_path, callback) {
 	    if(err) {
 		    typeof callback === "function" && callback(err);
 	    } else {
-		    this.driver.requestStatusReport(function(result) {
+		    /*this.driver.requestStatusReport(function(result) {
 		    	if('stat' in result) {
 		    		switch(result.stat) {
 		    			case g2.STAT_INTERLOCK:
@@ -132,7 +132,10 @@ function Machine(control_path, gcode_path, callback) {
 		    		}
 		    	}
 			    typeof callback === "function" && callback(null, this);
-		    }.bind(this));
+			    
+		    }.bind(this));*/
+			    callback(null, this);
+
 	    }
 
     }.bind(this));

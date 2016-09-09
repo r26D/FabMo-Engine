@@ -238,7 +238,7 @@ Engine.prototype.start = function(callback) {
         }.bind(this),
 
         function set_units(callback) {
-            this.machine.driver.setUnits(config.machine.get('units'), callback);
+            this.machine.driver.setUnits(config.machine.get('units'), function() {console.log("setunitscallback"); callback();});
         }.bind(this),
 
         // Configure G2 by loading all its json settings and static configuration parameters
