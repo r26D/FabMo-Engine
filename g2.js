@@ -292,7 +292,6 @@ G2.prototype.feedHold = function(callback) {
 	this.pause_flag = true;
 	this.flooded = false;
 	typeof callback === 'function' && this.once('state', callback);
-	log.debug("Sending a feedhold");
 	this.write('!');
 };
 
@@ -322,7 +321,6 @@ G2.prototype.get = function(key, callback) {
 		keys = [key];
 	}
 
-
 	async.mapLimit(keys,
 		TG_CONCURRENT_LIMIT, 
 		// Function called for each item in the keys array
@@ -348,7 +346,15 @@ G2.prototype.get = function(key, callback) {
 	);
 };
 
-G2.prototype.setMany = function(obj, callback) {
+G2.prototype.set = function(key_or_obj, val_or_callback, callback) {
+	if(typeof key_or_obj === 'String') {
+		var obj = {};
+		obj[key_or_obj] = val_or_callback;
+	} else {
+		var obj = key_or_obj;
+		callback = val_or_callback;
+	}
+	
 	var keys = Object.keys(obj);
 	async.mapLimit(keys,
 		TG_CONCURRENT_LIMIT,
@@ -379,17 +385,6 @@ G2.prototype.setMany = function(obj, callback) {
 			}
 		}
 	);
-};
-
-G2.prototype.set = function(key, value, callback) {
-	var packet = {}
-	packet[key] = value
-	var callback = callback || function noop() {};
-	this.tg.set(packet).then(function(value) {
-		callback(null, value);
-	}).catch(function(err) {
-		callback(err);
-	});
 };
 
 // Send a command to G2 (can be string or JSON)
