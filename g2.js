@@ -137,7 +137,7 @@ G2.prototype.connect = function(control_path, gcode_path, callback) {
 			t = new Date().getTime();
 			log.g2('<--G2--' + (t-startTime) + '----- ' + jsesc(s.trim()));
 		});
-		
+
 		// Kill anything already going on and clear queue
 		tg.write("\x04")
 		tg.write({'clr':null});
@@ -204,41 +204,6 @@ G2.prototype.requestStatusReport = function(callback) {
 	this.write({'sr':null});
 };
 
-// Called for every chunk of data returned from G2
-G2.prototype.onData = function(data) {
-	t = new Date().getTime();
-	//log.debug('<----' + t + '---- ' + data);
-	this.emit('raw_data',data);
-	var s = data.toString('ascii');
-	var len = s.length;
-	for(var i=0; i<len; i++) {
-		c = s[i];
-		if(c === '\n') {
-			var json_string = this.current_data.join('');
-			t = new Date().getTime();
-			log.g2('<-C--' + t + '---- ' + json_string);
-			obj = null;
-			try {
-				obj = JSON.parse(json_string);
-			}catch(e){
-				// A JSON parse error usually means the asynchronous LOADER SEGMENT NOT READY MESSAGE
-				if(json_string.trim() === '######## LOADER - SEGMENT NOT READY') {
-					this.emit('error', [-1, 'LOADER_SEGMENT_NOT_READY', 'Asynchronous error: Segment not ready.']);
-				} else {
-					this.emit('error', [-1, 'JSON_PARSE_ERROR', "Could not parse response: '" + jsesc(json_string) + "' (" + e.toString() + ")"]);
-				}
-			} finally {
-				if(obj) {
-					this.onMessage(obj);
-				}
-			}
-			this.current_data = [];
-		} else {
-			this.current_data.push(c);
-		}
-	}
-};
-
 G2.prototype.handleFooter = function(response) {
 	if(response.f) {
 		if(response.f[1] !== 0) {
@@ -285,13 +250,7 @@ G2.prototype.clearLastException = function() {
 9	machine is homing
 */
 G2.prototype.handleStatusReport = function(sr) {
-	/* RAS: Keeping this around for debugging a bit longer - 2016/03/11
-	if(response.sr && ((response.sr.stat === this.STAT_END) || (response.sr.stat === this.STAT_RUNNING))) {
-		if(this.status.stat === this.STAT_END) {
-			console.log("STAT IS ALREADY 4")
-		}
-		console.log(response);
-	}*/
+
 	// Update our copy of the system status
 	for (var key in sr) {
 		value = sr[key];
@@ -299,12 +258,6 @@ G2.prototype.handleStatusReport = function(sr) {
 			value = value === 0 ? 'in' : 'mm';
 		}
 		this.status[key] = value;
-	}
-
-	// Send more g-codes if warranted
-	if('line' in sr) {
-		line = sr.line;
-		lines_left = this.lines_sent - line;
 	}
 
 	if('stat' in sr) {
@@ -493,7 +446,6 @@ G2.prototype.runGCodes = function(codes, callback) {
 }
 
 G2.prototype.setMachinePosition = function(position, callback) {
-	console.log(this.status);
 	var gcode = ["G21"];
 	['x','y','z','a','b','c','u','v','w'].forEach(function(axis) {
 		if(position[axis] != undefined) {
@@ -503,7 +455,6 @@ G2.prototype.setMachinePosition = function(position, callback) {
 	if(this.status.unit === 'in') {
 		gcode.push('G20');
 	}
-	console.log(gcode)
 	this.runGCodes(gcode, callback);
 }
 
