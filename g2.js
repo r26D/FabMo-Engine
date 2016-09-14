@@ -347,14 +347,14 @@ G2.prototype.get = function(key, callback) {
 };
 
 G2.prototype.set = function(key_or_obj, val_or_callback, callback) {
-	if(typeof key_or_obj === 'String') {
+	if(typeof key_or_obj === 'string') {
 		var obj = {};
 		obj[key_or_obj] = val_or_callback;
 	} else {
 		var obj = key_or_obj;
 		callback = val_or_callback;
 	}
-	
+
 	var keys = Object.keys(obj);
 	async.mapLimit(keys,
 		TG_CONCURRENT_LIMIT,

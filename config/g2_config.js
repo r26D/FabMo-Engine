@@ -56,7 +56,7 @@ G2Config.prototype.getFromDriver = function(callback) {
 // Update the configuration with the data provided (data is just an object with configuration keys/values)
 G2Config.prototype.update = function(data, callback) {
 	keys = Object.keys(data);
-	this.driver.setMany(data, function(err, data) {
+	this.driver.set(data, function(err, data) {
 		if(err) { return callback(err); }
 		keys.forEach(function(k) {
 			this._cache[k] = data[k];	
@@ -107,7 +107,7 @@ G2Config.prototype.restore = function(callback) {
 // TODO: Move this data out into a configuration file, perhaps.
 G2Config.prototype.configureStatusReports = function(callback) {
 	if(this.driver) {
-	this.driver.command({"sr":{
+		this.driver.write({"sr":{
 						"posx":true,
 						"posy":true,
 						"posz":true,
@@ -128,8 +128,8 @@ G2Config.prototype.configureStatusReports = function(callback) {
 						"in7":true,
 						"in8":true
 					}});
-		this.driver.command({"qv":0});
-		this.driver.command({"jv":4});
+		this.driver.write({"qv":0});
+		this.driver.write({"jv":4});
 		this.driver.requestStatusReport();
 		return callback(null, this);
 	} else {
