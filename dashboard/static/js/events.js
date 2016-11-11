@@ -217,6 +217,8 @@ define(function(require) {
 
     /********** Document Ready Init **********/
     $(document).ready(function() {
+
+
         rightMenuLoad();
         resizedoc();
         //If size of the screen change, we resize the main & app container

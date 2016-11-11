@@ -733,6 +733,13 @@ FabMoDashboard.prototype.submitApp = function(apps, options, callback) {
 	args.options = options || {};
 	this._call("submitApp", args, callback)
 }
+FabMoDashboard.prototype.getUpdaterConfig = function(callback) {
+	this._call("getUpdaterConfig", null, callback);
+}
+
+FabMoDashboard.prototype.setUpdaterConfig = function(data, callback) {
+	this._call("setUpdaterConfig", data, callback);
+}
 
 FabMoDashboard.prototype.getConfig = function(callback) {
 	this._call("getConfig", null, callback);
@@ -967,6 +974,10 @@ FabMoDashboard.prototype.deleteUser = function(user,callback){
 }
 FabMoDashboard.prototype.getUsers = function(callback){
   this._call("getUsers",null,callback);
+}
+
+FabMoDashboard.prototype.getUpdaterStatus = function(callback){
+  this._call("getUpdaterStatus",null,callback);
 }
 
 
