@@ -192,7 +192,7 @@ FabMoAPI.prototype.sendTime = function(callback) {
 	this._post('/time/date', data, callback, callback);
 }
 
-// Updater Configuration 
+// Updater Configuration
 
 FabMoAPI.prototype.getUpdaterConfig = function(callback) {
 	var callback = callback || function() {};
@@ -432,6 +432,14 @@ FabMoAPI.prototype.getWifiNetworks = function(callback) {
 
 FabMoAPI.prototype.getWifiNetworkHistory = function(callback) {
 	this._get('/network/wifi/history', callback, callback, 'history');
+}
+
+FabMoAPI.prototype.getEthernetConfig = function(callback) {
+	this._get('/network/ethernet/config', callback, callback);
+}
+
+FabMoAPI.prototype.setEthernetConfig = function(data, callback) {
+	this._post('/network/ethernet/config', data, callback, callback);
 }
 
 FabMoAPI.prototype.submitJob = function(job, options, callback) {

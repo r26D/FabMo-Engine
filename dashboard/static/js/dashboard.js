@@ -614,6 +614,18 @@ define(function(require) {
       }.bind(this));
     }.bind(this));
 
+    this._registerHandler('getEthernetConfig', function(data, callback) {
+      this.engine.getEthernetConfig(function(err, result) {
+        callback(err, result);
+      }.bind(this));
+    }.bind(this));
+
+    this._registerHandler('setEthernetConfig', function(data, callback) {
+      this.engine.setEthernetConfig(data, function(err, result) {
+        callback(err, result);
+      }.bind(this));
+    }.bind(this));
+
     ///
     /// MACROS
     ///

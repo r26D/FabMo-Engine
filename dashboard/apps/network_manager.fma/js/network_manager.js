@@ -48,8 +48,8 @@ function refreshHistoryTable(callback){
     callback = callback || function() {};
     fabmo.getWifiNetworkHistory(function(err, networks) {
         if(err) {return callback(err);}
-        if(Object.keys(networks).length > 0) {	
-            addHistoryEntries(networks);            
+        if(Object.keys(networks).length > 0) {
+            addHistoryEntries(networks);
             $('#recent').removeClass('hidden');
         } else {
             $('#recent').addClass('hidden');
@@ -107,7 +107,7 @@ function confirm(options){
         $('#confirm-modal-ok').off('click');
         options.cancel();
     });
-           
+
     $('#confirm-modal').foundation('reveal', 'open');
 }
 
@@ -127,7 +127,7 @@ function requestPassword(ssid, callback){
       callback($('#txt-password').val());
       teardown();
       $('#passwd-modal').foundation('reveal', 'close');
-      $("#passwd-form").trigger('reset');         
+      $("#passwd-form").trigger('reset');
     }
 
     $('#btn-connect').one('click', submit);
@@ -153,17 +153,87 @@ function enterAPMode(callback) {
                     fabmo.notify('info', data);
                 }
             });
-        }, 
+        },
         cancel : function() {
         	// No action required.
         }
     });
 }
 
+
+function handleEthernetConfig(callback){
+  fabmo.getEthernetConfig(function(err,data){
+    console.log(data);
+    if(err){
+      console.log(err);
+      //TODO: Hide ethernet section
+    }else{
+      // enable/disable default config
+      $("#ethernet-network-mode").change(function(e){
+        if($(this).val()==='dhcp' || $(this).val()==='off'){
+          $("#ethernet-network-ip-address").prop('disabled', true);
+          $("#ethernet-network-netmask").prop('disabled', true);
+          $("#ethernet-network-gateway").prop('disabled', true);
+          $("#ethernet-network-dns").prop('disabled', true);
+          $("#ethernet-network-dhcp-range-start").prop('disabled', true);
+          $("#ethernet-network-dhcp-range-end").prop('disabled', true);
+        }else{
+          $("#ethernet-network-ip-address").prop('disabled', false);
+          $("#ethernet-network-netmask").prop('disabled', false);
+          $("#ethernet-network-gateway").prop('disabled', false);
+          $("#ethernet-network-dns").prop('disabled', false);
+          $("#ethernet-network-dhcp-range-start").prop('disabled', false);
+          $("#ethernet-network-dhcp-range-end").prop('disabled', false);
+        }
+      });
+
+      $("#ethernet-network-mode").val(data.mode || 'off');
+      $("#ethernet-network-ip-address").val(data.default_config.ip_address);
+      $("#ethernet-network-netmask").val(data.default_config.netmask);
+      $("#ethernet-network-gateway").val(data.default_config.gateway);
+      $("#ethernet-network-dns").val(data.default_config.dns.join(','));
+      $("#ethernet-network-dhcp-range-start").val(data.default_config.dhcp_range.start);
+      $("#ethernet-network-dhcp-range-end").val(data.default_config.dhcp_range.end);
+    }
+
+    $('#btn-ethernet-network-save').click(function(e){
+      var ethConf = {
+        mode : $("#ethernet-network-mode").val(),
+        default_config : {
+          ip_address : $("#ethernet-network-ip-address").val(),
+          netmask : $("#ethernet-network-netmask").val(),
+          gateway : $("#ethernet-network-gateway").val(),
+          dns : $("#ethernet-network-dns").val().split(','),
+          dhcp_range:{
+            start : $("#ethernet-network-dhcp-range-start").val(),
+            end : $("#ethernet-network-dhcp-range-end").val()
+          }
+        }
+      };
+
+      fabmo.setEthernetConfig(ethConf,function(err,data){
+        if(err){
+          console.log(err);
+        }else{
+          $("#ethernet-network-mode").val(data.mode || 'off');
+          $("#ethernet-network-ip-address").val(data.default_config.ip_address);
+          $("#ethernet-network-netmask").val(data.default_config.netmask);
+          $("#ethernet-network-gateway").val(data.default_config.gateway);
+          $("#ethernet-network-dns").val(data.default_config.dns.join(','));
+          $("#ethernet-network-dhcp-range-start").val(data.default_config.dhcp_range.start);
+          $("#ethernet-network-dhcp-range-end").val(data.default_config.dhcp_range.end);
+        }
+      });
+    });
+  });
+}
+
+
   $(document).ready(function() {
 
     //Foundation Init
     $(document).foundation();
+
 
     // Check for new networks initially, and then every 3 seconds
     refreshWifiTable(function(err, data) {
@@ -175,6 +245,8 @@ function enterAPMode(callback) {
     });
 
     refreshHistoryTable();
+
+    handleEthernetConfig();
 
     // Action for clicking the SSID
     $('tbody').on('click', 'td.ssid', function () {

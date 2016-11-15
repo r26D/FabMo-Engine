@@ -805,6 +805,14 @@ FabMoDashboard.prototype.setNetworkIdentity = function(identity, callback) {
 	this._call("setNetworkIdentity", identity, callback);
 }
 
+FabMoDashboard.prototype.getEthernetConfig = function(callback) {
+	this._call("getEthernetConfig", null, callback);
+}
+
+FabMoDashboard.prototype.setEthernetConfig = function(conf, callback) {
+	this._call("setEthernetConfig", conf, callback);
+}
+
 FabMoDashboard.prototype.isOnline = function(callback) {
 	this._call("isOnline", null, callback);
 }
