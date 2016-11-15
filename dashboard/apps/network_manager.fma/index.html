@@ -3,54 +3,39 @@
     <meta charset="utf-8">
     <title>Network Manager</title>
 
-        <link rel="stylesheet" href="../../css/dashboard.css">
-	    <link rel="stylesheet" href="./css/style.css">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-
-    <div id="passwd-modal" class="reveal-modal medium" data-reveal>
-    <div id="modal-title"></div>
-      <div class="row">
-          <label for="password">Passphrase</label>
-          <input type="password" name="password" id="txt-password"/>
-      </div>
-      <div class="row">
-           <div class="right">
-               <button class="button radius success" id="btn-connect">Connect</button>
-           </div>
-       </div>
-       <a class="close-reveal-modal" id="close-password-modal">&#215;</a>
-    </div>
-
-    <div id="confirm-modal" class="reveal-modal medium" data-reveal>
-    <div id="confirm-modal-title"></div>
-    <div id="confirm-modal-description"></div>
-    <div class="row">
-         <div class="right">
-             <button id="confirm-modal-cancel" class="button radius alert">Cancel</button>
-             <button id="confirm-modal-ok" class="button radius success">Ok</button>
-         </div>
-     </div>
-    </div>
+    <link rel="stylesheet" href="../../css/dashboard.css">
+	  <link rel="stylesheet" href="./css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
 </head>
+
 <body>
 
-    <section class="top-bar-section">
-        <nav class="top-bar" data-topbar role="navigation">
-          <ul class="title-area">
-            <li class="name">
-              <h1><a id="app-header" >Wifi Networks</a></h1>
-            </li>
-            <li><a id="ap-mode-button" href="#">Enter AP Mode</a></li>
-            <li class="toggle-topbar"><a href="#"><span>Menu</span></a></li>
-          </ul>
-          <section class="top-bar-section">
-          </section>
-        </nav>
-        </section>
+    <nav class="top-bar" data-topbar role="navigation">
+      <ul class="title-area">
+        <li class="name">
+          <h1><a id="app-header">Network</a></h1>
+        </li>
+        <li class="toggle-topbar"><a href="#"><span>Menu</span></a>
+        </li>
+      </ul>
+      <section class="top-bar-section">
+        <ul class="left" role="tablist" data-tab>
+          <li class="tab-title active" role="presentational"><a href="#wifiPanel" role="tab" tabindex="0" aria-selected="true" controls="wifiPanel">Wifi</a>
+          </li>
+          <li class="tab-title" role="presentational"><a href="#ethernetPanel" role="tab" tabindex="0" aria-selected="false" controls="ethernetPanel">Ethernet</a>
+          </li>
+          <li><a id="ap-mode-button" href="#">Enter AP Mode</a></li>
+        </ul>
+      </section>
+    </nav>
 
-        <h1>Wireless Networks</h1>
+    <ul class="tabs" data-tab role="tablist">
+
+    </ul>
+
+    <div class="tabs-content">
+      <section role="tabpanel" aria-hidden="false" class="content active" id="wifiPanel">
         <div class="table-outer">
             <table class="small-12 columns" style="width:100%" id="wifi_table">
             <thead>
@@ -79,11 +64,69 @@
             </table>
         </div>
         </div>
+      </section>
+      <section role="tabpanel" aria-hidden="false" class="content active" id="ethernetPanel">
+        <form id="form-ethernet-network" class="form-vertical">
+          <fieldset>
+            <label>Mode :</label>
+            <select id="ethernet-network-mode">
+              <option value="magic">Magic</option>
+              <option value="dhcp">DHCP</option>
+              <option value="static">Static</option>
+              <option value="off">Off</option>
+            </select>
+            <h3>Default Configuration</h3>
+            <label>Ip Address :</label>
+            <input id="ethernet-network-ip-address" type="text" placeholder="ip address" />
+            <label>Netmask :</label>
+            <input id="ethernet-network-netmask" type="text" placeholder="netmask" />
+            <br/>
+            <label>Gateway :</label>
+            <input id="ethernet-network-gateway" type="text" placeholder="gateway" />
+            <label>DNS :</label>
+            <input id="ethernet-network-dns" type="text" placeholder="dns seperated by comma" />
+            <h3>DHCP range</h3>
+            <label>start :</label>
+            <input id="ethernet-network-dhcp-range-start" type="text" placeholder="dhcp range start" />
+            <label>end :</label>
+            <input id="ethernet-network-dhcp-range-end" type="text" placeholder="dhcp range end" />
+            <br/>
+            <button id="btn-ethernet-network-save" class="btn-green"><i class="fa fa-sitemap"></i> Change ethernet configuration</button>
+          </fieldset>
+        </form>
+      </section>
+    </div>
 
-    </section>
+    <!-- Modals -->
+    <div id="passwd-modal" class="reveal-modal medium" data-reveal>
+    <div id="modal-title"></div>
+      <div class="row">
+          <label for="password">Passphrase</label>
+          <input type="password" name="password" id="txt-password"/>
+      </div>
+      <div class="row">
+           <div class="right">
+               <button class="button radius success" id="btn-connect">Connect</button>
+           </div>
+       </div>
+       <a class="close-reveal-modal" id="close-password-modal">&#215;</a>
+    </div>
+
+    <div id="confirm-modal" class="reveal-modal medium" data-reveal>
+    <div id="confirm-modal-title"></div>
+    <div id="confirm-modal-description"></div>
+    <div class="row">
+         <div class="right">
+             <button id="confirm-modal-cancel" class="button radius alert">Cancel</button>
+             <button id="confirm-modal-ok" class="button radius success">Ok</button>
+         </div>
+     </div>
+    </div>
+
 
   <!-- Javascript inclusions -->
     <script src="../../common.js"></script>
-    <script src="../../network_manager.js"></script>  
+    <script src="../../network_manager.js"></script>
+
 </body>
 </html>
