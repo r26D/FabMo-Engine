@@ -1,3 +1,4 @@
+//TH Mods to create a livecode type of RUNTIME for non-punctuated movement
 var g2 = require('./g2');
 var util = require('util');
 var events = require('events');
@@ -13,6 +14,7 @@ var u = require('./util');
 var async = require('async');
 
 var GCodeRuntime = require('./runtime/gcode').GCodeRuntime;
+var LiveCodeRuntime = require('./runtime/livecode').LiveCodeRuntime;
 var SBPRuntime = require('./runtime/opensbp').SBPRuntime;
 var ManualRuntime = require('./runtime/manual').ManualRuntime;
 var PassthroughRuntime = require('./runtime/passthrough').PassthroughRuntime;
@@ -102,6 +104,7 @@ function Machine(control_path, gcode_path, callback) {
 
 	    // Create runtimes for different functions/command languages
 	    this.gcode_runtime = new GCodeRuntime();
+	    this.livecode_runtime = new LiveCodeRuntime();
 	    this.sbp_runtime = new SBPRuntime();
 	    this.manual_runtime = new ManualRuntime();
 	    this.passthrough_runtime = new PassthroughRuntime();
@@ -109,6 +112,7 @@ function Machine(control_path, gcode_path, callback) {
 
 			this.runtimes = [
 				this.gcode_runtime,
+				this.livecode_runtime,
 				this.sbp_runtime,
 				this.manual_runtime,
 				this.passthrough_runtime,
@@ -442,6 +446,7 @@ Machine.prototype.getGCodeForFile = function(filename, callback) {
 	}.bind(this));
 }
 
+// TH We'er not going to make files in LiveRuntime, so nothing added in _runFile section ...
 Machine.prototype._runFile = function(filename) {
 	var parts = filename.split(path.sep);
 	var ext = path.extname(filename).toLowerCase();
@@ -506,6 +511,12 @@ Machine.prototype.getRuntime = function(name) {
 		case 'manual':
 			return this.manual_runtime;
 			break;
+
+		//TH ??
+		case 'livecode':
+		    return this.livecode_runtime;
+		    break;
+		
 		default:
 			return null;
 			break;
@@ -638,6 +649,11 @@ Machine.prototype.sbp = function(string) {
 
 Machine.prototype.gcode = function(string) {
 	this.executeRuntimeCode('gcode', string);
+}
+
+//TH don't know if needed or correct?
+Machine.prototype.livecode = function(string) {
+	this.executeRuntimeCode('livecode', string);
 }
 
 /*

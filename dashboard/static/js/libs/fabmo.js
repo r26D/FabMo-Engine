@@ -1,6 +1,7 @@
 /**
  * @module fabmo.js
  */
+//TH Mods to support LiveCode Runtime
 (function (root, factory) {
    var body = document.getElementsByTagName('body');
     if (typeof define === 'function' && define.amd) {
@@ -204,6 +205,12 @@ FabMoDashboard.prototype._simulateCall = function(name, data, callback) {
 
 		case "runGCode":
 			text.textContent = "GCode sent to tool: " + data;
+		    showToaster(toast);
+		break;
+
+		//TH
+		case "runLiveCode":
+			text.textContent = "LiveCode sent to tool: " + data;
 		    showToaster(toast);
 		break;
 
@@ -755,6 +762,10 @@ FabMoDashboard.prototype.deleteApp = function(id, callback) {
 
 FabMoDashboard.prototype.runGCode = function(text, callback) {
 	this._call("runGCode", text, callback);
+}
+//TH
+FabMoDashboard.prototype.runLiveCode = function(text, callback) {
+	this._call("runLiveCode", text, callback);
 }
 
 FabMoDashboard.prototype.runSBP = function(text, callback) {

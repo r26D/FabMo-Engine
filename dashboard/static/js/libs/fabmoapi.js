@@ -1,3 +1,4 @@
+//TH Mods to allow LiveCode Runtime
 ;(function (root, factory) {
 
 
@@ -354,6 +355,11 @@ FabMoAPI.prototype.runCode = function(runtime, code, callback) {
 
 FabMoAPI.prototype.gcode = function(code, callback) {
 	this.runCode('gcode', code, callback);
+}
+
+//TH
+FabMoAPI.prototype.livecode = function(code, callback) {
+	this.runCode('livecode', code, callback);
 }
 
 FabMoAPI.prototype.sbp = function(code, callback) {
