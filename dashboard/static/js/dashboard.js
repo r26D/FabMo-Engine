@@ -441,7 +441,7 @@ define(function(require) {
 
 //th
     this._registerHandler('runLiveCode', function(text, callback) {
-      this.engine.gcode(text, function(err, result) {
+      this.engine.livecode(text, function(err, result) {
         if (err) {
           callback(err);
         } else {
