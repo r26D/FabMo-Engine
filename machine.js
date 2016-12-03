@@ -292,6 +292,7 @@ Machine.prototype.fire = function(force) {
 	var action = this.action;
 	this.action = null;
 	switch(action.type) {
+log.debug("got action " + action.type)
 		case 'nextJob':
 			log.debug("Firing a nextJob")
 			this._runNextJob(force, function() {});
