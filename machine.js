@@ -627,7 +627,7 @@ Machine.prototype.runNextJob = function(callback) {
 }
 
 Machine.prototype.executeRuntimeCode = function(runtimeName, code) {
-log.debug("ex_runtime")
+log.debug("ex_runtime " + runtimeName + "/" + code)
 	if(this.status.auth) {
 		return this._executeRuntimeCode(runtimeName, code);
 	}
