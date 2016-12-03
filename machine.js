@@ -291,8 +291,8 @@ Machine.prototype.fire = function(force) {
 	this.deauthorize();
 	var action = this.action;
 	this.action = null;
-	switch(action.type) {
 log.debug("got action " + action.type)
+	switch(action.type) {
 		case 'nextJob':
 			log.debug("Firing a nextJob")
 			this._runNextJob(force, function() {});
