@@ -627,6 +627,7 @@ Machine.prototype.runNextJob = function(callback) {
 }
 
 Machine.prototype.executeRuntimeCode = function(runtimeName, code) {
+log.debug("ex_runtime")
 	if(this.status.auth) {
 		return this._executeRuntimeCode(runtimeName, code);
 	}
@@ -649,6 +650,7 @@ Machine.prototype.sbp = function(string) {
 }
 
 Machine.prototype.gcode = function(string) {
+log.debug("gcode___")
 	this.executeRuntimeCode('gcode', string);
 }
 
