@@ -29,8 +29,11 @@ var code = function(req, res, next) {
 					case 'g':
 					case 'nc':
 					case 'gcode':
-					case 'livecode':   //TH added
 						machine.gcode(req.params.cmd);
+						break;
+
+					case 'livecode':   //TH added
+						machine.livecode(req.params.cmd);
 						break;
 
 					default:
