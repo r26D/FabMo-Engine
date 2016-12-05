@@ -213,7 +213,7 @@ LiveCodeRuntime.prototype.runString = function(string, callback) {
 			}
 		}
 		lines.unshift(mode);
-		lines.push('M30\n');
+//		lines.push('M30\n');
 		// TODO no need to stitch this string back together, it's just going to be split again in the driver
 		string = lines.join("\n");
 		this.completeCallback = callback;
