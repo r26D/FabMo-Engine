@@ -730,8 +730,8 @@ G2.prototype.command = function(obj) {
 // Send a (possibly multi-line) string
 // An M30 will be placed at the end to put the machine back in the "idle" state
 G2.prototype.runString = function(data, callback) {
-log.debug("at g2runString > " + callback);
-	this.runSegment(data + "\nM30\n", callback);
+//	this.runSegment(data + "\nM30\n", callback);
+	this.runSegment(data, callback);
 };
 
 G2.prototype.runImmediate = function(data, callback) {
