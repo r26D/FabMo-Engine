@@ -218,7 +218,7 @@ LiveCodeRuntime.prototype.runString = function(string, callback) {
 		string = lines.join("\n");
 		this.completeCallback = callback;
 		this.driver.runString(string);//this.machine.status);
-log.debug("LiveCode-RUN");
+log.debug("LiveCode-RUN > status " + this.machine.status);
 	}
 
 };
