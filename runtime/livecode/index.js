@@ -4,16 +4,16 @@ var T_RENEW = 500;
 var SAFETY_FACTOR = 1.25;
 var RENEW_SEGMENTS = 15;
 
-function ManualRuntime() {
+function LiveCodeRuntime() {
 	this.machine = null;
 	this.driver = null;
 }
 
-ManualRuntime.prototype.toString = function() {
-	return "[ManualRuntime]";
+LiveCodeRuntime.prototype.toString = function() {
+	return "[LiveCodeRuntime]";
 }
 
-ManualRuntime.prototype.connect = function(machine) {
+LiveCodeRuntime.prototype.connect = function(machine) {
 	this.machine = machine;
 	this.driver = machine.driver;
 	this.ok_to_disconnect = true;
@@ -27,7 +27,7 @@ ManualRuntime.prototype.connect = function(machine) {
 	this.driver.on('status',this.status_handler);
 };
 
-ManualRuntime.prototype.disconnect = function() {
+LiveCodeRuntime.prototype.disconnect = function() {
 	if(this.ok_to_disconnect) {
 		this.driver.removeListener('status', this.status_handler);
 		this._changeState("idle");	
@@ -36,7 +36,7 @@ ManualRuntime.prototype.disconnect = function() {
 	}
 };
 
-ManualRuntime.prototype._changeState = function(newstate, message) {
+LiveCodeRuntime.prototype._changeState = function(newstate, message) {
 	if(newstate === "idle") {
 		this.ok_to_disconnect = true;
 		var callback = this.completeCallback || function() {};
@@ -48,7 +48,7 @@ ManualRuntime.prototype._changeState = function(newstate, message) {
 	this.machine.setState(this, newstate, message);
 };
 
-ManualRuntime.prototype._limit = function() {
+LiveCodeRuntime.prototype._limit = function() {
 	var er = this.driver.getLastException();
 	if(er && er.st == 203) {
 		var msg = er.msg.replace(/\[[^\[\]]*\]/,'');
@@ -60,7 +60,7 @@ ManualRuntime.prototype._limit = function() {
 	}
 	return false;
 }
-ManualRuntime.prototype._onG2Status = function(status) {
+LiveCodeRuntime.prototype._onG2Status = function(status) {
 	switch(status.stat) {
 		case this.driver.STAT_INTERLOCK:
 		case this.driver.STAT_SHUTDOWN:
@@ -125,7 +125,7 @@ ManualRuntime.prototype._onG2Status = function(status) {
 };
 
 
-ManualRuntime.prototype.executeCode = function(code, callback) {
+LiveCodeRuntime.prototype.executeCode = function(code, callback) {
 	this.completeCallback = callback;
 	log.debug("Recieved manual command: " + JSON.stringify(code));
 	
@@ -157,7 +157,7 @@ ManualRuntime.prototype.executeCode = function(code, callback) {
 	}
 }
 
-ManualRuntime.prototype.maintainMotion = function() {
+LiveCodeRuntime.prototype.maintainMotion = function() {
 	this.keep_moving = true;
 }
 
@@ -165,7 +165,8 @@ ManualRuntime.prototype.maintainMotion = function() {
  * Called to set the tool into motion.
  * If the tool is already moving, the flag is set to maintain that motion
  */
-ManualRuntime.prototype.startMotion = function(axis, speed) {
+LiveCodeRuntime.prototype.runString = function(axis, speed) {
+//LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 	var dir = speed < 0 ? -1.0 : 1.0;
 	speed = Math.abs(speed);
 	if(this.moving) {
@@ -186,7 +187,7 @@ ManualRuntime.prototype.startMotion = function(axis, speed) {
 	}
 };
 
-ManualRuntime.prototype.renewMoves = function() {
+LiveCodeRuntime.prototype.renewMoves = function() {
 	if(this.keep_moving) {
 		this.keep_moving = false;
 		var segment = this.currentDirection*(this.renewDistance / RENEW_SEGMENTS);
@@ -203,14 +204,14 @@ ManualRuntime.prototype.renewMoves = function() {
 	}
 }
 
-ManualRuntime.prototype.stopMotion = function() {
+LiveCodeRuntime.prototype.stopMotion = function() {
 	if(this._limit()) { return; }
 	this.keep_moving = false;
 	this.moving = false;
 	this.driver.quit();
 }
 
-ManualRuntime.prototype.fixedMove = function(axis, speed, distance) {
+LiveCodeRuntime.prototype.fixedMove = function(axis, speed, distance) {
 	if(this.moving) {
 		log.warn("fixedMove: Already moving");
 	} else {
@@ -226,17 +227,17 @@ ManualRuntime.prototype.fixedMove = function(axis, speed, distance) {
 	}
 }
 
-ManualRuntime.prototype.pause = function() {
+LiveCodeRuntime.prototype.pause = function() {
 	this.driver.feedHold();
 }
 
-ManualRuntime.prototype.quit = function() {
+LiveCodeRuntime.prototype.quit = function() {
 	this.driver.quit();
 }
 
-ManualRuntime.prototype.resume = function() {
+LiveCodeRuntime.prototype.resume = function() {
 	this.driver.resume();
 }
 
 
-exports.ManualRuntime = ManualRuntime;
+exports.LiveCodeRuntime = LiveCodeRuntime;
