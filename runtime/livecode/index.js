@@ -217,8 +217,11 @@ LiveCodeRuntime.prototype.runString = function(string, callback) {
 		// TODO no need to stitch this string back together, it's just going to be split again in the driver
 		string = lines.join("\n");
 		this.completeCallback = callback;
-		this.driver.runString(string);//this.machine.status);
-log.debug("LiveCode-RUN > status " + this.machine.status);
+//		this.driver.runString(string);//this.machine.status);
+
+		this.driver.gcodeWrite(string);
+
+log.debug("LiveCode-RUN > status at gcodeWrite " + this.machine.status);
 	}
 
 };
