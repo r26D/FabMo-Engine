@@ -418,6 +418,47 @@ define(function(require) {
       });
     }.bind(this));
 
+//TH Section for doing live Moves using manual as templage
+    this._registerHandler('livecodeNudge', function(data, callback) {
+      this.engine.livecodeNudge(data.dir, data.dist, function(err, result) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      });
+    }.bind(this));
+
+    this._registerHandler('livecodeStart', function(data, callback) {
+      this.engine.livecodeStart(data.axis, data.speed, function(err, result) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      });
+    }.bind(this));
+
+    this._registerHandler('livecodeHeartbeat', function(data, callback) {
+      this.engine.livecodeHeartbeat(function(err, result) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      });
+    }.bind(this));
+
+    this._registerHandler('livecodeStop', function(data, callback) {
+      this.engine.livecodeStop(function(err, result) {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      });
+    }.bind(this));
+
     this._registerHandler('getApps', function(data, callback) {
       this.engine.getApps(function(err, result) {
         if (err) {
@@ -436,18 +477,6 @@ define(function(require) {
     this._registerHandler('deleteApp', function(id, callback) {
       this.engine.deleteApp(id, function(err, result) {
         this.refreshApps();
-        if (err) {
-          callback(err);
-        } else {
-          callback(null, result);
-        }
-      }.bind(this));
-    }.bind(this));
-
-//th
-    this._registerHandler('runLiveCode', function(text, callback) {
-//      this.engine.gcode(text, function(err, result) {
-      this.engine.livecode(text, function(err, result) {
         if (err) {
           callback(err);
         } else {

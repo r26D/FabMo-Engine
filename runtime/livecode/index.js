@@ -1,4 +1,4 @@
-var log = require('../../log').logger('manual');
+var log = require('../../log').logger('livecode');
 
 var T_RENEW = 500;
 var SAFETY_FACTOR = 1.25;
@@ -17,7 +17,7 @@ LiveCodeRuntime.prototype.connect = function(machine) {
 	this.machine = machine;
 	this.driver = machine.driver;
 	this.ok_to_disconnect = true;
-	this.machine.setState(this, "manual");
+	this.machine.setState(this, "livecode");
 	this.moving = false;
 	this.keep_moving = false;
 	this.current_axis = null;
@@ -85,7 +85,8 @@ LiveCodeRuntime.prototype._onG2Status = function(status) {
 			log.error("WAT.");
 			break;
 
-		case "manual":
+		//TH
+		case "livecode":
 			if(status.stat === this.driver.STAT_HOLDING && status.stat === 0) {
 				this._changeState("paused");
 				break;
@@ -106,7 +107,8 @@ LiveCodeRuntime.prototype._onG2Status = function(status) {
 
 		case "idle":
 			if(status.stat === this.driver.STAT_RUNNING) {
-				this._changeState("manual");
+//TH				this._changeState("manual");
+				this._changeState("livecode");
 				break;
 			}
 			break;
@@ -127,7 +129,7 @@ LiveCodeRuntime.prototype._onG2Status = function(status) {
 
 LiveCodeRuntime.prototype.executeCode = function(code, callback) {
 	this.completeCallback = callback;
-	log.debug("Recieved manual command: " + JSON.stringify(code));
+	log.debug("Recieved livecode command: " + JSON.stringify(code));
 	
 	// Don't honor commands if we're not in a position to do so
 	switch(this.machine.status.state) {
@@ -153,7 +155,7 @@ LiveCodeRuntime.prototype.executeCode = function(code, callback) {
 			break;
 
 		default:
-			log.error("Don't know what to do with '" + code.cmd + "' in manual command.")
+			log.error("Don't know what to do with '" + code.cmd + "' in livecode command.")
 	}
 }
 
@@ -165,12 +167,7 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  * Called to set the tool into motion.
  * If the tool is already moving, the flag is set to maintain that motion
  */
-LiveCodeRuntime.prototype.runString = function(string, callback) {
-//LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
-	
-var axis = 'x';
-var speed = 50;
-
+LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 	var dir = speed < 0 ? -1.0 : 1.0;
 	speed = Math.abs(speed);
 	if(this.moving) {

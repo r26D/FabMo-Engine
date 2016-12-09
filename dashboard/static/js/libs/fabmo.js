@@ -1,7 +1,7 @@
 /**
  * @module fabmo.js
  */
-//TH Mods to support LiveCode Runtime
+//TH Mods to support LiveCode Runtime, updated to manual template
 (function (root, factory) {
    var body = document.getElementsByTagName('body');
     if (typeof define === 'function' && define.amd) {
@@ -205,12 +205,6 @@ FabMoDashboard.prototype._simulateCall = function(name, data, callback) {
 
 		case "runGCode":
 			text.textContent = "GCode sent to tool: " + data;
-		    showToaster(toast);
-		break;
-
-		//TH
-		case "runLiveCode":
-			text.textContent = "LiveCode sent to tool: " + data;
 		    showToaster(toast);
 		break;
 
@@ -693,6 +687,54 @@ FabMoDashboard.prototype.manualHeartbeat = function() {
 FabMoDashboard.prototype.manualStop = function() {
 	this._call("manualStop",{}, callback);
 }
+
+
+//TH WORKING ON live move version using manual move as template
+/**
+ * Perform a fixed manual move in a single axis.  (Sometimes called a nudge)
+ *
+ * @method manualMoveFixed
+ * @param {String} axis One of `x`,`y`,`z`,`a`,`b`,`c`
+ * @param {Number} speed Speed in current tool units
+ * @param {distance} distance The distance to move in current units
+ * @param {function} callback
+ * @param {Error} callback.err Error object if there was an error.
+ */
+FabMoDashboard.prototype.livecodeMoveFixed = function(axis, speed, distance, callback) {
+	this._call("livecodeMoveFixed",{"axis":axis, "speed": speed, "dist":distance}, callback);
+}
+
+/**
+ * Start performing a manual move of the specified axis at the specified speed.
+ *
+ * @method manualStart
+ * @param {Number} axis One of `x`,`y`,`z`,`a`,`b`,`c`
+ * @param {Number} speed Speed in current tool units.  Negative to move in the negative direction.
+ */
+FabMoDashboard.prototype.livecodeStart = function(axis, speed) {
+	this._call("livecodeStart",{"axis":axis, "speed":speed}, callback);
+}
+
+/**
+ * Send a "heartbeat" to the system, authorizing continued manual movement.  Manual moves must be continually
+ * refreshed with this heartbeat function, or the tool will stop moving.
+ *
+ * @method manualHeartbeat
+ */
+FabMoDashboard.prototype.livecodeHeartbeat = function() {
+	this._call("livecodeHeartbeat",{}, callback);
+}
+
+/**
+ * Stop the tool immediately.
+ *
+ * @method manualStop
+ */
+FabMoDashboard.prototype.livecodeStop = function() {
+	this._call("livecodeStop",{}, callback);
+}
+
+
 
 /**
  * Get the list of all the installed apps.
