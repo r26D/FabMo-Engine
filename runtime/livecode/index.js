@@ -165,8 +165,12 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  * Called to set the tool into motion.
  * If the tool is already moving, the flag is set to maintain that motion
  */
-LiveCodeRuntime.prototype.runString = function(axis, speed) {
+LiveCodeRuntime.prototype.runString = function(string, callback) {
 //LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
+	
+var axis = 'x';
+var speed = 50;
+
 	var dir = speed < 0 ? -1.0 : 1.0;
 	speed = Math.abs(speed);
 	if(this.moving) {
