@@ -384,7 +384,7 @@ FabMoUI.prototype.updateStatusContent = function(status){
 	}
 
 //TH	if(status.state === 'idle' || status.state === 'manual') {
-	if(status.state === 'idle' || status.state === 'manual' || status.state 'livecode') {
+	if(status.state === 'idle' || status.state === 'manual' || status.state === 'livecode') {
 		$(that.manual_controls_selector).removeClass('hide');
 		$(that.livecode_controls_selector).removeClass('hide');
 	} else {
