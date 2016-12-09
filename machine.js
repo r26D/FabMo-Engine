@@ -634,6 +634,11 @@ log.debug("ex_runtime " + runtimeName + "/" + code)
 	if(runtimeName === 'manual') {
 		this.arm(null, config.machine.get('auth_timeout'));
 		return;
+//TH
+	} else if(runtimeName === 'livecode') {
+		this.arm(null, config.machine.get('auth_timeout'));
+		return;
+
 	} else {
 		this.arm({
 			type : 'runtimeCode',
@@ -655,9 +660,9 @@ log.debug("gcode___")
 }
 
 //TH don't know if needed or correct?
-Machine.prototype.livecode = function(string) {
-	this.executeRuntimeCode('livecode', string);
-}
+//from when gcode template ... worked// Machine.prototype.livecode = function(string) {
+// 	this.executeRuntimeCode('livecode', string);
+// }
 
 /*
  * Functions below require authorization to run
