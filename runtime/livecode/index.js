@@ -212,7 +212,7 @@ LiveCodeRuntime.prototype.stopMotion = function() {
 	this.driver.quit();
 }
 
-LiveCodeRuntime.prototype.fixedMove = function(x_dist, y_dist, speed) {
+LiveCodeRuntime.prototype.fixedMove = function(axis, speed, distance) {
 	if(this.moving) {
 		log.warn("fixedMove: Already moving");
 	} else {
@@ -224,6 +224,7 @@ LiveCodeRuntime.prototype.fixedMove = function(x_dist, y_dist, speed) {
 				var move = 'G91\nG0 ' + axis + distance.toFixed(5) + '\n';				
 			}
 			this.driver.gcodeWrite(move);
+log.debug("livecodeFIXEDMOVE >> " + )
 		}
 	}
 }
