@@ -129,7 +129,7 @@ LiveCodeRuntime.prototype._onG2Status = function(status) {
 
 LiveCodeRuntime.prototype.executeCode = function(code, callback) {
 	this.completeCallback = callback;
-	log.debug("Recieved livecode command: " + JSON.stringify(code));
+log.debug("Recieved livecode command: " + JSON.stringify(code));
 	
 	// Don't honor commands if we're not in a position to do so
 	switch(this.machine.status.state) {
@@ -151,7 +151,7 @@ LiveCodeRuntime.prototype.executeCode = function(code, callback) {
 			break;
 
 		case 'fixed':
-			this.fixedMove(code.x_dist, code.y_dist, code.speed);
+			this.fixedMove(code.axis, code.speed, code.distance);
 			break;
 
 		default:
