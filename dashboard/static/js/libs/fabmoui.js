@@ -60,6 +60,7 @@ function FabMoUI(tool, options){
 	this.progress_selector = this.file_info_div_selector + ' .progress';
 
 	this.manual_controls_selector = '.fabmo-manual-control';
+//TH
 	this.livecode_controls_selector = '.fabmo-livecode-control';
 
 	this.stop_button_selector = this.file_control_selector + ' .stopJob';

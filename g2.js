@@ -35,6 +35,7 @@ var JOG_TIMEOUT = 500;
 var GCODE_BLOCK_SEND_SIZE = 1000;
 var GCODE_MIN_LINE_THRESH = 250;
 
+//TH?? Jog used??
 // Map used by the jog command to turn incoming direction specifiers to g-code
 var JOG_AXES = {'x':'X',
 				'-x':'X-',
@@ -225,6 +226,7 @@ G2.prototype.clearAlarm = function() {
 	this.command({"clear":null});
 };
 
+//TH?? Jog used??
 // Start or continue jogging in the direction provided, which is one of x,-x,y,-y,z-z,a,-a,b,-b,c,-c
 G2.prototype.jog = function(direction) {
 
@@ -279,6 +281,7 @@ G2.prototype.jog = function(direction) {
 };
 
 // Start or continue jogging in the direction provided, which is one of x,-x,y,-y,z-z,a,-a,b,-b,c,-c
+//TH?? Currently in Use?? Needed for runtime call??
 G2.prototype.fixed_move = function(direction,step,speed) {
 	if(this.quit_pending){
 		log.warn("WARNING QUIT PENDING WHILE DOING A FIXED MOVE")
@@ -730,7 +733,7 @@ G2.prototype.command = function(obj) {
 // Send a (possibly multi-line) string
 // An M30 will be placed at the end to put the machine back in the "idle" state
 G2.prototype.runString = function(data, callback) {
-//TH	this.runSegment(data + "\nM30\n", callback);
+//TH??	this.runSegment(data + "\nM30\n", callback); removed when working with gcode runtime ... seems rendudant
 	this.runSegment(data, callback);
 };
 

@@ -14,6 +14,7 @@ var u = require('./util');
 var async = require('async');
 
 var GCodeRuntime = require('./runtime/gcode').GCodeRuntime;
+//TH
 var LiveCodeRuntime = require('./runtime/livecode').LiveCodeRuntime;
 var SBPRuntime = require('./runtime/opensbp').SBPRuntime;
 var ManualRuntime = require('./runtime/manual').ManualRuntime;
@@ -104,6 +105,7 @@ function Machine(control_path, gcode_path, callback) {
 
 	    // Create runtimes for different functions/command languages
 	    this.gcode_runtime = new GCodeRuntime();
+//TH
 	    this.livecode_runtime = new LiveCodeRuntime();
 	    this.sbp_runtime = new SBPRuntime();
 	    this.manual_runtime = new ManualRuntime();
@@ -658,11 +660,6 @@ Machine.prototype.gcode = function(string) {
 log.debug("gcode___")
 	this.executeRuntimeCode('gcode', string);
 }
-
-//TH don't know if needed or correct?
-//from when gcode template ... worked// Machine.prototype.livecode = function(string) {
-// 	this.executeRuntimeCode('livecode', string);
-// }
 
 /*
  * Functions below require authorization to run

@@ -418,9 +418,10 @@ define(function(require) {
       });
     }.bind(this));
 
-//TH Section for doing live Moves using manual as templage
+//TH Section for doing live Moves using manual as template ... not consistent with other patterns?
     this._registerHandler('livecodeNudge', function(data, callback) {
       this.engine.livecodeNudge(data.dir, data.dist, function(err, result) {
+//      this.engine.livecodeNudge(data.x_dist, data.y_dist, function(err, result) {
         if (err) {
           callback(err);
         } else {

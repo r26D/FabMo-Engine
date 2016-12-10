@@ -668,7 +668,6 @@ FabMoDashboard.prototype.manualMoveFixed = function(axis, speed, distance, callb
 //TH fix? FabMoDashboard.prototype.manualStart = function(axis, speed) {
 FabMoDashboard.prototype.manualStart = function(axis, speed, callback) {
 	this._call("manualStart",{"axis":axis, "speed":speed}, callback);
-	console.log("mstart " + axis + ", @ " + speed);
 }
 
 /**
@@ -692,46 +691,20 @@ FabMoDashboard.prototype.manualStop = function(callback) {
 
 
 //TH WORKING ON live move version using manual move as template
-/**
- * Perform a fixed manual move in a single axis.  (Sometimes called a nudge)
- *
- * @method manualMoveFixed
- * @param {String} axis One of `x`,`y`,`z`,`a`,`b`,`c`
- * @param {Number} speed Speed in current tool units
- * @param {distance} distance The distance to move in current units
- * @param {function} callback
- * @param {Error} callback.err Error object if there was an error.
- */
 FabMoDashboard.prototype.livecodeMoveFixed = function(axis, speed, distance, callback) {
 	this._call("livecodeMoveFixed",{"axis":axis, "speed": speed, "dist":distance}, callback);
+	console.log("livestart " + axis + ", @ " + speed + ", dist> " + distance);
 }
 
-/**
- * Start performing a manual move of the specified axis at the specified speed.
- *
- * @method manualStart
- * @param {Number} axis One of `x`,`y`,`z`,`a`,`b`,`c`
- * @param {Number} speed Speed in current tool units.  Negative to move in the negative direction.
- */
 FabMoDashboard.prototype.livecodeStart = function(axis, speed, callback) {
 	this._call("livecodeStart",{"axis":axis, "speed":speed}, callback);
+	console.log("livestart " + axis + ", @ " + speed);
 }
 
-/**
- * Send a "heartbeat" to the system, authorizing continued manual movement.  Manual moves must be continually
- * refreshed with this heartbeat function, or the tool will stop moving.
- *
- * @method manualHeartbeat
- */
 FabMoDashboard.prototype.livecodeHeartbeat = function(callback) {
 	this._call("livecodeHeartbeat",{}, callback);
 }
 
-/**
- * Stop the tool immediately.
- *
- * @method manualStop
- */
 FabMoDashboard.prototype.livecodeStop = function(callback) {
 	this._call("livecodeStop",{}, callback);
 }

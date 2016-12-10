@@ -381,21 +381,21 @@ FabMoAPI.prototype.manualMoveFixed = function(axis, speed, distance) {
 	this.executeRuntimeCode('manual', {'cmd': 'fixed', 'axis' : axis, 'speed' : speed, 'dist' : distance});
 }
 
-//TH for livecode from manual template
-FabMoAPI.prototype.livecodeStart = function(axis, speed) {
-	this.executeRuntimeCode('livecode', {'cmd': 'start', 'axis' : axis, 'speed' : speed});
+//TH for livecode from manual template; ...updated with "callback" fix to match fabmo.js
+FabMoAPI.prototype.livecodeStart = function(axis, speed, callback) {
+	this.executeRuntimeCode('livecode', {'cmd': 'start', 'axis' : axis, 'speed' : speed}, callback);
 }
 
-FabMoAPI.prototype.livecodeHeartbeat = function() {
-	this.executeRuntimeCode('livecode', {'cmd': 'maint'});
+FabMoAPI.prototype.livecodeHeartbeat = function(callback) {
+	this.executeRuntimeCode('livecode', {'cmd': 'maint'}, callback);
 }
 
-FabMoAPI.prototype.livecodeStop = function() {
-	this.executeRuntimeCode('livecode', {'cmd': 'stop'});
+FabMoAPI.prototype.livecodeStop = function(callback) {
+	this.executeRuntimeCode('livecode', {'cmd': 'stop'}, callback);
 }
 
-FabMoAPI.prototype.livecodeMoveFixed = function(axis, speed, distance) {
-	this.executeRuntimeCode('livecode', {'cmd': 'fixed', 'axis' : axis, 'speed' : speed, 'dist' : distance});
+FabMoAPI.prototype.livecodeMoveFixed = function(axis, speed, distance, callback) {
+	this.executeRuntimeCode('livecode', {'cmd': 'fixed', 'axis' : axis, 'speed' : speed, 'dist' : distance}, callback);
 }
 
 

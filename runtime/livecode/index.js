@@ -151,7 +151,7 @@ LiveCodeRuntime.prototype.executeCode = function(code, callback) {
 			break;
 
 		case 'fixed':
-			this.fixedMove(code.axis, code.speed, code.dist);
+			this.fixedMove(code.x_dist, code.y_dist, code.speed);
 			break;
 
 		default:
@@ -212,7 +212,7 @@ LiveCodeRuntime.prototype.stopMotion = function() {
 	this.driver.quit();
 }
 
-LiveCodeRuntime.prototype.fixedMove = function(axis, speed, distance) {
+LiveCodeRuntime.prototype.fixedMove = function(x_dist, y_dist, speed) {
 	if(this.moving) {
 		log.warn("fixedMove: Already moving");
 	} else {
