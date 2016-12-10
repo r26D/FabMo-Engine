@@ -224,7 +224,7 @@ LiveCodeRuntime.prototype.fixedMove = function(axis, speed, distance) {
 				var move = 'G91\nG0 ' + axis + distance.toFixed(5) + '\n';				
 			}
 			this.driver.gcodeWrite(move);
-log.debug("livecodeFIXEDMOVE >> " + )
+log.debug("livecodeFIXEDMOVE >> " + axis);
 		}
 	}
 }
