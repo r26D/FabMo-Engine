@@ -665,8 +665,10 @@ FabMoDashboard.prototype.manualMoveFixed = function(axis, speed, distance, callb
  * @param {Number} axis One of `x`,`y`,`z`,`a`,`b`,`c`
  * @param {Number} speed Speed in current tool units.  Negative to move in the negative direction.
  */
-FabMoDashboard.prototype.manualStart = function(axis, speed) {
+//TH fix? FabMoDashboard.prototype.manualStart = function(axis, speed) {
+FabMoDashboard.prototype.manualStart = function(axis, speed, callback) {
 	this._call("manualStart",{"axis":axis, "speed":speed}, callback);
+	console.log("mstart " + axis + ", @ " + speed);
 }
 
 /**
@@ -675,7 +677,7 @@ FabMoDashboard.prototype.manualStart = function(axis, speed) {
  *
  * @method manualHeartbeat
  */
-FabMoDashboard.prototype.manualHeartbeat = function() {
+FabMoDashboard.prototype.manualHeartbeat = function(callback) {
 	this._call("manualHeartbeat",{}, callback);
 }
 
@@ -684,7 +686,7 @@ FabMoDashboard.prototype.manualHeartbeat = function() {
  *
  * @method manualStop
  */
-FabMoDashboard.prototype.manualStop = function() {
+FabMoDashboard.prototype.manualStop = function(callback) {
 	this._call("manualStop",{}, callback);
 }
 
@@ -711,7 +713,7 @@ FabMoDashboard.prototype.livecodeMoveFixed = function(axis, speed, distance, cal
  * @param {Number} axis One of `x`,`y`,`z`,`a`,`b`,`c`
  * @param {Number} speed Speed in current tool units.  Negative to move in the negative direction.
  */
-FabMoDashboard.prototype.livecodeStart = function(axis, speed) {
+FabMoDashboard.prototype.livecodeStart = function(axis, speed, callback) {
 	this._call("livecodeStart",{"axis":axis, "speed":speed}, callback);
 }
 
@@ -721,7 +723,7 @@ FabMoDashboard.prototype.livecodeStart = function(axis, speed) {
  *
  * @method manualHeartbeat
  */
-FabMoDashboard.prototype.livecodeHeartbeat = function() {
+FabMoDashboard.prototype.livecodeHeartbeat = function(callback) {
 	this._call("livecodeHeartbeat",{}, callback);
 }
 
@@ -730,7 +732,7 @@ FabMoDashboard.prototype.livecodeHeartbeat = function() {
  *
  * @method manualStop
  */
-FabMoDashboard.prototype.livecodeStop = function() {
+FabMoDashboard.prototype.livecodeStop = function(callback) {
 	this._call("livecodeStop",{}, callback);
 }
 
