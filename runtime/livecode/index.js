@@ -192,7 +192,8 @@ LiveCodeRuntime.prototype.renewMoves = function() {
 	if(this.keep_moving) {
 		this.keep_moving = false;
 		var segment = this.currentDirection*(this.renewDistance / RENEW_SEGMENTS);
-		var move = 'G91 F' + this.currentSpeed.toFixed(3) + '\n';
+//		var move = 'G91 F' + this.currentSpeed.toFixed(3) + '\n';
+		var move = 'G90 F' + this.currentSpeed.toFixed(3) + '\n';
 //		for(var i=0; i<RENEW_SEGMENTS; i++) {
 //			move += ('G1 ' + this.currentAxis + segment.toFixed(5) + '\n');
 //		}
