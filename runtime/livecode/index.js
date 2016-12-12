@@ -183,7 +183,8 @@ LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 		this.currentAxis = axis;
 		this.currentSpeed = speed;
 		this.currentDirection = dir;
-		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
+//		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
+		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
 		this.moving = this.keep_moving = true;
 		this.renewMoves();
 	}
