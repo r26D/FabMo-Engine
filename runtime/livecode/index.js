@@ -1,6 +1,7 @@
 var log = require('../../log').logger('livecode');
 
-var T_RENEW = 500;
+//var T_RENEW = 500;
+var T_RENEW = 5000;
 var SAFETY_FACTOR = 1.25;
 var RENEW_SEGMENTS = 15;
 
