@@ -202,7 +202,7 @@ LiveCodeRuntime.prototype.renewMoves = function() {
 	move += ('G1 X100 Y85 \n');
 
 		this.driver.gcodeWrite(move);
-		setTimeout(this.renewMoves.bind(this), T_RENEW)		
+//		setTimeout(this.renewMoves.bind(this), T_RENEW)		
 	} else {
 		if(this.machine.status.state != "stopped") {
 			this.stopMotion();	
