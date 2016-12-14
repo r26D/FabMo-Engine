@@ -186,6 +186,8 @@ LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 //		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
 		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
 		this.moving = this.keep_moving = true;
+		this.xMove = 100;
+		this.yMove = 85;
 		this.renewMoves();
 	}
 };
@@ -199,7 +201,7 @@ LiveCodeRuntime.prototype.renewMoves = function() {
 //		for(var i=0; i<RENEW_SEGMENTS; i++) {
 //			move += ('G1 ' + this.currentAxis + segment.toFixed(5) + '\n');
 //		}
-	move += ('G0 X100 Y85 \n');
+	move += ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) \n');
 
 		this.driver.gcodeWrite(move);
 //		setTimeout(this.renewMoves.bind(this), T_RENEW)		
