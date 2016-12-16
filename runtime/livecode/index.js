@@ -169,7 +169,7 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  * If the tool is already moving, the flag is set to maintain that motion
  */
 //LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
-LiveCodeRuntime.prototype.startMotion = function(xloc, yLoc) {
+LiveCodeRuntime.prototype.startMotion = function(xLoc, yLoc) {
 var speed = 200;
 var axis = "x";	
 	var dir = speed < 0 ? -1.0 : 1.0;
