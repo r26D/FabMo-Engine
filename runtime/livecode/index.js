@@ -168,7 +168,8 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  * Called to set the tool into motion.
  * If the tool is already moving, the flag is set to maintain that motion
  */
-LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
+//LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
+LiveCodeRuntime.prototype.startMotion = function(xloc, yLoc) {
 	var dir = speed < 0 ? -1.0 : 1.0;
 	speed = Math.abs(speed);
 	if(this.moving) {
@@ -181,13 +182,16 @@ LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 	} else {
 		log.debug("startMotion: Not moving yet.")
 		this.currentAxis = axis;
-		this.currentSpeed = speed;
+//		this.currentSpeed = speed;
+		this.currentSpeed = 200;
 		this.currentDirection = dir;
 //		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
 		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
 		this.moving = this.keep_moving = true;
-		this.xMove = 100;
-		this.yMove = 85;
+//		this.xMove = 100;
+//		this.yMove = 85;
+		this.xMove = xLoc;
+		this.yMove = yLoc;
 		this.renewMoves();
 	}
 };
@@ -201,7 +205,7 @@ LiveCodeRuntime.prototype.renewMoves = function() {
 //		for(var i=0; i<RENEW_SEGMENTS; i++) {
 //			move += ('G1 ' + this.currentAxis + segment.toFixed(5) + '\n');
 //		}
-	move += ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) + ' F200 \n');
+	move += ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) + ' \n');
 
 		this.driver.gcodeWrite(move);
 //		setTimeout(this.renewMoves.bind(this), T_RENEW)		

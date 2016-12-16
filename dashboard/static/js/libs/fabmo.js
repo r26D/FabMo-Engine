@@ -696,9 +696,13 @@ FabMoDashboard.prototype.livecodeMoveFixed = function(axis, speed, distance, cal
 	console.log("livestart " + axis + ", @ " + speed + ", dist> " + distance);
 }
 
-FabMoDashboard.prototype.livecodeStart = function(axis, speed, callback) {
-	this._call("livecodeStart",{"axis":axis, "speed":speed}, callback);
-	console.log("livestart " + axis + ", @ " + speed);
+// FabMoDashboard.prototype.livecodeStart = function(axis, speed, callback) {
+// 	this._call("livecodeStart",{"axis":axis, "speed":speed}, callback);
+// 	console.log("livestart " + axis + ", @ " + speed);
+// }
+FabMoDashboard.prototype.livecodeStart = function(xloc, yloc, callback) {
+	this._call("livecodeStart",{"xloc":axis, "yloc":speed}, callback);
+	console.log("livestart " + xloc + ", " + yloc);
 }
 
 FabMoDashboard.prototype.livecodeHeartbeat = function(callback) {
