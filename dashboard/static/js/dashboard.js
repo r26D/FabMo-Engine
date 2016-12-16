@@ -434,8 +434,10 @@ define(function(require) {
 //      this.engine.livecodeStart(data.axis, data.speed, function(err, result) {
       this.engine.livecodeStart(data.xLoc, data.yLoc, function(err, result) {
         if (err) {
+log.debug("_regHandler in dash ERR: " + JSON.stringify(data));
           callback(err);
         } else {
+log.debug("_regHandler in dash OK: " + JSON.stringify(data));
           callback(null);
         }
       });

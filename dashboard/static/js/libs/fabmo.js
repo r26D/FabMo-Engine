@@ -698,7 +698,6 @@ FabMoDashboard.prototype.livecodeMoveFixed = function(axis, speed, distance, cal
 
 // FabMoDashboard.prototype.livecodeStart = function(axis, speed, callback) {
 // 	this._call("livecodeStart",{"axis":axis, "speed":speed}, callback);
-// 	console.log("livestart " + axis + ", @ " + speed);
 // }
 FabMoDashboard.prototype.livecodeStart = function(xLoc, yLoc, callback) {
 	this._call("livecodeStart",{"xLoc":xLoc, "yLoc":yLoc}, callback);

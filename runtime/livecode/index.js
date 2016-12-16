@@ -207,7 +207,7 @@ LiveCodeRuntime.prototype.renewMoves = function() {
 //		for(var i=0; i<RENEW_SEGMENTS; i++) {
 //			move += ('G1 ' + this.currentAxis + segment.toFixed(5) + '\n');
 //		}
-	move += ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) + ' \n');
+	move += ('G0 X' + this.xLoc.toFixed(5) + 'Y' + this.yLoc.toFixed(5) + ' \n');
 
 		this.driver.gcodeWrite(move);
 //		setTimeout(this.renewMoves.bind(this), T_RENEW)		
