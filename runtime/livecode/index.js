@@ -170,7 +170,8 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  */
 //LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 LiveCodeRuntime.prototype.startMotion = function(xloc, yLoc) {
-var speed = 200	
+var speed = 200;
+var axis = "x";	
 	var dir = speed < 0 ? -1.0 : 1.0;
 	speed = Math.abs(speed);
 	if(this.moving) {
