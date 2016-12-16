@@ -431,7 +431,8 @@ define(function(require) {
     }.bind(this));
 
     this._registerHandler('livecodeStart', function(data, callback) {
-      this.engine.livecodeStart(data.axis, data.speed, function(err, result) {
+//      this.engine.livecodeStart(data.axis, data.speed, function(err, result) {
+      this.engine.livecodeStart(data.xLoc, data.yLoc, function(err, result) {
         if (err) {
           callback(err);
         } else {
