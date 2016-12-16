@@ -170,6 +170,7 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  */
 //LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 LiveCodeRuntime.prototype.startMotion = function(xloc, yLoc) {
+var speed = 200	
 	var dir = speed < 0 ? -1.0 : 1.0;
 	speed = Math.abs(speed);
 	if(this.moving) {
@@ -182,8 +183,7 @@ LiveCodeRuntime.prototype.startMotion = function(xloc, yLoc) {
 	} else {
 		log.debug("startMotion: Not moving yet.")
 		this.currentAxis = axis;
-//		this.currentSpeed = speed;
-		this.currentSpeed = 200;
+		this.currentSpeed = speed;
 		this.currentDirection = dir;
 //		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
 		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
