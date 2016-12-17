@@ -141,7 +141,7 @@ log.debug("Recieved livecode command: " + JSON.stringify(code));
 	switch(code.cmd) {
 		case 'start':
 //			this.startMotion(code.axis, code.speed);
-			this.startMotion(code.xLoc, code.yLoc);
+			this.startMotion(code.xloc, code.yloc);
 			break;
 
 		case 'stop':
