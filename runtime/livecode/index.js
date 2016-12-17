@@ -190,11 +190,12 @@ var axis = "x";
 //		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
 		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
 		this.moving = this.keep_moving = true;
-//		this.xMove = 100;
-//		this.yMove = 85;
-		this.xMove = xLoc;
-		this.yMove = yLoc;
+		this.xMove = 100;
+		this.yMove = 85;
+//		this.xMove = xLoc;
+//		this.yMove = yLoc;
 log.debug("LOC @ start: " + xLoc + ", " + yLoc+ ", " + this.xMove + ", " + this.yMove);
+log.debug("what is " + this.toString());
 		this.renewMoves();
 	}
 };
