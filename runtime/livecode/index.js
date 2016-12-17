@@ -170,7 +170,7 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  * If the tool is already moving, the flag is set to maintain that motion
  */
 //LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
-LiveCodeRuntime.prototype.startMotion = function(xLoc, yLoc) {
+LiveCodeRuntime.prototype.startMotion = function(xloc, yloc) {
 var speed = 200;
 var axis = "x";	
 	var dir = speed < 0 ? -1.0 : 1.0;
@@ -190,11 +190,11 @@ var axis = "x";
 //		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
 		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
 		this.moving = this.keep_moving = true;
-		this.xMove = 100;
-		this.yMove = 85;
-//		this.xMove = xLoc;
-//		this.yMove = yLoc;
-log.debug("LOC @ start: " + xLoc + ", " + yLoc+ ", " + this.xMove + ", " + this.yMove);
+//		this.xMove = 100;
+//		this.yMove = 85;
+		this.xMove = xloc;
+		this.yMove = yloc;
+log.debug("LOC @ start: " + xloc + ", " + yloc+ ", " + this.xMove + ", " + this.yMove);
 log.debug("what is " + this.toString());
 		this.renewMoves();
 	}
