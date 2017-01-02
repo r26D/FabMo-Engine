@@ -517,6 +517,7 @@ Machine.prototype.getRuntime = function(name) {
 
 		//TH ??
 		case 'livecode':
+log.debug("assigned livecode runtime in MACHINE");		    
 		    return this.livecode_runtime;
 		    break;
 		
@@ -529,7 +530,7 @@ Machine.prototype.getRuntime = function(name) {
 Machine.prototype.setState = function(source, newstate, stateinfo) {
 	this.fireButtonDebounce = false ;
 	if ((source === this) || (source === this.current_runtime)) {
-		log.info("Got a machine state change: " + newstate)
+		log.info("Got a machine state change IN MACHINE: " + newstate)
 		this.status.state = newstate;
 
 		if(stateinfo) {
@@ -629,7 +630,7 @@ Machine.prototype.runNextJob = function(callback) {
 }
 
 Machine.prototype.executeRuntimeCode = function(runtimeName, code) {
-log.debug("ex_runtime " + runtimeName + "/" + JSON.stringify(code))
+log.debug("ex_runtime IN MACHINE " + runtimeName + "/" + JSON.stringify(code))
 	if(this.status.auth) {
 		return this._executeRuntimeCode(runtimeName, code);
 	}
