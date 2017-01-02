@@ -175,14 +175,14 @@ var speed = 200;
 var axis = "x";	
 	var dir = speed < 0 ? -1.0 : 1.0;
 	speed = Math.abs(speed);
-	if(this.moving) {
-		log.debug("startMotion: Already moving");
-		if(axis === this.currentAxis && speed === this.currentSpeed) {
-			this.maintainMotion();
-		} else {
-			// Deal with direction changes here
-		}
-	} else {
+	// if(this.moving) {
+	// 	log.debug("startMotion: Already moving");
+	// 	if(axis === this.currentAxis && speed === this.currentSpeed) {
+	// 		this.maintainMotion();
+	// 	} else {
+	// 		// Deal with direction changes here
+	// 	}
+	// } else {
 		log.debug("startMotion: Not moving yet.")
 		this.currentAxis = axis;
 		this.currentSpeed = speed;
@@ -197,7 +197,7 @@ var axis = "x";
 log.debug("LOC @ start: " + xloc + ", " + yloc+ ", " + this.xMove + ", " + this.yMove);
 log.debug("what is " + this.toString());
 		this.renewMoves();
-	}
+//	}
 };
 
 LiveCodeRuntime.prototype.renewMoves = function() {
