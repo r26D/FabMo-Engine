@@ -172,10 +172,10 @@ LiveCodeRuntime.prototype.maintainMotion = function() {
  */
 //LiveCodeRuntime.prototype.startMotion = function(axis, speed) {
 LiveCodeRuntime.prototype.startMotion = function(xloc, yloc) {
-var speed = 200;
-var axis = "x";	
-	var dir = speed < 0 ? -1.0 : 1.0;
-	speed = Math.abs(speed);
+//var speed = 200;
+//var axis = "x";	
+//	var dir = speed < 0 ? -1.0 : 1.0;
+//	speed = Math.abs(speed);
 	// if(this.moving) {
 	// 	log.debug("startMotion: Already moving");
 	// 	if(axis === this.currentAxis && speed === this.currentSpeed) {
@@ -184,21 +184,20 @@ var axis = "x";
 	// 		// Deal with direction changes here
 	// 	}
 	// } else {
-		log.debug("startMotion: Not moving yet.");
-		this.currentAxis = axis;
-		this.currentSpeed = speed;
-		this.currentDirection = dir;
+//		log.debug("startMotion: Not moving yet.");
+//		this.currentAxis = axis;
+//		this.currentSpeed = speed;
+//		this.currentDirection = dir;
 //		this.renewDistance = speed*(T_RENEW/60000)*SAFETY_FACTOR;
-		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
-		this.moving = this.keep_moving = true;
+//		this.renewDistance = speed*(5000/60000)*SAFETY_FACTOR;
+//		this.moving = this.keep_moving = true;
 //		this.xMove = 100;
 //		this.yMove = 85;
 		this.xMove = xloc;
 		this.yMove = yloc;
-log.debug("LOC @ start: " + xloc + ", " + yloc+ ", " + this.xMove + ", " + this.yMove);
-log.debug("what is " + this.toString());
-		var move = 'G90' + '\n';
-  	    move += ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) + ' \n');
+log.debug("liveStart-to: " + this.xMove + ", " + this.yMove);
+//log.debug("what is " + this.toString());
+  	    move = ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) + ' \n');
 		this.driver.gcodeWrite(move);
 
 //		this.renewMoves();
