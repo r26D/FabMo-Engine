@@ -12,7 +12,7 @@ function LiveCodeRuntime() {
 
 LiveCodeRuntime.prototype.toString = function() {
 	return "[LiveCodeRuntime]";
-}
+};
 
 LiveCodeRuntime.prototype.connect = function(machine) {
 	this.machine = machine;
@@ -60,7 +60,8 @@ LiveCodeRuntime.prototype._limit = function() {
 		return true;
 	}
 	return false;
-}
+};
+
 LiveCodeRuntime.prototype._onG2Status = function(status) {
 	switch(status.stat) {
 		case this.driver.STAT_INTERLOCK:
@@ -157,13 +158,13 @@ log.debug("Recieved livecode command: " + JSON.stringify(code));
 			break;
 
 		default:
-			log.error("Don't know what to do with '" + code.cmd + "' in livecode command.")
+			log.error("Don't know what to do with '" + code.cmd + "' in livecode command.");
 	}
-}
+};
 
 LiveCodeRuntime.prototype.maintainMotion = function() {
 	this.keep_moving = true;
-}
+};
 
 /*
  * Called to set the tool into motion.
@@ -183,7 +184,7 @@ var axis = "x";
 	// 		// Deal with direction changes here
 	// 	}
 	// } else {
-		log.debug("startMotion: Not moving yet.")
+		log.debug("startMotion: Not moving yet.");
 		this.currentAxis = axis;
 		this.currentSpeed = speed;
 		this.currentDirection = dir;
@@ -196,7 +197,11 @@ var axis = "x";
 		this.yMove = yloc;
 log.debug("LOC @ start: " + xloc + ", " + yloc+ ", " + this.xMove + ", " + this.yMove);
 log.debug("what is " + this.toString());
-		this.renewMoves();
+		var move = 'G90' + '\n';
+  	    move += ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) + ' \n');
+		this.driver.gcodeWrite(move);
+
+//		this.renewMoves();
 //	}
 };
 
@@ -218,43 +223,44 @@ LiveCodeRuntime.prototype.renewMoves = function() {
 			this.stopMotion();	
 		}
 	}
-}
+};
 
 LiveCodeRuntime.prototype.stopMotion = function() {
 	if(this._limit()) { return; }
 	this.keep_moving = false;
 	this.moving = false;
 	this.driver.quit();
-}
+};
 
 LiveCodeRuntime.prototype.fixedMove = function(axis, speed, distance) {
 	if(this.moving) {
 		log.warn("fixedMove: Already moving");
 	} else {
-		var axis = axis.toUpperCase();
+		axis = axis.toUpperCase();
 		if('XYZABCUVW'.indexOf(axis) >= 0) {
+			var move;
 			if(speed) {
-				var move = 'G91\nG1 ' + axis + distance.toFixed(5) + ' F' + speed.toFixed(3) + '\n';
+				move = 'G91\nG1 ' + axis + distance.toFixed(5) + ' F' + speed.toFixed(3) + '\n';
 			} else {
-				var move = 'G91\nG0 ' + axis + distance.toFixed(5) + '\n';				
+				move = 'G91\nG0 ' + axis + distance.toFixed(5) + '\n';				
 			}
 			this.driver.gcodeWrite(move);
 log.debug("livecodeFIXEDMOVE >> " + axis);
 		}
 	}
-}
+};
 
 LiveCodeRuntime.prototype.pause = function() {
 	this.driver.feedHold();
-}
+};
 
 LiveCodeRuntime.prototype.quit = function() {
 	this.driver.quit();
-}
+};
 
 LiveCodeRuntime.prototype.resume = function() {
 	this.driver.resume();
-}
+};
 
 
 exports.LiveCodeRuntime = LiveCodeRuntime;
