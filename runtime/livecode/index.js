@@ -200,7 +200,7 @@ log.debug("liveStart-to: " + this.xMove + ", " + this.yMove);
   	    move = ('G0 X' + this.xMove.toFixed(5) + 'Y' + this.yMove.toFixed(5) + ' \n');
 		this.driver.gcodeWrite(move);
 
-//		this.renewMoves();
+//		 this.renewMoves();
 //	}
 };
 
