@@ -38,6 +38,7 @@ var FabMoDashboard = function(options) {
 		'disconnect' : [],
 		'reconnect' : [],
     	'video_frame' : [],
+      'upload_progress':[]
 	};
 	this._setupMessageListener();
     // listen for escape key press to quit the engine
@@ -766,6 +767,10 @@ FabMoDashboard.prototype.getUpdaterConfig = function(callback) {
 
 FabMoDashboard.prototype.setUpdaterConfig = function(data, callback) {
 	this._call("setUpdaterConfig", data, callback);
+}
+
+FabMoDashboard.prototype.getInfo = function(callback) {
+	this._call("getInfo", null, callback);
 }
 
 FabMoDashboard.prototype.getConfig = function(callback) {

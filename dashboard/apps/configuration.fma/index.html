@@ -104,9 +104,9 @@
             </div>
             <div class="large-4 columns">
               <div class="row collapse">
-                <label>Junction Aggression</label>
+                <label>Junction Integration Time</label>
                 <div class="small-12 columns">
-                  <input type="text" id="driver-ja" class="driver-input" />
+                  <input type="text" id="driver-jt" class="driver-input" />
                 </div>
               </div>
             </div>
@@ -133,8 +133,9 @@
               <div class="row collapse">
                 <label>Status Report Interval</label>
                 <div class="small-9 columns">
-                <input type="text" id="driver-si" class="driver-input" />
-                               <div class="small-3 columns">
+                  <input type="text" id="driver-si" class="driver-input" />
+                </div>
+                <div class="small-3 columns">
                   <span class="postfix">ms</span>
                 </div>
               </div>
@@ -1573,7 +1574,7 @@
                   <input type="number" id="machine-envelope-xmin" class="machine-input" />
                 </div>
                 <div class="small-3 columns">
-                  <span class="postfix">in</span>
+                  <span class="postfix in_mm_label"></span>
                 </div>
               </div>
             </div>
@@ -1585,7 +1586,7 @@
                   <input type="number" id="machine-envelope-xmax" class="machine-input" />
                 </div>
                 <div class="small-3 columns">
-                  <span class="postfix">in</span>
+                  <span class="postfix in_mm_label"></span>
                 </div>
               </div>
             </div>
@@ -1597,7 +1598,7 @@
                   <input type="number" id="machine-envelope-ymin" class="machine-input" />
                 </div>
                 <div class="small-3 columns">
-                  <span class="postfix">in</span>
+                  <span class="postfix in_mm_label"></span>
                 </div>
               </div>
             </div>
@@ -1609,7 +1610,7 @@
                   <input type="number" id="machine-envelope-ymax" class="machine-input" />
                 </div>
                 <div class="small-3 columns">
-                  <span class="postfix">in</span>
+                  <span class="postfix in_mm_label"></span>
                 </div>
               </div>
             </div>
@@ -1723,6 +1724,26 @@
               </div>
             </div>
           </fieldset>
+          <fieldset>
+            <legend>Quit Button</legend>
+            <div class="large-6 columns">
+              <div class="row collapse">
+                <label>Quit Button Input
+                  <select id="machine-quit_input" class="machine-input">
+                    <option value="1">Input 1</option>
+                    <option value="2">Input 2</option>
+                    <option value="3">Input 3</option>
+                    <option value="4">Input 4</option>
+                    <option value="5">Input 5</option>
+                    <option value="6">Input 6</option>
+                    <option value="7">Input 7</option>
+                    <option value="8">Input 8</option>
+                  </select>
+                </label>
+              </div>
+   
+            </div>
+          </fieldset>
 
         </div>
       </section>
@@ -1740,6 +1761,7 @@
               <table id="appmanager-table">
                 <thead>
                   <tr>
+                    <th class="small-1">Default</th>
                     <th class="small-2">
                       <!--ICON-->
                     </th>

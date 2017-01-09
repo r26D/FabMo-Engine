@@ -34,13 +34,15 @@ function addWifiEntries(network_entries, callback) {
         var strength = row.insertCell(2);
         strength.className = 'wifi0';
 
-        var ssidText = entry.ssid || '<Hidden SSID>';
-        var securityText = entry.security ? entry.security.join(',') : '';
-
-		ssid.innerHTML = ssidText
-		security.innerHTML = securityText;
-		strength.innerHTML = '';
-	});
+	var ssidText = entry.ssid || '<Hidden SSID>';
+	var securityText = entry.security ? entry.security.join(',') : '';
+        var strengthNumber = 2 * (entry.signal + 100);
+	strengthNumber = Math.min(100, Math.max(0, strengthNumber));
+	strengthNumber = Math.round(strengthNumber*5/100);
+	ssid.innerHTML = ssidText;
+	security.innerHTML = securityText;
+	strength.className = 'wifi'+(strengthNumber-1);
+   });
 }
 
 // Get history from the tool, and add entries to the table
@@ -180,6 +182,7 @@ function enterAPMode(callback) {
     $('tbody').on('click', 'td.ssid', function () {
         var name = $(this).text();
         requestPassword(name, function(passwd){
+        fabmo.showModal({message:"Your tool is connecting to the network, please use the Tool Minder to find me on the new network called "+name+" ."});
             fabmo.connectToWifi(name, passwd,function(err,data){
                 if(err) {
                     fabmo.notify('error',err);
@@ -192,6 +195,7 @@ function enterAPMode(callback) {
     $('#ap-mode-button').on('click', function(evt) {
         enterAPMode();
         evt.preventDefault();
+        fabmo.showModal({message:"Your tool is now back in AP mode."});
     })
 
 

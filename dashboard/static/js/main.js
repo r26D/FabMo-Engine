@@ -82,11 +82,6 @@ require("../css/toastr.min.css");
         context.apps.fetch({
             success: function() {
 
-                // Create the menu based on the apps thus retrieved
-                context.appMenuView = new context.views.AppMenuView({
-                    collection: context.apps,
-                    el: '#app_menu_container'
-                });
 
                 // Create a FabMo object for the dashboard
                 dashboard.setEngine(engine);
@@ -208,6 +203,7 @@ require("../css/toastr.min.css");
                                 authorizeDialog = false;
                                 dashboard.engine.quit();
                             }
+          
                         });
                     }
                 });
