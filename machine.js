@@ -15,6 +15,7 @@ var async = require('async');
 var GCodeRuntime = require('./runtime/gcode').GCodeRuntime;
 var SBPRuntime = require('./runtime/opensbp').SBPRuntime;
 var ManualRuntime = require('./runtime/manual').ManualRuntime;
+var LiveCodeRuntime = require('./runtime/livecode').LiveCodeRuntime;
 var PassthroughRuntime = require('./runtime/passthrough').PassthroughRuntime;
 var IdleRuntime = require('./runtime/idle').IdleRuntime;
 
@@ -104,6 +105,7 @@ function Machine(control_path, gcode_path, callback) {
 	    this.gcode_runtime = new GCodeRuntime();
 	    this.sbp_runtime = new SBPRuntime();
 	    this.manual_runtime = new ManualRuntime();
+	    this.livecode_runtime = new LiveCodeRuntime();
 	    this.passthrough_runtime = new PassthroughRuntime();
 	    this.idle_runtime = new IdleRuntime();
 
@@ -111,6 +113,7 @@ function Machine(control_path, gcode_path, callback) {
 				this.gcode_runtime,
 				this.sbp_runtime,
 				this.manual_runtime,
+				this.livecode_runtime,
 				this.passthrough_runtime,
 				this.idle_runtime
 			]
@@ -524,6 +527,12 @@ Machine.prototype.getRuntime = function(name) {
 		case 'manual':
 			return this.manual_runtime;
 			break;
+
+		case 'livecode':
+log.debug("Assigned livecode runtime in [machine]");
+			return this.livecode_runtime;
+			break;
+
 		default:
 			return null;
 			break;
@@ -533,14 +542,14 @@ Machine.prototype.getRuntime = function(name) {
 Machine.prototype.setState = function(source, newstate, stateinfo) {
 	this.fireButtonDebounce = false ;
 	if ((source === this) || (source === this.current_runtime)) {
-		log.info("Got a machine state change: " + newstate)
+		log.info("Got a machine state change: " + newstate);
 
 		if(stateinfo) {
-			this.status.info = stateinfo
+			this.status.info = stateinfo;
 			this.info_id += 1;
 			this.status.info.id = this.info_id;
 		} else {
-			delete this.status.info
+			delete this.status.info;
 		}
 
 		switch(newstate) {
