@@ -33,7 +33,7 @@ var EXPECT_TIMEOUT = 300000;
 // the machine has more time to run away before stopping.
 var JOG_TIMEOUT = 500;
 
-var GCODE_BLOCK_SEND_SIZE = 2;    //TH was 4
+var GCODE_BLOCK_SEND_SIZE = 4;    //TH was 4
 var GCODE_MIN_LINE_THRESH = 250;
 
 // Map used by the jog command to turn incoming direction specifiers to g-code
