@@ -442,7 +442,7 @@ G2.prototype.handleStatusReport = function(response) {
 		if('line' in response.sr) {
 			line = response.sr.line;
 			lines_left = this.lines_sent - line;
-log.debug('g2_lines_left',lines_left, lines);  //TH
+log.debug('g2_lines_left',lines_left, line);  //TH
 
 /*
 			if(lines_left < GCODE_MIN_LINE_THRESH) {
