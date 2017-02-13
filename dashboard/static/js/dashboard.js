@@ -909,11 +909,14 @@ log.debug("_regHandler in dash OK: " + JSON.stringify(data));
   //Open Footer
   Dashboard.prototype.openFooter = function() {
     $('.footBar').css('height', '175px');
+    //Set size of app container (so footer does not hide content)
+    $('.main-section').css('padding-bottom','175px');
   }
 
   //Close Footer
   Dashboard.prototype.closeFooter = function() {
     $('.footBar').css('height', '0px');
+    $('.main-section').css('padding-bottom','0px');
   }
 
   //Show Modal

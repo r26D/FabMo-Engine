@@ -1028,7 +1028,6 @@ var showToaster = function (toaster) {
     toaster.style.visibility = 'visible';
     setTimeout(function(){document.body.removeChild(toaster)}, 1000);
 }
-console.log(FabMoDashboard);
 return FabMoDashboard;
 
 }));

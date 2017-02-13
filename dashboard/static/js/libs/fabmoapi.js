@@ -68,7 +68,7 @@ var FabMoAPI = function(base_url) {
 }
 
 FabMoAPI.prototype._initializeWebsocket = function() {
-	var io = require("socket.io/node_modules/socket.io-client/socket.io.js");
+	var io = require("./socket.io.js");
 	localStorage.debug = false
 	try {
 		this.socket = io.connect(this.base_url+'/private');
@@ -307,7 +307,7 @@ FabMoAPI.prototype.deleteJob = function(id, callback) {
 }
 
 
-FabMoAPI.prototype.clearJobQueue = function(id, callback) {
+FabMoAPI.prototype.clearJobQueue = function(callback) {
 	this._del('/jobs/queue', callback, callback);
 }
 
