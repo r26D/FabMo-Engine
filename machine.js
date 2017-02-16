@@ -159,8 +159,8 @@ function Machine(control_path, gcode_path, callback) {
     this.driver.on('status', function(stat) {
     	this.handleFireButton(stat);
     	this.handleAPCollapseButton(stat);
-		this.handleOkayButton(stat);
-		this.handleCancelButton(stat);
+			this.handleOkayButton(stat);
+			this.handleCancelButton(stat);
     }.bind(this));
 }
 util.inherits(Machine, events.EventEmitter);
@@ -556,6 +556,9 @@ Machine.prototype.setState = function(source, newstate, stateinfo) {
 			case 'idle':
 				if(this.status.state != 'idle') {
 					this.driver.command({"out4":0});
+					//if(this.runtime != this.idle_runtime) {
+					//	this.setRuntime(null, function() {});
+					//}
 				}
 				this.status.nb_lines = null;
 				this.status.line = null;
@@ -580,7 +583,7 @@ Machine.prototype.setState = function(source, newstate, stateinfo) {
 			case 'dead':
 				log.error('G2 is dead!');
 				break;
-			default: 
+			default:
 				this.driver.command({"out4":1});
 				break;
 		}
@@ -601,6 +604,8 @@ Machine.prototype.pause = function() {
 };
 
 Machine.prototype.quit = function() {
+  console.log('Quit hit');
+	log.stack();
 	this.disarm();
 	// Quitting from the idle state dismisses the 'info' data
 	if(this.status.state === "idle") {
@@ -613,7 +618,10 @@ Machine.prototype.quit = function() {
 		this.status.job.pending_cancel = true;
 	}
 	if(this.current_runtime) {
+		log.info("Quitting the current runtime...")
 		this.current_runtime.quit();
+	} else {
+		log.warn("No current runtime!")
 	}
 };
 
