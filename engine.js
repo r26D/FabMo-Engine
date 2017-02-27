@@ -131,11 +131,15 @@ Engine.prototype.start = function(callback) {
 
         function check_engine_config(callback) {
             if(!config.engine.userConfigLoaded) {
-                EngineConfigFirstTime(callback);
+                EngineConfigFirstTime(function() {
+                  this.profile = config.engine.get('profile');
+                  callback();
+                }.bind(this));
             } else {
+                this.profile = config.engine.get('profile');
                 callback();
             }
-        },
+        }.bind(this),
 
         function get_fabmo_version(callback) {
             log.info("Getting engine version...");
@@ -229,7 +233,7 @@ Engine.prototype.start = function(callback) {
         function load_machine_config(callback) {
             this.machine = machine.machine;
             log.info('Loading the machine configuration...')
-            config.configureMachine(this.machine, function(err, result) {
+            config.configureMachine(this.machine, this.profile, function(err, result) {
                 if(err) {
                     log.warn(err);
                 }
@@ -249,7 +253,7 @@ Engine.prototype.start = function(callback) {
         function load_driver_config(callback) {
             if(this.machine.isConnected()) {
                 log.info("Configuring G2...");
-                config.configureDriver(machine.machine.driver, function(err, data) {
+                config.configureDriver(machine.machine.driver, this.profile, function(err, data) {
                     if(err) {
                         log.error("There were problems loading the G2 configuration.");
                     }
@@ -334,7 +338,7 @@ Engine.prototype.start = function(callback) {
                 return callback(null);
             }
             log.info("Configuring OpenSBP runtime...");
-            config.configureOpenSBP(callback);
+            config.configureOpenSBP(this.profile, callback);
         }.bind(this),
 
         function apply_machine_config(callback) {

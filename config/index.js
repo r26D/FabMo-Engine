@@ -19,17 +19,22 @@ var log = require('../log').logger('config');
 //
 // Also, create `exports.engine` which is an EngineConfig object
 function configureEngine(callback) {
-	exports.engine = new EngineConfig();
-	exports.engine.init(callback);
+	try {
+		exports.engine = new EngineConfig();
+		exports.engine.init(callback);
+	} catch(e) {
+		callback(e);
+	}
 }
 
 // Configure the driver by loading the configuration from disk and synchronizing
 // it with the configuration of the actual physical driver.
 //
 // Also, create `exports.driver` which is a G2Config object
-function configureDriver(driver, callback) {
+function configureDriver(driver, profile, callback) {
     if(driver) {
-    	log.info("Configuring G2 Driver...");
+			exports.driver = new G2Config(profile);
+	  	log.info("Configuring G2 Driver...");
     	//exports.driver = new G2Config(driver);
 		async.series([
 		function(callback) { exports.driver.init(driver, callback); },
@@ -47,18 +52,14 @@ function configureDriver(driver, callback) {
     }
 }
 
-function configureOpenSBP(callback) {
-	exports.opensbp = new OpenSBPConfig();
+function configureOpenSBP(profile, callback) {
+	exports.opensbp = new OpenSBPConfig(profile);
 	exports.opensbp.init(callback);
 }
 
-function configureMachine(machine, callback) {
+function configureMachine(machine, profile, callback) {
+	exports.machine = new MachineConfig(profile);
 	exports.machine.init(machine, callback);
-}
-
-function configureDashboard(callback) {
-	exports.dashboard = new DashboardConfig(driver);
-	exports.dashboard.init(callback);
 }
 
 function configureInstance(driver, callback) {
@@ -100,8 +101,8 @@ function clearAppRoot(callback) {
     util.doshell('rm -rf ' + Config.getDataDir('approot'), callback);
 }
 
-exports.machine = new MachineConfig();
-exports.driver = new G2Config();
+//exports.machine = new MachineConfig();
+//exports.driver = new G2Config();
 
 exports.configureEngine = configureEngine;
 exports.configureDriver = configureDriver;

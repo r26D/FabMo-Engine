@@ -7,10 +7,12 @@ var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
 // Config is the superclass from which all configuration objects descend
-var Config = function(config_name) {
+var Config = function(config_name, profile_name) {
 	this._cache = {};
 	this.config_name = config_name;
-	this.default_config_file = __dirname + '/default/' + config_name + '.json';
+	this.profile_name = profile_name;
+	this.default_config_file = path.join(__dirname, 'default', config_name + '.json');
+	this.profile_config_file = profile_name ? path.join(process.cwd() ,'profiles', profile_name, 'config', config_name + '.json') : null;
 	this.config_file = Config.getDataDir('config') + '/' + config_name + '.json';
 	this._loaded = false;
 	this.userConfigLoaded = false;
@@ -126,11 +128,30 @@ Config.prototype.save = function(callback) {
 // The init function performs an initial load() from the configuration's settings files.
 // For this to work, the Config object has to have a default_config_file and config_file member
 Config.prototype.init = function(callback) {
+	console.log("init called")
+	console.log(this.profile)
 		var default_count;
         var user_count;
         async.series(
 		[
 			function loadDefault(callback) { this.load(this.default_config_file, callback); }.bind(this),
+			function loadProfile(callback) {
+				if(this.profile_name) {
+						return this.load(this.profile_config_file, function(err, data) {
+							if(err) {
+								if(err.code === "ENOENT") {
+									log.warn('Configuration file ' + this.profile_config_file + ' not found.');
+								} else {
+									log.warn('Problem loading the profile configuration file "' + this.profile_config_file + '": ' + err.message);
+								}
+								return callback(null, this);
+							}
+							log.debug("Loaded a profile configuration file: " + this.profile_config_file);
+							callback();
+						}.bind(this));
+				}
+				setImmediate(callback);
+			}.bind(this),
 			function saveDefaultCount(callback) {
 				default_count = Object.keys(this._cache).length;
 				callback();

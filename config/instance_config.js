@@ -9,7 +9,7 @@ InstanceConfig = function(driver) {
 };
 util.inherits(InstanceConfig, Config);
 
-// The instance update function is pretty basic for now, 
+// The instance update function is pretty basic for now,
 // but if new values provoke a reconfiguration of the application, this is where it will be done.
 InstanceConfig.prototype.update = function(data, callback) {
 	try {

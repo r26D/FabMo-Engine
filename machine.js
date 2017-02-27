@@ -137,6 +137,8 @@ function Machine(control_path, gcode_path, callback) {
 
     }.bind(this));
 
+		/*
+		 //TODO setup this listener elsewhere
     config.driver.on('change', function(update) {
     	['x','y','z','a','b'].forEach(function(axis) {
     		var mode = axis + 'am';
@@ -159,6 +161,7 @@ function Machine(control_path, gcode_path, callback) {
 			this.handleOkayButton(stat);
 			this.handleCancelButton(stat);
     }.bind(this));
+		*/
 }
 util.inherits(Machine, events.EventEmitter);
 

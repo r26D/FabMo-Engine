@@ -6,8 +6,8 @@ var PLATFORM = require('process').platform;
 var Config = require('./config').Config;
 
 // The EngineConfig object keeps track of engine-specific settings
-OpenSBPConfig = function() {
-	Config.call(this, 'opensbp');
+OpenSBPConfig = function(profile) {
+	Config.call(this, 'opensbp', profile);
 };
 util.inherits(OpenSBPConfig, Config);
 

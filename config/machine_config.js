@@ -4,8 +4,8 @@ var log = require('../log').logger('machine_config');
 var u = require('../util');
 
 // The EngineConfig object keeps track of engine-specific settings
-var MachineConfig = function() {
-	Config.call(this, 'machine');
+var MachineConfig = function(profile) {
+	Config.call(this, 'machine', profile);
 };
 util.inherits(MachineConfig, Config);
 
