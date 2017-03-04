@@ -3,6 +3,7 @@ var util = require('../util');
 var machine = require('../machine').machine;
 var log=require('../log').logger("websocket");
 var authentication = require('../authentication');
+var User = require('../db').User;
 var passport = authentication.passport;
 var sessions = require("client-sessions");
 var parseCookie = require('./util').parseCookie;
@@ -26,7 +27,15 @@ function setupAuthentication(server){
 		}
     // Pull out the user from the cookie by using the decode function
     handshakeData.sessionID = sessions.util.decode({cookieName: 'session', secret:server.cookieSecret}, cookie['session']);
-
+		var user = handshakeData.sessionID.content.passport.user;
+		authentication.getUserById(user, function (err, data){
+			if (err){
+				log.error(err);
+			} else {
+				authentication.setCurrentUser(data);
+			}
+		});
+		// authentication.configure();
 		if(!handshakeData.sessionID){
 			return next(new Error('Wrong session'));
 		}
@@ -82,6 +91,7 @@ var onPublicConnect = function(socket) {
 		socket.emit('pong');
 	});
 
+
 };
 
 
@@ -92,6 +102,10 @@ var onPrivateConnect = function(socket) {
 		return socket.disconnect();
 
 	var userId = socket.request.sessionID.content.passport.user;
+
+	authentication.eventEmitter.on('user_change', function(data){
+		socket.emit('user_change', data);
+	});
 
 	authentication.eventEmitter.on('user_kickout',function user_kickout_listener(user){
 		authentication.eventEmitter.removeListener('user_kickout',user_kickout_listener);
@@ -108,6 +122,8 @@ var onPrivateConnect = function(socket) {
 	socket.on('code', function(data) {
 
 		if(!authentication.getCurrentUser() || authentication.getCurrentUser()._id != userId){
+			log.error(userId);
+			log.error(authentication.getCurrentUser());
 			socket.emit('authentication_failed','not authenticated');
 			return socket.disconnect();
 		} // make sure that if the user logout, he can't talk through the socket anymore.
@@ -122,6 +138,8 @@ var onPrivateConnect = function(socket) {
 
 	socket.on('cmd', function(data) {
 		if(!authentication.getCurrentUser() || authentication.getCurrentUser()._id != userId){
+			log.error(userId);
+			log.error(authentication.getCurrentUser());
 			socket.emit('authentication_failed','not authenticated');
 			return socket.disconnect();
 		} // make sure that if the user logout, he can't talk through the socket anymore.
@@ -146,6 +164,10 @@ var onPrivateConnect = function(socket) {
 		} catch(e) {
 			// pass
 		}
+	});
+
+	socket.on('user_kickout', function(data){
+		console.error(data);
 	});
 
 
