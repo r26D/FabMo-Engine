@@ -18,3 +18,4 @@ config/data/*.json
 dashboard/build/*
 !dashboard/build/index.html
 install_token
+fabmo
